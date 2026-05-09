@@ -3,9 +3,12 @@
 ## Core Principle
 **This project is a React frontend experience layer for an existing WordPress-powered SaaS platform.**
 
+## Master Directive
+**WordPress remains the backend, CMS, authentication, and data layer.**
+
 ## Architecture Overview
 - **Frontend**: React (Vite, TypeScript, Tailwind CSS, Framer Motion).
-- **Backend**: WordPress (Existing installation on Hostinger).
+- **Backend/Source of Truth**: WordPress (Existing installation on Hostinger).
 - **Integration Layer**: WordPress REST API.
 
 ## Strategic Intent
