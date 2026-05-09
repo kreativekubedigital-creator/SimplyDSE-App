@@ -50,7 +50,7 @@ const FeatureCard = ({ feature }: { feature: Feature }) => {
   return (
     <motion.div 
       whileHover={{ y: -8, scale: 1.01 }}
-      transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+      transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] as any }}
       className="card-premium h-full p-8 md:p-10 group transition-all duration-500 flex flex-col items-start cursor-default"
     >
       <div className={`w-14 h-14 rounded-2xl ${feature.color} flex-shrink-0 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>

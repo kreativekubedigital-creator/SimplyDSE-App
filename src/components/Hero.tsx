@@ -57,7 +57,7 @@ const Hero = () => {
                   transition: {
                     duration: 1.2,
                     delay: 0.2 + (index * 0.05),
-                    ease: [0.23, 1, 0.32, 1]
+                    ease: [0.23, 1, 0.32, 1] as any
                   }
                 }}
                 className="text-[16vw] font-black text-transparent uppercase tracking-tighter leading-[0.8] inline-block will-change-transform"
