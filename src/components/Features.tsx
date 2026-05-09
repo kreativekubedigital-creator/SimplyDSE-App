@@ -1,10 +1,19 @@
 import { Shield, Zap, Globe, BarChart3 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Section from './ui/Section';
 import Heading from './ui/Heading';
 import Badge from './ui/Badge';
 import Reveal from './ui/Reveal';
 
-const features = [
+interface Feature {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  color: string;
+  size: string;
+}
+
+const features: Feature[] = [
   {
     title: "Automated Compliance",
     description: "Self-service workflows that handle thousands of assessments with zero manual intervention.",
@@ -35,6 +44,19 @@ const features = [
   }
 ];
 
+const FeatureCard = ({ feature }: { feature: Feature }) => {
+  const Icon = feature.icon;
+  return (
+    <div className="card-premium h-full p-8 md:p-10 group hover:-translate-y-1 transition-all duration-500">
+      <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+        <Icon className="w-7 h-7" />
+      </div>
+      <h3 className="text-2xl font-bold text-text-primary mb-4 tracking-tight">{feature.title}</h3>
+      <p className="text-text-secondary leading-relaxed text-base">{feature.description}</p>
+    </div>
+  );
+};
+
 const Features = () => {
   return (
     <Section id="features" className="bg-white">
@@ -57,33 +79,11 @@ const Features = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         {/* First Row: Automated Compliance, Operational Data, and Image */}
         <Reveal delay={0.1} className="col-span-1" direction="up" width="100%">
-          {(() => {
-            const Icon = features[0].icon;
-            return (
-              <div className="card-premium h-full p-8 md:p-10 group hover:-translate-y-1 transition-all duration-500">
-                <div className={`w-14 h-14 rounded-2xl ${features[0].color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
-                  <Icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-text-primary mb-4 tracking-tight">{features[0].title}</h3>
-                <p className="text-text-secondary leading-relaxed text-base">{features[0].description}</p>
-              </div>
-            );
-          })()}
+          <FeatureCard feature={features[0]} />
         </Reveal>
 
         <Reveal delay={0.2} className="col-span-1" direction="up" width="100%">
-          {(() => {
-            const Icon = features[1].icon;
-            return (
-              <div className="card-premium h-full p-8 md:p-10 group hover:-translate-y-1 transition-all duration-500">
-                <div className={`w-14 h-14 rounded-2xl ${features[1].color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
-                  <Icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-text-primary mb-4 tracking-tight">{features[1].title}</h3>
-                <p className="text-text-secondary leading-relaxed text-base">{features[1].description}</p>
-              </div>
-            );
-          })()}
+          <FeatureCard feature={features[1]} />
         </Reveal>
 
         <Reveal delay={0.3} className="col-span-1" direction="up" width="100%">
@@ -102,33 +102,11 @@ const Features = () => {
 
         {/* Second Row: Global Reach and HR Stack Sync */}
         <Reveal delay={0.4} className="col-span-1" direction="up" width="100%">
-          {(() => {
-            const Icon = features[2].icon;
-            return (
-              <div className="card-premium h-full p-8 md:p-10 group hover:-translate-y-1 transition-all duration-500">
-                <div className={`w-14 h-14 rounded-2xl ${features[2].color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
-                  <Icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-text-primary mb-4 tracking-tight">{features[2].title}</h3>
-                <p className="text-text-secondary leading-relaxed text-base">{features[2].description}</p>
-              </div>
-            );
-          })()}
+          <FeatureCard feature={features[2]} />
         </Reveal>
 
         <Reveal delay={0.5} className="col-span-1 md:col-span-2" direction="up" width="100%">
-          {(() => {
-            const Icon = features[3].icon;
-            return (
-              <div className="card-premium h-full p-8 md:p-10 group hover:-translate-y-1 transition-all duration-500">
-                <div className={`w-14 h-14 rounded-2xl ${features[3].color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
-                  <Icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-text-primary mb-4 tracking-tight">{features[3].title}</h3>
-                <p className="text-text-secondary leading-relaxed text-base">{features[3].description}</p>
-              </div>
-            );
-          })()}
+          <FeatureCard feature={features[3]} />
         </Reveal>
       </div>
     </Section>
