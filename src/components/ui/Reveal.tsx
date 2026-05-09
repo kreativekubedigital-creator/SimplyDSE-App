@@ -47,7 +47,7 @@ const Reveal = ({
       transition: {
         duration: 1.2,
         delay: delay,
-        ease: [0.23, 1, 0.32, 1] 
+        ease: [0.23, 1, 0.32, 1] as any
       }
     }
   };
