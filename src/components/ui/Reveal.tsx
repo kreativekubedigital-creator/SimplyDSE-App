@@ -8,6 +8,7 @@ interface RevealProps {
   direction?: "up" | "down" | "left" | "right";
   distance?: number;
   className?: string;
+  hFull?: boolean;
 }
 
 const Reveal = ({ 
@@ -16,7 +17,8 @@ const Reveal = ({
   delay = 0, 
   direction = "up", 
   distance = 20,
-  className = "" 
+  className = "",
+  hFull = false
 }: RevealProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-10%" });
@@ -43,17 +45,19 @@ const Reveal = ({
       transition: {
         duration: 0.8,
         delay: delay,
-        ease: "easeOut" as any // Use 'as any' to satisfy strict Framer Motion v12 types
+        ease: "easeOut" as any 
       }
     }
   };
 
   return (
-    <div ref={ref} style={{ position: "relative", width, overflow: "visible" }} className={className}>
+    <div ref={ref} style={{ position: "relative", width, height: hFull ? "100%" : "auto", overflow: "visible" }} className={className}>
       <motion.div
         variants={variants}
         initial="hidden"
         animate={mainControls}
+        className={hFull ? "h-full" : ""}
+        style={hFull ? { height: "100%" } : {}}
       >
         {children}
       </motion.div>

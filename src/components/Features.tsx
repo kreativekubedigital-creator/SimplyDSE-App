@@ -47,12 +47,12 @@ const features: Feature[] = [
 const FeatureCard = ({ feature }: { feature: Feature }) => {
   const Icon = feature.icon;
   return (
-    <div className="card-premium h-full p-8 md:p-10 group hover:-translate-y-1 transition-all duration-500">
-      <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+    <div className="card-premium h-full p-8 md:p-10 group hover:-translate-y-1 transition-all duration-500 flex flex-col items-start">
+      <div className={`w-14 h-14 rounded-2xl ${feature.color} flex-shrink-0 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
         <Icon className="w-7 h-7" />
       </div>
       <h3 className="text-2xl font-bold text-text-primary mb-4 tracking-tight">{feature.title}</h3>
-      <p className="text-text-secondary leading-relaxed text-base">{feature.description}</p>
+      <p className="text-text-secondary leading-relaxed text-base flex-grow">{feature.description}</p>
     </div>
   );
 };
@@ -78,11 +78,11 @@ const Features = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         {/* First Row: Automated Compliance, Operational Data, and Image */}
-        <Reveal delay={0.1} className="col-span-1" direction="up" width="100%">
+        <Reveal delay={0.1} className="col-span-1" direction="up" width="100%" hFull>
           <FeatureCard feature={features[0]} />
         </Reveal>
 
-        <Reveal delay={0.2} className="col-span-1" direction="up" width="100%">
+        <Reveal delay={0.2} className="col-span-1" direction="up" width="100%" hFull>
           <FeatureCard feature={features[1]} />
         </Reveal>
 
@@ -101,11 +101,11 @@ const Features = () => {
         </Reveal>
 
         {/* Second Row: Global Reach and HR Stack Sync */}
-        <Reveal delay={0.4} className="col-span-1" direction="up" width="100%">
+        <Reveal delay={0.4} className="col-span-1" direction="up" width="100%" hFull>
           <FeatureCard feature={features[2]} />
         </Reveal>
 
-        <Reveal delay={0.5} className="col-span-1 md:col-span-2" direction="up" width="100%">
+        <Reveal delay={0.5} className="col-span-1 md:col-span-2" direction="up" width="100%" hFull>
           <FeatureCard feature={features[3]} />
         </Reveal>
       </div>
