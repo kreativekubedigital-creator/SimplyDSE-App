@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Trust from './components/Trust';
 import Features from './components/Features';
+import Solutions from './components/Solutions';
 import Workflow from './components/Workflow';
 import DashboardPreview from './components/DashboardPreview';
 import Challenges from './components/Challenges';
@@ -41,6 +42,8 @@ function App() {
           <div className="bg-bg-light border-y border-border-subtle">
             <Features />
           </div>
+
+          <Solutions />
 
           {/* Section 4: Workflow (White) */}
           <Workflow />

@@ -82,7 +82,7 @@ const Features = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-        {/* First Row: Automated Compliance, Operational Data, and Image */}
+        {/* Row 1: Automated Compliance, Operational Data, and Assessment Image */}
         <Reveal delay={0.1} className="col-span-1" direction="up" width="100%" hFull>
           <FeatureCard feature={features[0]} />
         </Reveal>
@@ -94,23 +94,42 @@ const Features = () => {
         <Reveal delay={0.3} className="col-span-1" direction="up" width="100%">
           <div className="relative group h-full">
             <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary/20 to-brand-primary/0 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative h-full min-h-[300px] rounded-2xl overflow-hidden border border-slate-100 shadow-xl bg-slate-50">
+            <div className="relative h-full min-h-[350px] rounded-2xl overflow-hidden border border-slate-100 shadow-xl bg-slate-50">
               <img 
-                src="/operational_excellence.png" 
-                alt="Operational Excellence Visualization" 
-                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000"
+                src="/dse_assessment.png" 
+                alt="Person carrying out a DSE assessment" 
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+              <div className="absolute bottom-6 left-6">
+                <p className="text-white font-medium text-sm">User-led self-assessments</p>
+              </div>
             </div>
           </div>
         </Reveal>
 
-        {/* Second Row: Global Reach and HR Stack Sync */}
-        <Reveal delay={0.4} className="col-span-1" direction="up" width="100%" hFull>
-          <FeatureCard feature={features[2]} />
+        {/* Row 2: Compliance Officer Image, Global Reach and HR Stack Sync */}
+        <Reveal delay={0.4} className="col-span-1" direction="up" width="100%">
+          <div className="relative group h-full">
+            <div className="relative h-full min-h-[350px] rounded-2xl overflow-hidden border border-slate-100 shadow-xl bg-slate-50">
+              <img 
+                src="/compliance_officer.png" 
+                alt="Compliance officer monitoring risks" 
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+              <div className="absolute bottom-6 left-6">
+                <p className="text-white font-medium text-sm">Real-time risk oversight</p>
+              </div>
+            </div>
+          </div>
         </Reveal>
 
         <Reveal delay={0.5} className="col-span-1" direction="up" width="100%" hFull>
+          <FeatureCard feature={features[2]} />
+        </Reveal>
+
+        <Reveal delay={0.6} className="col-span-1" direction="up" width="100%" hFull>
           <FeatureCard feature={features[3]} />
         </Reveal>
       </div>
