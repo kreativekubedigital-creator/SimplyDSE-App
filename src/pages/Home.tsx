@@ -43,32 +43,32 @@ const Home = () => {
       <Trust data={pageData?.trust} />
 
       {/* Section 3: New Features Grid (Black) */}
-      <FeaturesGrid data={pageData?.features} />
+      <FeaturesGrid />
 
       {/* Section 4: Workflow (Dark) */}
-      <Workflow data={pageData?.workflow} />
+      <Workflow />
 
       {/* Section 5: Challenges (White) */}
       <Challenges data={pageData?.challenges} />
 
-      <Solutions data={pageData?.solutions} />
+      <Solutions />
 
       <HumanImpact data={pageData?.human_impact} />
 
       {/* Section 6: Dashboard Preview */}
       <div className="bg-slate-50 border-y border-border-subtle">
-        <DashboardPreview data={pageData?.dashboard} />
+        <DashboardPreview />
       </div>
 
       {/* Section 7: Security */}
       <div className="bg-bg-light border-y border-border-subtle">
-        <Security data={pageData?.security} />
+        <Security />
       </div>
 
       {/* Section 8: Testimonials */}
-      <Testimonials data={pageData?.testimonials} />
+      <Testimonials />
 
-      <CTA data={pageData?.cta} />
+      <CTA />
     </main>
   );
 };

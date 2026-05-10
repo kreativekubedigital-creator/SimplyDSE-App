@@ -15,3 +15,9 @@ export async function getPageBySlug(slug: string): Promise<any> {
   const data = await response.json();
   return data[0]; // REST API returns an array for slug filters
 }
+
+export async function getPostBySlug(slug: string): Promise<any> {
+  const response = await fetch(`${API_URL}/posts?slug=${slug}&_embed`);
+  const data = await response.json();
+  return data[0];
+}

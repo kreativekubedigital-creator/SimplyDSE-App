@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Reveal from '../components/ui/Reveal';
 import { getPosts } from "../services/wordpress";
 import { ArrowRight, Calendar, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Blog = () => {
   const [posts, setPosts] = useState<any[]>([]);
@@ -36,10 +37,17 @@ const Blog = () => {
                 <Reveal key={post.id} delay={i * 0.1} direction="up" hFull>
                   <article className="group h-full flex flex-col bg-slate-50 border border-border-subtle rounded-[2rem] overflow-hidden hover:border-brand-primary/30 transition-all hover:shadow-xl hover:-translate-y-1">
                     {/* Placeholder for featured image if missing */}
-                    <div className="aspect-[16/9] bg-slate-200 overflow-hidden relative">
+                    <Link to={`/blog/${post.slug}`} className="aspect-[16/9] bg-slate-200 overflow-hidden relative block">
                        {/* You could add a dynamic image here if available in post._embedded */}
                        <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 to-transparent" />
-                    </div>
+                       {post._embedded?.['wp:featuredmedia']?.[0]?.source_url && (
+                         <img 
+                           src={post._embedded['wp:featuredmedia'][0].source_url} 
+                           alt={post.title.rendered}
+                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                         />
+                       )}
+                    </Link>
                     
                     <div className="p-8 flex-1 flex flex-col">
                       <div className="flex items-center gap-4 mb-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.15em]">
@@ -53,22 +61,24 @@ const Blog = () => {
                         </span>
                       </div>
 
-                      <h2 
-                        className="text-2xl font-bold text-text-primary mb-4 leading-tight group-hover:text-brand-primary transition-colors"
-                        dangerouslySetInnerHTML={{ __html: post.title.rendered }} 
-                      />
+                      <Link to={`/blog/${post.slug}`}>
+                        <h2 
+                          className="text-2xl font-bold text-text-primary mb-4 leading-tight group-hover:text-brand-primary transition-colors"
+                          dangerouslySetInnerHTML={{ __html: post.title.rendered }} 
+                        />
+                      </Link>
                       
                       <div 
                         className="text-text-secondary text-sm leading-relaxed mb-8 line-clamp-3"
                         dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered }} 
                       />
 
-                      <div className="mt-auto pt-6 border-t border-border-subtle flex items-center justify-between">
+                      <Link to={`/blog/${post.slug}`} className="mt-auto pt-6 border-t border-border-subtle flex items-center justify-between">
                         <span className="text-sm font-bold text-text-primary group-hover:text-brand-primary transition-colors">Read Article</span>
                         <div className="w-8 h-8 rounded-full bg-white border border-border-subtle flex items-center justify-center group-hover:bg-brand-primary group-hover:border-brand-primary group-hover:text-white transition-all">
                           <ArrowRight className="w-4 h-4" />
                         </div>
-                      </div>
+                      </Link>
                     </div>
                   </article>
                 </Reveal>

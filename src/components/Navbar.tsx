@@ -4,7 +4,11 @@ import { Menu, X } from 'lucide-react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import getAssetPath from '../utils/wp-integration';
 
-const Navbar = () => {
+interface NavbarProps {
+  onLoginClick: () => void;
+}
+
+const Navbar = ({ onLoginClick }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -73,7 +77,10 @@ const Navbar = () => {
 
           {/* Actions */}
           <div className="hidden md:flex items-center gap-8">
-            <button className="text-[13px] font-bold text-text-secondary hover:text-text-primary transition-colors">
+            <button 
+              onClick={onLoginClick}
+              className="text-[13px] font-bold text-text-secondary hover:text-text-primary transition-colors"
+            >
               Log in
             </button>
             <Link to="/contact" className="btn-enterprise-primary !py-2.5 !px-6 !text-[13px] !rounded-xl">
@@ -111,6 +118,15 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              <button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onLoginClick();
+                }}
+                className="text-lg font-bold text-text-primary text-left"
+              >
+                Log in
+              </button>
               <hr className="border-border-subtle" />
               <button className="w-full btn-enterprise-primary py-4">
                 Book Demo
