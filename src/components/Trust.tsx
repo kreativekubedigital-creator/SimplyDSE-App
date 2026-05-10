@@ -3,7 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Reveal from './ui/Reveal';
 import getAssetPath from '../utils/wp-integration';
 
-const Trust = () => {
+interface TrustProps {
+  data?: {
+    headline?: string;
+  };
+}
+
+const Trust = ({ data }: TrustProps) => {
   const allLogos = [
     { src: '/011%20(1).png', alt: 'AdvT' },
     { src: '/011%20(2).png', alt: 'Senedd Cymru Welsh Parliament' },
@@ -36,7 +42,7 @@ const Trust = () => {
         <Reveal delay={0.1} width="100%">
           <div className="text-center mb-16">
             <span className="label-secondary tracking-[0.3em] opacity-80">
-              Trusted by Global Enterprise Leaders
+              {data?.headline || "Trusted by Global Enterprise Leaders"}
             </span>
           </div>
         </Reveal>

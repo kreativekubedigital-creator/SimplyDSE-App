@@ -1,8 +1,20 @@
 import Reveal from './ui/Reveal';
 import getAssetPath from '../utils/wp-integration';
 
-const HumanImpact = () => {
-  const images = [
+interface HumanImpactProps {
+  data?: {
+    badge?: string;
+    headline?: string;
+    items?: {
+      src: string;
+      title: string;
+      desc: string;
+    }[];
+  };
+}
+
+const HumanImpact = ({ data }: HumanImpactProps) => {
+  const defaultImages = [
     {
       src: getAssetPath('/collaboration.png'),
       title: "Collaborative Safety",
@@ -20,18 +32,19 @@ const HumanImpact = () => {
     }
   ];
 
+  const images = data?.items || defaultImages;
+
   return (
     <section className="bg-white">
       <div className="section-container">
         <div className="mb-20 text-center max-w-3xl mx-auto">
           <Reveal delay={0.1}>
-            <span className="badge-enterprise">The Human Element</span>
+            <span className="badge-enterprise">{data?.badge || "The Human Element"}</span>
           </Reveal>
           <Reveal delay={0.2}>
-            <h2 className="text-5xl md:text-6xl font-bold text-text-primary mt-6 tracking-tight leading-[1.05]">
-              Technology that <br className="hidden md:block" />
-              <span className="text-brand-primary">empowers people.</span>
-            </h2>
+            <h2 className="text-5xl md:text-6xl font-bold text-text-primary mt-6 tracking-tight leading-[1.05]"
+                dangerouslySetInnerHTML={{ __html: data?.headline || "Technology that <br class=\"hidden md:block\" /> <span class=\"text-brand-primary\">empowers people.</span>" }}
+            />
           </Reveal>
         </div>
 

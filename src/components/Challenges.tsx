@@ -1,8 +1,20 @@
 import Reveal from './ui/Reveal';
 import { AlertCircle, Clock, FileWarning, TrendingDown } from 'lucide-react';
 
-const Challenges = () => {
-  const challenges = [
+interface ChallengesProps {
+  data?: {
+    badge?: string;
+    headline?: string;
+    description?: string;
+    items?: {
+      title: string;
+      description: string;
+    }[];
+  };
+}
+
+const Challenges = ({ data }: ChallengesProps) => {
+  const defaultChallenges = [
     {
       title: "Compliance Drift",
       description: "Regulatory frameworks evolve faster than your manual spreadsheets. Maintaining audit-ready status becomes a full-time liability.",
@@ -20,6 +32,11 @@ const Challenges = () => {
     }
   ];
 
+  const challenges = data?.items?.map((item, index) => ({
+    ...item,
+    icon: [FileWarning, TrendingDown, Clock][index % 3] // Cycle through icons
+  })) || defaultChallenges;
+
   return (
     <section id="challenges" className="bg-white">
       <div className="section-container">
@@ -27,16 +44,16 @@ const Challenges = () => {
           {/* Headline Side */}
           <div className="lg:w-1/3">
             <Reveal delay={0.1}>
-              <span className="badge-enterprise">The Reality</span>
+              <span className="badge-enterprise">{data?.badge || "The Reality"}</span>
             </Reveal>
             <Reveal delay={0.2}>
-              <h2 className="text-4xl md:text-5xl font-bold text-text-primary mt-6 tracking-tight text-balance leading-[1.1]">
-                The cost of <span className="text-danger">manual</span> compliance.
-              </h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-text-primary mt-6 tracking-tight text-balance leading-[1.1]" 
+                  dangerouslySetInnerHTML={{ __html: data?.headline || "The cost of <span className=\"text-danger\">manual</span> compliance." }} 
+              />
             </Reveal>
             <Reveal delay={0.3}>
               <p className="text-text-secondary text-lg mt-8 leading-relaxed">
-                Disconnected systems and manual workflows aren't just slow—they're dangerous to your organization's bottom line.
+                {data?.description || "Disconnected systems and manual workflows aren't just slow—they're dangerous to your organization's bottom line."}
               </p>
             </Reveal>
           </div>

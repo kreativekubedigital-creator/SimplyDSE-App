@@ -10,70 +10,68 @@ import Security from '../components/Security';
 import Testimonials from '../components/Testimonials';
 import CTA from '../components/CTA';
 import HumanImpact from '../components/HumanImpact';
-import { getPosts } from "../services/wordpress";
+import { getPageBySlug } from "../services/wordpress";
 
 const Home = () => {
-  const [posts, setPosts] = useState<any[]>([]);
+  const [pageData, setPageData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPosts().then((data) => {
-      setPosts(data);
+    // Assuming your homepage slug in WordPress is 'home'
+    getPageBySlug('home').then((data) => {
+      if (data) {
+        setPageData(data.acf); // ACF fields are usually under the 'acf' key
+      }
+      setLoading(false);
     });
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-12 h-12 border-4 border-slate-100 border-t-brand-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <main>
       {/* Section 1: Hero */}
-      <div>
-        <Hero />
-      </div>
+      <Hero data={pageData?.hero} />
       
       {/* Section 2: Trust (White) */}
-      <Trust />
+      <Trust data={pageData?.trust} />
 
       {/* Section 3: New Features Grid (Black) */}
-      <FeaturesGrid />
+      <FeaturesGrid data={pageData?.features} />
 
       {/* Section 4: Workflow (Dark) */}
-      <Workflow />
+      <Workflow data={pageData?.workflow} />
 
       {/* Section 5: Challenges (White) */}
-      <Challenges />
+      <Challenges data={pageData?.challenges} />
 
-      <Solutions />
+      <Solutions data={pageData?.solutions} />
 
-      <HumanImpact />
+      <HumanImpact data={pageData?.human_impact} />
 
-      {/* Section 6: Dashboard Preview (Soft Gray/Blue Accent) */}
+      {/* Section 6: Dashboard Preview */}
       <div className="bg-slate-50 border-y border-border-subtle">
-        <DashboardPreview />
+        <DashboardPreview data={pageData?.dashboard} />
       </div>
 
-      {/* Section 7: Security (Light Gray) */}
+      {/* Section 7: Security */}
       <div className="bg-bg-light border-y border-border-subtle">
-        <Security />
+        <Security data={pageData?.security} />
       </div>
 
-      {/* Section 8: Testimonials (White) */}
-      <Testimonials />
+      {/* Section 8: Testimonials */}
+      <Testimonials data={pageData?.testimonials} />
 
-      <CTA />
-
-      {/* Temporary WordPress Display */}
-      <section className="py-20 bg-slate-50 border-t border-border-subtle">
-        <div className="section-container">
-          <h1 className="text-3xl font-bold mb-8">WordPress Posts</h1>
-          <div className="grid gap-4">
-            {posts.map((post) => (
-              <div key={post.id} className="p-4 bg-white border border-border-subtle rounded-xl">
-                <h2 className="text-xl font-bold text-text-primary" dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CTA data={pageData?.cta} />
     </main>
   );
 };
+
 
 export default Home;
