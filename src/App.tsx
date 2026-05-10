@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Trust from './components/Trust';
-import FeaturesGrid from './components/FeaturesGrid';
-import Solutions from './components/Solutions';
-import Workflow from './components/Workflow';
-import DashboardPreview from './components/DashboardPreview';
-import Challenges from './components/Challenges';
-import Security from './components/Security';
-import Testimonials from './components/Testimonials';
-import CTA from './components/CTA';
 import Footer from './components/Footer';
-import HumanImpact from './components/HumanImpact';
 import DesignSystem from './components/DesignSystem';
+
+// Pages
+import Home from './pages/Home';
+import About from './pages/About';
+import Blog from './pages/Blog';
+import Contact from './pages/Contact';
 
 function App() {
   const [showDesignSystem, setShowDesignSystem] = useState(false);
@@ -24,53 +20,24 @@ function App() {
   }, []);
 
   return (
-    <div className="simplydse-root min-h-screen bg-white text-text-primary selection:bg-brand-primary/10 selection:text-brand-primary overflow-x-hidden">
-      <Navbar />
-      
-      {showDesignSystem ? (
-        <DesignSystem />
-      ) : (
-        <main>
-          {/* Section 1: Hero */}
-          <div>
-            <Hero />
-          </div>
-          
-          {/* Section 2: Trust (White) */}
-          <Trust />
-
-          {/* Section 3: New Features Grid (Black) */}
-          <FeaturesGrid />
-
-          {/* Section 4: Workflow (Dark) */}
-          <Workflow />
-
-          {/* Section 5: Challenges (White) */}
-          <Challenges />
-
-          <Solutions />
-
-          <HumanImpact />
-
-          {/* Section 6: Dashboard Preview (Soft Gray/Blue Accent) */}
-          <div className="bg-slate-50 border-y border-border-subtle">
-            <DashboardPreview />
-          </div>
-
-          {/* Section 7: Security (Light Gray) */}
-          <div className="bg-bg-light border-y border-border-subtle">
-            <Security />
-          </div>
-
-          {/* Section 8: Testimonials (White) */}
-          <Testimonials />
-
-          <CTA />
-        </main>
-      )}
-      
-      <Footer />
-    </div>
+    <Router>
+      <div className="simplydse-root min-h-screen bg-white text-text-primary selection:bg-brand-primary/10 selection:text-brand-primary overflow-x-hidden">
+        <Navbar />
+        
+        {showDesignSystem ? (
+          <DesignSystem />
+        ) : (
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        )}
+        
+        <Footer />
+      </div>
+    </Router>
   );
 }
 

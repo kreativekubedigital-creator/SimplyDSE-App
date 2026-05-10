@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import getAssetPath from '../utils/wp-integration';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -14,11 +16,13 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { name: 'Features', href: '#features' },
-    { name: 'Solutions', href: '#solutions' },
-    { name: 'Security', href: '#security' },
-    { name: 'Resources', href: '#faq' },
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Contact', href: '/contact' },
   ];
+
+  const isHome = location.pathname === '/';
 
   return (
     <nav 
@@ -35,26 +39,36 @@ const Navbar = () => {
       >
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-3 group cursor-pointer">
+          <Link to="/" className="flex items-center gap-3 group cursor-pointer">
             <img 
               src={getAssetPath('/simplydselogo.webp')} 
               alt="SimplyDSE Logo" 
               className="w-8 h-8 transition-opacity duration-500 group-hover:opacity-80"
             />
             <span className="text-xl font-bold text-text-primary tracking-tighter">SimplyDSE</span>
-          </div>
+          </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-10">
             {navLinks.map((link) => (
-              <a 
+              <NavLink 
                 key={link.name}
-                href={link.href}
-                className="text-[13px] font-bold text-text-secondary hover:text-brand-primary transition-colors tracking-tight"
+                to={link.href}
+                className={({ isActive }) => 
+                  `text-[13px] font-bold tracking-tight transition-colors ${
+                    isActive ? 'text-brand-primary' : 'text-text-secondary hover:text-brand-primary'
+                  }`
+                }
               >
                 {link.name}
-              </a>
+              </NavLink>
             ))}
+            {isHome && (
+              <>
+                <a href="#features" className="text-[13px] font-bold text-text-secondary hover:text-brand-primary transition-colors tracking-tight">Features</a>
+                <a href="#solutions" className="text-[13px] font-bold text-text-secondary hover:text-brand-primary transition-colors tracking-tight">Solutions</a>
+              </>
+            )}
           </div>
 
           {/* Actions */}
@@ -62,9 +76,9 @@ const Navbar = () => {
             <button className="text-[13px] font-bold text-text-secondary hover:text-text-primary transition-colors">
               Log in
             </button>
-            <button className="btn-enterprise-primary !py-2.5 !px-6 !text-[13px] !rounded-xl">
+            <Link to="/contact" className="btn-enterprise-primary !py-2.5 !px-6 !text-[13px] !rounded-xl">
               Get Started
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Toggle */}
@@ -88,14 +102,14 @@ const Navbar = () => {
           >
             <div className="flex flex-col gap-6">
               {navLinks.map((link) => (
-                <a 
+                <Link 
                   key={link.name}
-                  href={link.href}
+                  to={link.href}
                   className="text-lg font-bold text-text-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.name}
-                </a>
+                </Link>
               ))}
               <hr className="border-border-subtle" />
               <button className="w-full btn-enterprise-primary py-4">
