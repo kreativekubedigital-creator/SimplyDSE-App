@@ -39,43 +39,36 @@ const Workflow = () => {
           <Reveal delay={0.2}>
             <h2 className="text-5xl md:text-6xl font-bold text-text-primary mt-6 tracking-tight leading-[1.05] text-balance">
               How SimplyDSE drives <br className="hidden md:block" />
-              <span className="text-brand-primary">measurable safety.</span>
+              <span className="text-slate-300">measurable safety.</span>
             </h2>
           </Reveal>
         </div>
 
-        <div className="space-y-32">
+        <div className="max-w-4xl mx-auto space-y-24">
           {steps.map((step, i) => (
-            <Reveal key={i} delay={0.1} direction={i % 2 === 0 ? "left" : "right"} width="100%">
-              <div className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-12 md:gap-24`}>
-                {/* Visual Step Number / Icon */}
-                <div className="flex-1 flex justify-center">
-                  <div className="relative">
-                    <div className="text-[12rem] font-black text-slate-50 absolute -top-24 -left-12 pointer-events-none select-none">
-                      {step.step}
-                    </div>
-                    <div className="w-24 h-24 rounded-3xl bg-white border border-border-subtle shadow-lg flex items-center justify-center relative z-10 group-hover:border-brand-primary/20 transition-colors duration-500">
-                      <step.icon className="w-10 h-10 text-brand-primary" />
-                    </div>
-                    {/* Connection Line */}
-                    {i < steps.length - 1 && (
-                      <div className="hidden md:block absolute top-full left-1/2 -translate-x-1/2 h-32 w-px bg-gradient-to-b from-border-strong to-transparent" />
-                    )}
+            <Reveal key={i} delay={0.1} direction="up" width="100%">
+              <div className="flex flex-col md:flex-row gap-12 items-start group">
+                {/* Visual Step Indicator */}
+                <div className="flex-shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-white border border-border-subtle shadow-sm flex items-center justify-center relative z-10 group-hover:border-brand-primary/20 transition-colors">
+                    <step.icon className="w-6 h-6 text-brand-primary" />
                   </div>
                 </div>
 
                 {/* Content Side */}
-                <div className="flex-[1.5] space-y-6">
-                  <div className="badge-enterprise inline-block mb-2">Phase {step.step}</div>
-                  <h3 className="text-4xl font-bold text-text-primary tracking-tight">
+                <div className="space-y-4">
+                  <div className="label-secondary">Phase {step.step}</div>
+                  <h3 className="text-3xl font-bold text-text-primary tracking-tight">
                     {step.title}
                   </h3>
-                  <p className="text-xl text-text-secondary leading-relaxed max-w-xl font-medium opacity-80">
+                  <p className="text-lg text-text-secondary leading-relaxed max-w-2xl font-medium">
                     {step.description}
                   </p>
-                  <div className="pt-4 flex items-center gap-4 text-sm font-bold text-brand-primary group cursor-pointer">
-                    View Technical Requirements
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <div className="pt-4">
+                    <button className="text-[11px] font-bold text-text-muted uppercase tracking-widest hover:text-brand-primary transition-colors flex items-center gap-2 group">
+                      Technical Documentation
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </button>
                   </div>
                 </div>
               </div>

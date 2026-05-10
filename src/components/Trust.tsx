@@ -17,25 +17,21 @@ const Trust = () => {
 
   return (
     <section id="trust" className="bg-white border-b border-border-subtle overflow-hidden">
-      <div className="section-container !py-24">
+      <div className="section-container !py-20">
         <Reveal delay={0.1}>
-          <div className="text-[11px] font-bold text-text-muted uppercase tracking-[0.3em] mb-16 text-center">
+          <div className="label-secondary mb-16 text-center tracking-[0.2em]">
             Trusted by Global Enterprise Leaders
           </div>
         </Reveal>
 
         <div className="relative">
-          {/* Subtle gradients to mask edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10" />
-          
-          <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-12 grayscale opacity-40 hover:opacity-60 transition-opacity duration-1000">
+          <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-12 grayscale opacity-30">
             {logos.map((logo, i) => (
-              <Reveal key={i} delay={0.2 + i * 0.05} direction="up">
+              <Reveal key={i} delay={0.1} direction="up">
                 <img 
                   src={getAssetPath(logo.src)} 
                   alt={logo.alt} 
-                  className="h-8 md:h-10 w-auto object-contain hover:scale-110 transition-transform duration-500"
+                  className="h-7 w-auto object-contain"
                 />
               </Reveal>
             ))}

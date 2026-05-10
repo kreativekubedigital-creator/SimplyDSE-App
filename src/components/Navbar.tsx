@@ -39,7 +39,7 @@ const Navbar = () => {
             <img 
               src={getAssetPath('/simplydselogo.webp')} 
               alt="SimplyDSE Logo" 
-              className="w-8 h-8 transition-transform duration-500 group-hover:rotate-[15deg]"
+              className="w-8 h-8 transition-opacity duration-500 group-hover:opacity-80"
             />
             <span className="text-xl font-bold text-text-primary tracking-tighter">SimplyDSE</span>
           </div>
@@ -58,13 +58,12 @@ const Navbar = () => {
           </div>
 
           {/* Actions */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-8">
             <button className="text-[13px] font-bold text-text-secondary hover:text-text-primary transition-colors">
               Log in
             </button>
-            <button className="btn-enterprise-primary py-2.5 px-6 text-[13px]">
-              Book Demo
-              <ArrowRight className="ml-2 w-4 h-4" />
+            <button className="btn-enterprise-primary !py-2.5 !px-6 !text-[13px] !rounded-xl">
+              Get Started
             </button>
           </div>
 

@@ -69,7 +69,7 @@ const Metrics = () => {
           </Reveal>
           <Reveal delay={0.2}>
             <h2 className="text-4xl md:text-5xl font-bold text-text-primary mt-6 tracking-tight">
-              Real-time compliance <span className="text-brand-primary">metrics.</span>
+              Real-time compliance <span className="text-slate-300">metrics.</span>
             </h2>
           </Reveal>
         </div>
@@ -77,32 +77,34 @@ const Metrics = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
             <Reveal key={i} delay={0.1 * i} direction="up" hFull>
-              <div className="card-enterprise h-full group hover:bg-slate-50/50">
-                <div className="flex justify-between items-start mb-8">
-                  <div className={`p-2.5 rounded-xl bg-slate-50 border border-border-subtle ${stat.color}`}>
+              <div className="card-enterprise h-full group">
+                <div className="flex justify-between items-start mb-10">
+                  <div className={`w-10 h-10 rounded-xl bg-slate-50 border border-border-subtle flex items-center justify-center ${stat.color}`}>
                     <stat.icon className="w-5 h-5" />
                   </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-50 border border-emerald-100 text-[10px] font-bold text-emerald-600">
+                  <div className="label-secondary !text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 flex items-center gap-1">
                     <ArrowUpRight className="w-3 h-3" />
                     {stat.trend}
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-3xl md:text-4xl font-bold text-text-primary tracking-tighter">
+                  <p className="text-4xl font-bold text-text-primary tracking-tighter">
                     {stat.value}
                   </p>
-                  <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                  <p className="label-secondary">
                     {stat.label}
                   </p>
                 </div>
 
                 <div className="mt-8 pt-8 border-t border-border-subtle space-y-4">
-                  <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-text-muted uppercase tracking-widest">Performance</span>
-                    <span className="text-emerald-600 uppercase tracking-widest">{stat.status}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="label-secondary">Status</span>
+                    <span className="label-secondary !text-emerald-600">{stat.status}</span>
                   </div>
-                  <MiniChart data={stat.chart} color={stat.color} />
+                  <div className="h-6 overflow-hidden">
+                    <MiniChart data={stat.chart} color={stat.color} />
+                  </div>
                 </div>
               </div>
             </Reveal>

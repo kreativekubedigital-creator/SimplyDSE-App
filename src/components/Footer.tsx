@@ -33,11 +33,11 @@ const Footer = () => {
 
           {/* Product Links */}
           <div className="space-y-8">
-            <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-[0.2em]">Platform</h4>
+            <h4 className="label-secondary">Platform</h4>
             <ul className="space-y-4">
               {['Features', 'Operational Workflow', 'Risk Intelligence', 'Enterprise Security'].map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300">
+                  <a href="#" className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300 font-medium">
                     {link}
                   </a>
                 </li>
@@ -47,11 +47,11 @@ const Footer = () => {
 
           {/* Company Links */}
           <div className="space-y-8">
-            <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-[0.2em]">Resources</h4>
+            <h4 className="label-secondary">Resources</h4>
             <ul className="space-y-4">
               {['About SimplyDSE', 'Clinical Framework', 'Case Studies', 'Compliance Blog'].map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300">
+                  <a href="#" className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300 font-medium">
                     {link}
                   </a>
                 </li>
@@ -61,18 +61,18 @@ const Footer = () => {
 
           {/* Support Info */}
           <div className="space-y-8">
-            <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-[0.2em]">Support</h4>
+            <h4 className="label-secondary">Support</h4>
             <ul className="space-y-4">
-              <li className="flex items-start gap-3 text-sm text-text-secondary">
-                <Mail className="w-4 h-4 mt-1 text-brand-primary/40" />
+              <li className="flex items-start gap-3 text-sm text-text-secondary font-medium">
+                <Mail className="w-4 h-4 mt-0.5 text-text-muted" />
                 <span>support@simplydse.com</span>
               </li>
-              <li className="flex items-start gap-3 text-sm text-text-secondary">
-                <Phone className="w-4 h-4 mt-1 text-brand-primary/40" />
+              <li className="flex items-start gap-3 text-sm text-text-secondary font-medium">
+                <Phone className="w-4 h-4 mt-0.5 text-text-muted" />
                 <span>+44 (0) 20 1234 5678</span>
               </li>
-              <li className="flex items-start gap-3 text-sm text-text-secondary">
-                <MapPin className="w-4 h-4 mt-1 text-brand-primary/40" />
+              <li className="flex items-start gap-3 text-sm text-text-secondary font-medium">
+                <MapPin className="w-4 h-4 mt-0.5 text-text-muted" />
                 <span>London Headquarters,<br />United Kingdom</span>
               </li>
             </ul>
