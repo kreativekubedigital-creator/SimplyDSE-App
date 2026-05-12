@@ -14,7 +14,7 @@ export default function SetupPasswordPage() {
   // We only allow setting the password if the user has an active session
   // Supabase auth callback usually logs the user in when they click the magic link
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: any) => {
       if (!session) {
         setError('Invalid or expired invitation link. Please request a new invite.');
       }
