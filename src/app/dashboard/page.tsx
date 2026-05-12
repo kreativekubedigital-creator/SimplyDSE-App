@@ -104,7 +104,7 @@ export default function ComplianceOverviewPage() {
         let empList: any[] = [];
 
         if (assessments) {
-          assessments.forEach(a => {
+          (assessments as any[]).forEach((a: any) => {
             if (a.status === 'completed') {
               completed++;
               if (a.risk_level === 'high') {
