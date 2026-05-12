@@ -57,7 +57,7 @@
 @layer components {
   /* Enterprise Component Classes - Minimalist Pass */
   .section-container {
-    @apply py-[var(--spacing-section-mobile)] md:py-[var(--spacing-section)] px-6 md:px-12 max-w-7xl mx-auto;
+    @apply py-[var(--spacing-section-mobile)] md:py-[var(--spacing-section)] px-6 md:px-12 max-w-[1600px] mx-auto;
   }
 
   .glass-premium {

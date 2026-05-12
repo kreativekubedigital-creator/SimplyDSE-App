@@ -1,6 +1,5 @@
 import Reveal from './ui/Reveal';
 import { ArrowRight, Globe, BarChart2, Briefcase } from 'lucide-react';
-import getAssetPath from '../utils/wp-integration';
 
 const Solutions = () => {
   const solutions = [
@@ -69,7 +68,7 @@ const Solutions = () => {
               <Reveal delay={0.4} direction={item.reverse ? "left" : "right"} width="100%">
                 <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-border-subtle aspect-[4/3] bg-slate-50 group">
                   <img 
-                    src={getAssetPath(item.image)} 
+                    src={item.image} 
                     alt={item.title} 
                     className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1500ms]"
                   />

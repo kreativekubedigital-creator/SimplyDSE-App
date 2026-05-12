@@ -1,49 +1,46 @@
 import Reveal from './ui/Reveal';
-import getAssetPath from '../utils/wp-integration';
 
 interface HumanImpactProps {
-  data?: {
-    badge?: string;
-    headline?: string;
-    items?: {
-      src: string;
-      title: string;
-      desc: string;
-    }[];
-  };
+  badge?: string;
+  headline?: string;
+  items?: {
+    src: string;
+    title: string;
+    desc: string;
+  }[];
 }
 
-const HumanImpact = ({ data }: HumanImpactProps) => {
+const HumanImpact = ({ badge, headline, items }: HumanImpactProps) => {
   const defaultImages = [
     {
-      src: getAssetPath('/collaboration.png'),
+      src: '/collaboration.png',
       title: "Collaborative Safety",
       desc: "Teams working together to ensure a safer workplace environment."
     },
     {
-      src: getAssetPath('/operational_excellence.png'),
+      src: '/operational_excellence.png',
       title: "Precision Execution",
       desc: "Methodical approach to compliance that leaves no room for error."
     },
     {
-      src: getAssetPath('/support.png'),
+      src: '/support.png',
       title: "Expert Support",
       desc: "Clinical ergonomic experts available whenever your team needs them."
     }
   ];
 
-  const images = data?.items || defaultImages;
+  const images = items || defaultImages;
 
   return (
     <section className="bg-white">
       <div className="section-container">
         <div className="mb-20 text-center max-w-3xl mx-auto">
           <Reveal delay={0.1}>
-            <span className="badge-enterprise">{data?.badge || "The Human Element"}</span>
+            <span className="badge-enterprise">{badge || "The Human Element"}</span>
           </Reveal>
           <Reveal delay={0.2}>
             <h2 className="text-5xl md:text-6xl font-bold text-text-primary mt-6 tracking-tight leading-[1.05]"
-                dangerouslySetInnerHTML={{ __html: data?.headline || "Technology that <br class=\"hidden md:block\" /> <span class=\"text-brand-primary\">empowers people.</span>" }}
+                dangerouslySetInnerHTML={{ __html: headline || "Technology that <br class=\"hidden md:block\" /> <span class=\"text-brand-primary\">empowers people.</span>" }}
             />
           </Reveal>
         </div>

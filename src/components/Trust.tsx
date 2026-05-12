@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Reveal from './ui/Reveal';
-import getAssetPath from '../utils/wp-integration';
 
 interface TrustProps {
-  data?: {
-    headline?: string;
-  };
+  headline?: string;
 }
 
-const Trust = ({ data }: TrustProps) => {
+const Trust = ({ headline }: TrustProps) => {
   const allLogos = [
     { src: '/011%20(1).png', alt: 'AdvT' },
     { src: '/011%20(2).png', alt: 'Senedd Cymru Welsh Parliament' },
@@ -42,7 +39,7 @@ const Trust = ({ data }: TrustProps) => {
         <Reveal delay={0.1} width="100%">
           <div className="text-center mb-16">
             <span className="label-secondary tracking-[0.3em] opacity-80">
-              {data?.headline || "Trusted by Global Enterprise Leaders"}
+              {headline || "Trusted by Global Enterprise Leaders"}
             </span>
           </div>
         </Reveal>
@@ -63,7 +60,7 @@ const Trust = ({ data }: TrustProps) => {
               {rows[index].map((logo, i) => (
                 <div key={i} className="flex-none flex justify-center">
                   <img 
-                    src={getAssetPath(logo.src)} 
+                    src={logo.src} 
                     alt={logo.alt} 
                     className="h-10 md:h-12 w-auto object-contain hover:opacity-100 transition-opacity"
                   />

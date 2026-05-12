@@ -36,27 +36,28 @@ const Hero = ({ data }: HeroProps) => {
   return (
     <section className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden bg-white pt-20">
       {/* Cinematic Background Layer - Full Width & Visible */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 bg-slate-50">
         <video
           ref={videoRef}
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
           onCanPlayThrough={() => setIsVideoLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ${isVideoLoaded ? 'opacity-40' : 'opacity-0'}`}
+          className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-40' : 'opacity-0'}`}
         >
           <source src={videoUrl} type="video/mp4" />
         </video>
-        {/* Subtle overlay to ensure text legibility while keeping video visible */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-transparent to-white" />
+        {/* Optimized overlay to ensure text legibility */}
+        <div className="absolute inset-0 bg-white/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white" />
       </div>
 
       <div className="relative z-10 section-container w-full flex flex-col items-center justify-center text-center">
         {/* Bold Brand Anchor - Hollowed & Bold */}
-        <div className="relative w-full px-4 text-center select-none pointer-events-none mb-4">
-          <div className="flex justify-center items-center flex-nowrap whitespace-nowrap">
+        <div className="relative w-full px-4 text-center select-none pointer-events-none mb-12">
+          <div className="flex justify-center items-center flex-nowrap whitespace-nowrap overflow-hidden">
             {"SIMPLYDSE".split("").map((char, index) => (
               <motion.span
                 key={index}
@@ -70,8 +71,8 @@ const Hero = ({ data }: HeroProps) => {
                     ease: [0.16, 1, 0.3, 1]
                   }
                 }}
-                className="text-[13vw] md:text-[14vw] font-black text-transparent uppercase tracking-tighter leading-[0.8] inline-block will-change-transform"
-                style={{ WebkitTextStroke: '2px #0F172A' }}
+                className="text-[12vw] md:text-[clamp(2rem,13vw,160px)] font-black text-transparent uppercase tracking-tighter leading-[0.8] inline-block will-change-transform"
+                style={{ WebkitTextStroke: 'clamp(1px, 0.15vw, 3px) #0F172A' }}
               >
                 {char}
               </motion.span>
@@ -80,46 +81,46 @@ const Hero = ({ data }: HeroProps) => {
         </div>
 
         {/* Content Grid: Aligning elements below the brand anchor */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mt-8 text-left">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mt-8 text-left max-w-[1400px] w-full mx-auto">
           
           {/* Left Column: Context + CTAs + Trust */}
-          <div className="space-y-6 max-w-xl">
+          <div className="space-y-8 max-w-xl">
             <Reveal delay={0.8} direction="left">
-              <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-bold text-text-primary tracking-tight">
+              <div className="space-y-6">
+                <h2 className="text-3xl md:text-5xl font-bold text-text-primary tracking-tight leading-tight">
                   {title}
                 </h2>
-                <p className="text-lg text-text-secondary leading-relaxed opacity-80">
+                <p className="text-xl text-text-secondary leading-relaxed opacity-80">
                   {description}
                 </p>
               </div>
             </Reveal>
 
             <Reveal delay={1.0} direction="left">
-              <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
-                <button className="btn-enterprise-primary !py-4 !px-10 text-lg shadow-xl shadow-brand-primary/20">
+              <div className="flex flex-col sm:flex-row items-center gap-6 pt-4">
+                <button className="btn-enterprise-primary !py-5 !px-12 text-lg shadow-2xl shadow-brand-primary/20">
                   {primaryCta}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </button>
-                <button className="flex items-center gap-3 text-text-primary font-bold hover:text-brand-primary transition-all group px-4 py-3">
-                  <div className="w-10 h-10 rounded-full border border-border-strong flex items-center justify-center group-hover:border-brand-primary transition-colors bg-white/50 backdrop-blur-sm">
-                    <Play className="w-3 h-3 fill-current ml-0.5" />
+                <button className="flex items-center gap-4 text-text-primary font-bold hover:text-brand-primary transition-all group px-4 py-3">
+                  <div className="w-12 h-12 rounded-full border border-border-strong flex items-center justify-center group-hover:border-brand-primary transition-colors bg-white/50 backdrop-blur-sm shadow-sm">
+                    <Play className="w-4 h-4 fill-current ml-1" />
                   </div>
-                  <span className="text-base">{secondaryCta}</span>
+                  <span className="text-lg">{secondaryCta}</span>
                 </button>
               </div>
             </Reveal>
           </div>
 
           {/* Right Column: Mini Dashboard Preview */}
-          <div className="relative hidden lg:block">
+          <div className="relative hidden lg:block h-full">
             <Reveal delay={1.0} direction="right">
-              <div className="relative z-10 scale-[0.7] xl:scale-[0.8] origin-right translate-x-12">
+              <div className="relative z-10 scale-[0.75] xl:scale-[0.9] 2xl:scale-100 origin-right transition-transform duration-700">
                 <HeroVisuals />
               </div>
               
               {/* Soft glow behind the mini dashboard */}
-              <div className="absolute inset-0 bg-brand-primary/5 blur-[100px] rounded-full -z-10" />
+              <div className="absolute inset-0 bg-brand-primary/5 blur-[120px] rounded-full -z-10" />
             </Reveal>
           </div>
 

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Reveal from './ui/Reveal';
-import getAssetPath from '../utils/wp-integration';
 import { Plus, Minus, ArrowRight } from 'lucide-react';
 
 const AccordionItem = ({ title, content, isOpen, onClick }: { title: string, content: string, isOpen: boolean, onClick: () => void }) => {
@@ -92,7 +91,7 @@ const FeaturesGrid = () => {
               </p>
               <div className="mt-auto rounded-2xl overflow-hidden aspect-[4/3] bg-white/5">
                 <img 
-                  src={getAssetPath('/features-1.png')} 
+                  src="/features-1.png" 
                   alt="Modern office" 
                   className="w-full h-full object-cover opacity-90"
                 />
@@ -159,7 +158,7 @@ const FeaturesGrid = () => {
               </p>
               <div className="mt-auto rounded-2xl overflow-hidden aspect-[4/3] bg-white/5">
                 <img 
-                  src={getAssetPath('/features-3.png')} 
+                  src="/features-3.png" 
                   alt="Data security" 
                   className="w-full h-full object-cover opacity-90"
                 />

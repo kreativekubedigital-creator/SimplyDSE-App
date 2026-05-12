@@ -11,6 +11,22 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
+
+# Next.js
+.next/
+out/
+
+# Build
+build/
+dist/
+
+# Project
+.gemini/
+.antigravity/
+.temp/
 
 # Editor directories and files
 .vscode/*

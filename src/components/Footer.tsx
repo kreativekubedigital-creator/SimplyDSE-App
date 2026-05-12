@@ -1,5 +1,4 @@
 import { Mail, Phone, MapPin, Globe, MessageSquare } from 'lucide-react';
-import getAssetPath from '../utils/wp-integration';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -12,7 +11,7 @@ const Footer = () => {
           <div className="space-y-8">
             <div className="flex items-center gap-3">
               <img 
-                src={getAssetPath('/simplydselogo.webp')} 
+                src="/simplydselogo.webp" 
                 alt="SimplyDSE Logo" 
                 className="w-8 h-8"
               />
