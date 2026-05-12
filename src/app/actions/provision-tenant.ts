@@ -4,17 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 
 // Initialize a Supabase client with the Service Role key
 // This bypasses RLS and allows creating users/roles securely
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
-
 interface ProvisionRequest {
   orgName: string;
   domain: string;
@@ -27,6 +16,19 @@ interface ProvisionRequest {
 }
 
 export async function provisionTenant(data: ProvisionRequest) {
+  // Initialize a Supabase client with the Service Role key inside the function
+  // to avoid build-time errors when environment variables are missing.
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+
   try {
     const slug = data.domain.split('.')[0] || data.orgName.toLowerCase().replace(/\s+/g, '-');
 

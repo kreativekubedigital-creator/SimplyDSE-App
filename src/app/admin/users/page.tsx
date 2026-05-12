@@ -64,7 +64,7 @@ export default function UserDirectoryPage() {
           .order('created_at', { ascending: false });
         
         if (data) {
-          const enhanced = data.map(p => ({
+          const enhanced = (data as any[]).map((p: any) => ({
             ...p,
             status: 'Active',
             lastActive: 'Now',

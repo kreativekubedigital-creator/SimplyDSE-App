@@ -69,7 +69,7 @@ export default function AuditLogsPage() {
           .order('created_at', { ascending: false });
         
         if (data) {
-          const enhanced = data.map(l => ({
+          const enhanced = (data as any[]).map((l: any) => ({
             ...l,
             severity: l.action.toLowerCase().includes('delete') || l.action.toLowerCase().includes('fail') ? 'High' : 'Low',
             status: 'Success'

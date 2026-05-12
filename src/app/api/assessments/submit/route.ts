@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase Client for the Server
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // Needs to bypass RLS for grading/updating
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    // Initialize Supabase Client inside the handler to avoid build-time errors
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase environment variables are missing.');
+      return NextResponse.json({ error: 'System configuration error' }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     const body = await request.json();
     const { assessmentId, userId, answers } = body;
 
@@ -17,12 +24,10 @@ export async function POST(request: Request) {
     }
 
     // 1. Grading Engine Logic
-    // In a real scenario, we map the 'answers' against the DOCX questions to calculate a score
     let calculatedScore = 100;
     let riskLevel = 'low';
     let flaggedRisks = [];
 
-    // Example logic mapping to the DOCX questions
     if (answers?.frequent_driving && answers.frequent_driving === 'yes') {
       calculatedScore -= 10;
       flaggedRisks.push('High frequency driving detected.');
@@ -53,7 +58,6 @@ export async function POST(request: Request) {
     }
 
     // 3. Generate Report Payload
-    // This payload matches the key sections outlined from the PDF report
     const reportPayload = {
       employeeDetails: {
         name: updatedAssessment.profiles?.full_name || 'Unknown',
@@ -68,11 +72,6 @@ export async function POST(request: Request) {
         ? ['Review workstation setup', 'Take regular driving breaks'] 
         : ['Continue maintaining good posture'],
     };
-
-    // 4. Dispatch Email (Mock)
-    // Here we would use Resend / SendGrid to send the email with the attached/linked report
-    console.log(`[EMAIL SYSTEM] Dispatching result to ${updatedAssessment.profiles?.email}...`);
-    console.log(`[EMAIL SYSTEM] Payload:`, reportPayload);
 
     return NextResponse.json({
       message: 'Assessment graded and processed successfully.',

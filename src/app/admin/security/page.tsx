@@ -43,7 +43,7 @@ export default function SecurityMonitorPage() {
           setEvents(logs);
           setStats({
             totalLogs: count || 0,
-            criticalEvents: logs.filter(l => 
+            criticalEvents: (logs as any[]).filter((l: any) => 
               l.action.toLowerCase().includes('delete') || 
               l.action.toLowerCase().includes('suspend') ||
               l.action.toLowerCase().includes('revoke')
