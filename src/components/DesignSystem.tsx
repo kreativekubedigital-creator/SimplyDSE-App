@@ -140,7 +140,7 @@ const DesignSystem = () => {
               <Input label="Last Name" placeholder="Doe" />
             </div>
             <Input label="Email Address" type="email" placeholder="jane@enterprise.com" icon={Mail} />
-            <Input label="Organization ID" value="SD-942-X" error="Verification pending for this ID" />
+            <Input label="Organisation ID" value="SD-942-X" error="Verification pending for this ID" />
             
             <div className="p-8 bg-slate-50 rounded-2xl border border-border-subtle space-y-6">
               <h4 className="text-sm font-bold uppercase tracking-widest text-text-muted">Quick Search</h4>

@@ -1,4 +1,4 @@
-export interface TenantConfig {
+export interface WorkspaceConfig {
   id: string;
   name: string;
   logo?: string;
@@ -6,7 +6,7 @@ export interface TenantConfig {
   isValid: boolean;
 }
 
-export function getTenantInfo(): TenantConfig {
+export function getWorkspaceInfo(): WorkspaceConfig {
   if (typeof window === 'undefined') {
     return { id: '', name: 'SimplyDSE', isValid: false };
   }
@@ -16,18 +16,18 @@ export function getTenantInfo(): TenantConfig {
 
   // Logic for local development (e.g. company.localhost:4321)
   // Or production (company.simplydse.com)
-  let tenantId = '';
+  let WorkspaceId = '';
   
   if (parts.length > 2) {
     // If we have at least 3 parts (subdomain.domain.tld)
-    tenantId = parts[0];
+    WorkspaceId = parts[0];
   } else if (hostname.includes('localhost') && parts.length > 1) {
     // Handle company.localhost
-    tenantId = parts[0];
+    WorkspaceId = parts[0];
   }
 
-  // For now, if no tenant is found, we assume the main portal
-  if (!tenantId || tenantId === 'www' || tenantId === 'simplydse') {
+  // For now, if no Workspace is found, we assume the main portal
+  if (!WorkspaceId || WorkspaceId === 'www' || WorkspaceId === 'simplydse') {
     return {
       id: 'main',
       name: 'SimplyDSE',
@@ -38,8 +38,8 @@ export function getTenantInfo(): TenantConfig {
   // In a real app, you would fetch this config from your backend/WordPress
   // For now, we'll return a mock config based on the subdomain
   return {
-    id: tenantId,
-    name: tenantId.charAt(0).toUpperCase() + tenantId.slice(1),
+    id: WorkspaceId,
+    name: WorkspaceId.charAt(0).toUpperCase() + WorkspaceId.slice(1),
     isValid: true, // We'll assume any subdomain is valid for UI demo purposes
   };
 }

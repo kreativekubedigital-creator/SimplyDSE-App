@@ -105,7 +105,7 @@ export function EmployeeSidebar() {
           <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
         </button>
 
-        {/* Organization */}
+        {/* Organisation */}
         <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 group-hover:bg-slate-700 transition-colors">

@@ -55,7 +55,7 @@ export default function RolesManagementPage() {
     {
       id: 'super_admin',
       name: 'Super Admin',
-      description: 'Root-level access to the entire platform infrastructure, global settings, and cross-tenant data.',
+      description: 'Root-level access to the entire platform System, global settings, and cross-Workspace data.',
       usersCount: roleStats.super_admin || 0,
       tier: 'Core',
       permissions: ['*'],
@@ -64,10 +64,10 @@ export default function RolesManagementPage() {
     },
     {
       id: 'org_admin',
-      name: 'Organization Admin',
-      description: 'Full administrative control within a specific tenant environment. Can manage users and settings for their org.',
+      name: 'Organisation Admin',
+      description: 'Full administrative control within a specific Workspace environment. Can manage users and settings for their org.',
       usersCount: roleStats.org_admin || 0,
-      tier: 'Tenant',
+      tier: 'Workspace',
       permissions: ['manage_users', 'manage_org_settings', 'view_all_assessments'],
       status: 'Active',
       color: 'brand-primary'
@@ -219,7 +219,7 @@ export default function RolesManagementPage() {
               <div className="space-y-6">
                 {[
                   { label: 'Inherit Permissions', desc: 'Child roles inherit parent permissions', active: true },
-                  { label: 'Cross-Tenant Isolation', desc: 'Strict data boundary enforcement', active: true },
+                  { label: 'Cross-Workspace Isolation', desc: 'Strict data boundary enforcement', active: true },
                   { label: 'MFA Enforcement', desc: 'Required for administrative roles', active: true },
                   { label: 'Audit Logging', desc: 'Immutable trail for every action', active: true },
                 ].map((policy, i) => (
@@ -245,7 +245,7 @@ export default function RolesManagementPage() {
                 <Key className="w-10 h-10 opacity-40 group-hover:scale-110 transition-transform duration-500" />
                 <h3 className="text-[20px] font-bold leading-tight">Emergency Access Break-Glass</h3>
                 <p className="text-white/70 text-[13px] leading-relaxed">
-                  Generate one-time bypass keys for mission-critical infrastructure recovery.
+                  Generate one-time bypass keys for mission-critical System recovery.
                 </p>
                 <button className="w-full py-4 bg-white/10 hover:bg-white/20 text-white text-[12px] font-bold rounded-2xl backdrop-blur-md border border-white/20 transition-all">
                   Initiate Recovery Protocol

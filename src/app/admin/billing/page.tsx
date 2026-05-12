@@ -102,7 +102,7 @@ export default function GlobalBillingPage() {
             icon={Calendar} 
           />
           <StatCard 
-            label="Active Organizations" 
+            label="Active organizations" 
             value={billingStats.totalOrgs.toString()} 
             change="Synced" 
             trend="up" 

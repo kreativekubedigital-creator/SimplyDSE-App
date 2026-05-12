@@ -10,7 +10,7 @@ const Security = () => {
     },
     {
       title: "Enterprise Encryption",
-      description: "AES-256 at rest and TLS 1.3 in transit. Your organizational data is shielded by industry-leading standards.",
+      description: "AES-256 at rest and TLS 1.3 in transit. Your Organisational data is shielded by industry-leading standards.",
       icon: ShieldCheck
     },
     {

@@ -29,6 +29,7 @@ import {
 import { cn } from '../../../../lib/utils';
 
 import { supabase } from '@/lib/supabase';
+import { provisionTenant } from '@/app/actions/provision-tenant';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -45,7 +46,7 @@ const modules = [
   { id: 'sso', name: 'SSO Integration', desc: 'SAML/OIDC connectors', icon: Lock, essential: false },
 ];
 
-export default function NewOrganizationPage() {
+export default function NewOrganisationPage() {
   const [step, setStep] = useState<Step>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [provisioningLogs, setProvisioningLogs] = useState<string[]>([]);
@@ -78,54 +79,28 @@ export default function NewOrganizationPage() {
   const runProvisioning = async () => {
     setIsSubmitting(true);
     setStep(5);
+    setProvisioningLogs(["Preparing workspace configuration..."]);
     
-    const steps = [
-      { log: "Initializing infrastructure configuration...", action: null },
-      { log: "Allocating isolated PostgreSQL schema...", action: async () => {
-        const { error } = await supabase.from('organizations').insert({
-          name: formData.orgName,
-          slug: formData.domain.split('.')[0] || formData.orgName.toLowerCase().replace(/\s+/g, '-'),
-          status: 'active',
-          plan: formData.plan.toLowerCase() as any,
-          region: formData.region,
-          industry: formData.industry
-        });
-        if (error) throw error;
-      }},
-      { log: "Applying database migrations (v1.4.2)...", action: null },
-      { log: "Configuring multi-tenant encryption keys...", action: null },
-      { log: "Provisioning S3 asset buckets...", action: null },
-      { log: "Setting up Edge Middleware routing rules...", action: null },
-      { log: "Registering administrator identity...", action: async () => {
-        // Log the event in audit logs
-        await supabase.from('audit_logs').insert({
-          action: 'ORGANIZATION_PROVISION',
-          entity_type: 'organization',
-          details: { 
-            name: formData.orgName, 
-            admin: formData.adminEmail,
-            region: formData.region,
-            plan: formData.plan 
-          }
-        });
-      }},
-      { log: "Generating platform access tokens...", action: null },
-      { log: "Sending welcome invitation to administrator...", action: null },
-      { log: "Tenant environment online.", action: null }
-    ];
+    // Slight artificial delay for UX
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setProvisioningLogs(prev => [...prev, "Setting up secure database...", "Preparing organisation environment..."]);
 
-    try {
-      for (const step of steps) {
-        setProvisioningLogs(prev => [...prev, step.log]);
-        if (step.action) await step.action();
-        await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 600));
-      }
-    } catch (error: any) {
-      console.error('Provisioning failed:', error);
-      setProvisioningLogs(prev => [...prev, `ERROR: ${error.message || 'Provisioning failed'}. Rollback initiated.`]);
-    } finally {
-      setIsSubmitting(false);
+    const result = await provisionTenant(formData);
+
+    if (result.success) {
+      setProvisioningLogs(prev => [
+        ...prev, 
+        "Applying system updates...",
+        "Registering administrator identity...",
+        "Generating secure access tokens...",
+        "Sending welcome invitation to administrator...",
+        "Organisation workspace is now online."
+      ]);
+    } else {
+      setProvisioningLogs(prev => [...prev, `ERROR: ${result.error}. Rollback initiated.`]);
     }
+    
+    setIsSubmitting(false);
   };
 
   return (
@@ -141,8 +116,8 @@ export default function NewOrganizationPage() {
               Back to Fleet
             </Link>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Provision New Tenant</h1>
-              <p className="text-[12px] md:text-[13px] text-slate-500 mt-1">Configure and deploy an isolated organization environment.</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Set Up New Organisation</h1>
+              <p className="text-[12px] md:text-[13px] text-slate-500 mt-1">Configure and deploy a new secure workspace for a client.</p>
             </div>
           </div>
 
@@ -180,7 +155,7 @@ export default function NewOrganizationPage() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Organization Legal Name</label>
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Organisation Legal Name</label>
                         <input 
                           type="text" 
                           placeholder="e.g. Acme Corp Industries"
@@ -382,7 +357,7 @@ export default function NewOrganizationPage() {
                         <div>
                           <p className="text-[13px] font-bold text-amber-900 mb-1">Onboarding Activation</p>
                           <p className="text-[11px] text-amber-700/80 leading-relaxed font-medium">
-                            An automated invitation will be sent to this email once the environment is online. The admin will be prompted to set their secure password upon first login.
+                            An automated invitation will be sent to this email once the workspace is ready. The admin will be prompted to set their secure password upon first login.
                           </p>
                         </div>
                       </div>
@@ -395,11 +370,11 @@ export default function NewOrganizationPage() {
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                          <Terminal className="w-5 h-5" />
+                          <CheckCircle2 className="w-5 h-5" />
                         </div>
                         <div>
-                          <h3 className="text-[15px] font-bold text-slate-900">Provisioning Environment</h3>
-                          <p className="text-[11px] text-slate-500 font-medium">Deploying {formData.orgName} infrastructure...</p>
+                          <h3 className="text-[15px] font-bold text-slate-900">Setting up Workspace</h3>
+                          <p className="text-[11px] text-slate-500 font-medium">Preparing {formData.orgName} environment...</p>
                         </div>
                       </div>
                       {!isSubmitting && (
@@ -432,7 +407,7 @@ export default function NewOrganizationPage() {
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 tracking-tight text-center">Platform Ready</h2>
                         <p className="text-[13px] text-slate-500 mt-2 max-w-sm mx-auto leading-relaxed text-center">
-                          Environment for <span className="font-bold text-slate-900">{formData.orgName}</span> is now live at <span className="text-brand-primary font-bold">{formData.domain}.simplydse.com</span>
+                          Workspace for <span className="font-bold text-slate-900">{formData.orgName}</span> is now live at <span className="text-brand-primary font-bold">{formData.domain}.simplydse.com</span>
                         </p>
                         
                         <div className="mt-10 flex gap-4 w-full max-w-sm">
@@ -447,7 +422,7 @@ export default function NewOrganizationPage() {
                             }} 
                             className="flex-1 px-6 py-4 bg-white border border-slate-200 text-slate-900 text-[12px] font-bold rounded-2xl hover:bg-slate-50 transition-all"
                           >
-                            New Provision
+                            Set Up Another
                           </button>
                         </div>
                       </div>
@@ -481,7 +456,7 @@ export default function NewOrganizationPage() {
                       onClick={runProvisioning}
                       className="flex items-center gap-2 px-10 py-4 bg-slate-900 text-white text-[12px] font-bold rounded-2xl shadow-xl shadow-slate-900/10 hover:scale-[1.02] transition-all active:scale-95 group"
                     >
-                      Deploy Infrastructure
+                      Complete Setup
                       <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </button>
                   )}
@@ -500,7 +475,7 @@ export default function NewOrganizationPage() {
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Organization</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Organisation</p>
                     <p className="text-[13px] font-bold text-slate-900 mt-1">{formData.orgName || 'Not specified'}</p>
                     {formData.domain && <p className="text-[11px] text-brand-primary font-bold mt-1">{formData.domain}.simplydse.com</p>}
                   </div>
@@ -511,7 +486,7 @@ export default function NewOrganizationPage() {
                     <Globe className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Infrastructure</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System</p>
                     <p className="text-[13px] font-bold text-slate-900 mt-1">{regions.find(r => r.id === formData.region)?.name}</p>
                     <p className="text-[11px] text-slate-500 font-medium mt-1">{formData.selectedModules.length} Active Modules</p>
                   </div>
@@ -550,7 +525,7 @@ export default function NewOrganizationPage() {
                 <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Compliance Guard</span>
               </div>
               <p className="text-[12px] text-brand-primary/80 leading-relaxed font-medium relative z-10">
-                Tenant provisioning triggers automated compliance verification for the selected region's data sovereignty laws (GDPR/SOC2).
+                Workspace setup triggers automated compliance verification for the selected region's data sovereignty laws (GDPR/SOC2).
               </p>
             </div>
           </div>

@@ -28,7 +28,7 @@ export default function AdminSettingsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 pb-10">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Global Platform Control</h1>
-            <p className="text-[13px] text-slate-500 mt-1">Configure root-level infrastructure, security protocols, and system-wide defaults.</p>
+            <p className="text-[13px] text-slate-500 mt-1">Configure root-level System, security protocols, and system-wide defaults.</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -48,7 +48,7 @@ export default function AdminSettingsPage() {
           <div className="lg:col-span-3 space-y-2">
             {[
               { label: 'General System', icon: Settings, active: true },
-              { label: 'Cloud Infrastructure', icon: Cloud, active: false },
+              { label: 'Cloud System', icon: Cloud, active: false },
               { label: 'Security & IAM', icon: Lock, active: false },
               { label: 'Data Management', icon: Database, active: false },
               { label: 'Compliance Policy', icon: Shield, active: false },
@@ -94,7 +94,7 @@ export default function AdminSettingsPage() {
               </div>
             </section>
 
-            {/* Infrastructure Settings */}
+            {/* System Settings */}
             <section className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-8">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
@@ -102,14 +102,14 @@ export default function AdminSettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-[18px] font-bold text-slate-900">Resource Provisioning</h3>
-                  <p className="text-[13px] text-slate-500 mt-1">Automatic infrastructure allocation rules for new tenants.</p>
+                  <p className="text-[13px] text-slate-500 mt-1">Automatic System allocation rules for new Workspaces.</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 {[
                   { label: 'Auto-Provision S3 Buckets', desc: 'Automatically create isolated storage for new orgs', enabled: true },
-                  { label: 'Subdomain Isolation', desc: 'Enforce tenant-specific entry points (*.simplydse.com)', enabled: true },
+                  { label: 'Subdomain Isolation', desc: 'Enforce Workspace-specific entry points (*.simplydse.com)', enabled: true },
                   { label: 'Multi-Region Replication', desc: 'Replicate data across EU and US nodes by default', enabled: false },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center justify-between py-4 group">

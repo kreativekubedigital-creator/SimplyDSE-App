@@ -137,7 +137,7 @@ export default function UserDirectoryPage() {
         {/* Filters Bar */}
         <div className="overflow-x-auto pb-4 -mb-4">
           <div className="flex items-center gap-2 p-1.5 bg-slate-100/50 rounded-2xl w-max border border-slate-200/60">
-            {['All', 'Super Admin', 'Tenant Admin', 'Compliance Officer', 'Employee'].map((role) => (
+            {['All', 'Super Admin', 'Workspace Admin', 'Compliance Officer', 'Employee'].map((role) => (
               <button
                 key={role}
                 onClick={() => setFilter(role)}
@@ -162,7 +162,7 @@ export default function UserDirectoryPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Search by name, email, or organization..."
+                placeholder="Search by name, email, or Organisation..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -186,7 +186,7 @@ export default function UserDirectoryPage() {
               <thead>
                 <tr className="bg-slate-50/50">
                   <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Identity</th>
-                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Organization</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Organisation</th>
                   <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Access Rights</th>
                   <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Security</th>
                   <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Activity</th>

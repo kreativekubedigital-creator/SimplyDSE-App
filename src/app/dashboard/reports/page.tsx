@@ -35,7 +35,7 @@ export default function ReportsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Reporting Center</h2>
-          <p className="text-[14px] text-slate-500 font-medium">Generate, export, and schedule organization-wide compliance and safety reports.</p>
+          <p className="text-[14px] text-slate-500 font-medium">Generate, export, and schedule Organisation-wide compliance and safety reports.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 transition-all">
@@ -53,7 +53,7 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <ReportCategory 
           title="Compliance Progress" 
-          desc="Overall organization compliance scores and departmental trends."
+          desc="Overall Organisation compliance scores and departmental trends."
           icon={BarChart3}
           color="blue"
         />
@@ -151,7 +151,7 @@ export default function ReportsPage() {
               </div>
               <h4 className="text-xl font-bold mb-2">Executive Summary</h4>
               <p className="text-slate-400 text-[13px] leading-relaxed mb-8">
-                Your monthly organization-wide compliance rollup is scheduled for delivery.
+                Your monthly Organisation-wide compliance rollup is scheduled for delivery.
               </p>
               <div className="space-y-3 mb-8">
                 <div className="flex items-center justify-between text-[12px]">

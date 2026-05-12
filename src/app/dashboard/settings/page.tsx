@@ -25,8 +25,8 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Organization Settings</h2>
-          <p className="text-[14px] text-slate-500 font-medium">Configure organization-wide compliance rules, notification preferences, and team permissions.</p>
+          <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Organisation Settings</h2>
+          <p className="text-[14px] text-slate-500 font-medium">Configure Organisation-wide compliance rules, notification preferences, and team permissions.</p>
         </div>
         <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[14px] font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
           <Save className="w-4.5 h-4.5" />
@@ -53,7 +53,7 @@ export default function SettingsPage() {
             <h3 className="text-lg font-bold text-slate-900 mb-6">General Information</h3>
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputGroup label="Organization Name" placeholder="TechCorp Ltd." />
+                <InputGroup label="Organisation Name" placeholder="TechCorp Ltd." />
                 <InputGroup label="Industry" placeholder="Technology / SaaS" />
               </div>
               <InputGroup label="Primary Domain" placeholder="techcorp.com" />
@@ -113,7 +113,7 @@ export default function SettingsPage() {
           {/* Danger Zone */}
           <section className="bg-rose-50/50 border border-rose-100 rounded-[2.5rem] p-8">
             <h3 className="text-lg font-bold text-rose-900 mb-2">Danger Zone</h3>
-            <p className="text-[13px] text-rose-600/60 font-medium mb-8">Irreversible actions that affect organization data.</p>
+            <p className="text-[13px] text-rose-600/60 font-medium mb-8">Irreversible actions that affect Organisation data.</p>
             
             <div className="space-y-4">
               <button className="w-full flex items-center justify-between p-4 bg-white border border-rose-100 rounded-2xl hover:bg-rose-100/50 transition-all group">
@@ -125,8 +125,8 @@ export default function SettingsPage() {
               </button>
               <button className="w-full flex items-center justify-between p-4 bg-white border border-rose-100 rounded-2xl hover:bg-rose-100/50 transition-all group">
                 <div className="text-left">
-                  <p className="text-[14px] font-bold text-rose-900">Delete Organization</p>
-                  <p className="text-[11px] text-rose-600/60 font-medium mt-1">Permanently remove all data and organization settings.</p>
+                  <p className="text-[14px] font-bold text-rose-900">Delete Organisation</p>
+                  <p className="text-[11px] text-rose-600/60 font-medium mt-1">Permanently remove all data and Organisation settings.</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-rose-300 group-hover:translate-x-1 transition-transform" />
               </button>

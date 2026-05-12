@@ -22,7 +22,7 @@ import { cn } from '../../../lib/utils';
 
 import { StatCard } from '../../../components/admin/StatCard';
 
-interface Organization {
+interface Organisation {
   id: string;
   name: string;
   slug: string;
@@ -38,8 +38,8 @@ interface Organization {
 import { supabase } from '@/lib/supabase';
 import { useEffect } from 'react';
 
-export default function OrganizationsPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+export default function organizationsPage() {
+  const [organizations, setorganizations] = useState<Organisation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -60,7 +60,7 @@ export default function OrganizationsPage() {
         ]);
         
         if (orgsRes.data) {
-          setOrganizations(orgsRes.data as any);
+          setorganizations(orgsRes.data as any);
         }
         if (analyticsRes.data) {
           setGlobalCompliance(analyticsRes.data.avg_compliance_rate);
@@ -87,8 +87,8 @@ export default function OrganizationsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Organization Fleet</h1>
-            <p className="text-[12px] md:text-[13px] text-slate-500 mt-1">Manage global tenant lifecycle, infrastructure, and compliance health.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Organisation Fleet</h1>
+            <p className="text-[12px] md:text-[13px] text-slate-500 mt-1">Manage global Workspace lifecycle, System, and compliance health.</p>
           </div>
           
           <Link 
@@ -96,14 +96,14 @@ export default function OrganizationsPage() {
             className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary text-white text-[12px] font-bold rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-[1.02] transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            Provision New Tenant
+            Provision New Workspace
           </Link>
         </div>
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard 
-            label="Active Tenants" 
+            label="Active Workspaces" 
             value={organizations.length.toString()} 
             change="Live" 
             trend="up" 
@@ -133,7 +133,7 @@ export default function OrganizationsPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Search tenants..."
+                placeholder="Search Workspaces..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -145,7 +145,7 @@ export default function OrganizationsPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-slate-50/50">
-                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Organization</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Organisation</th>
                   <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Region & Domain</th>
                   <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Plan & Status</th>
                   <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Compliance Status</th>

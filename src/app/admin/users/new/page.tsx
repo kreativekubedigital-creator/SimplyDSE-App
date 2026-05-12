@@ -22,7 +22,7 @@ export default function NewUserPage() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    organization: '',
+    Organisation: '',
     role: 'employee',
     accessLevel: 'standard'
   });
@@ -75,11 +75,11 @@ export default function NewUserPage() {
               </div>
 
               <div className="space-y-3">
-                <label className="text-[12px] font-bold text-slate-900 uppercase tracking-widest">Assign to Organization</label>
+                <label className="text-[12px] font-bold text-slate-900 uppercase tracking-widest">Assign to Organisation</label>
                 <div className="relative">
                   <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
                   <select className="w-full pl-12 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-[14px] outline-none appearance-none focus:ring-4 focus:ring-brand-primary/5 transition-all">
-                    <option>Select Tenant Environment</option>
+                    <option>Select Workspace Environment</option>
                     <option>TechCorp Global</option>
                     <option>EduStream Inc</option>
                     <option>Nexus Health</option>
@@ -100,7 +100,7 @@ export default function NewUserPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
                   { id: 'super_admin', name: 'Super Admin', desc: 'Global Platform Control' },
-                  { id: 'org_admin', name: 'Org Admin', desc: 'Tenant Management' },
+                  { id: 'org_admin', name: 'Org Admin', desc: 'Workspace Management' },
                   { id: 'assessor', name: 'Assessor', desc: 'Compliance Workflow' },
                   { id: 'employee', name: 'Employee', desc: 'Standard Access' },
                 ].map((role) => (
@@ -174,7 +174,7 @@ export default function NewUserPage() {
               </div>
               <p className="text-[14px] font-bold text-emerald-900">Verified Domain</p>
               <p className="text-[12px] text-emerald-800/60 leading-relaxed font-medium">
-                The specified email domain is whitelisted for this organization environment.
+                The specified email domain is whitelisted for this Organisation environment.
               </p>
             </div>
           </div>

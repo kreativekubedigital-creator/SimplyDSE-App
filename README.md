@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# SimplyDSE - Enterprise Multi-Tenant Compliance Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SimplyDSE is a professional, multi-tenant "Enterprise OS" for workplace compliance and employee health (DSE assessments). Built with Next.js 15, Supabase, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## 🚀 Key Features
+- **Multi-Tenant Architecture**: Secure subdomain-based isolation for every organisation.
+- **Enterprise Authentication**: Secure, tenant-aware login flow with SAML SSO readiness.
+- **RBAC (Role Based Access Control)**: Granular permissions for Super Admins, Workspace Managers, and Staff.
+- **British English Professional UI**: Localised for UK workplace compliance standards.
+- **Scalable Infrastructure**: Optimised for production deployment using Next.js standalone mode.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠 Tech Stack
+- **Framework**: Next.js 15 (App Router)
+- **Database & Auth**: Supabase (PostgreSQL)
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Animations**: Framer Motion
 
-## React Compiler
+## 📦 Local Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Clone the repository**:
+   ```bash
+   git clone <repo-url>
+   cd SimplyDSE
+   ```
 
-## Expanding the ESLint configuration
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+3. **Configure Environment Variables**:
+   Create a `.env.local` file in the root:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   NEXT_PUBLIC_ROOT_DOMAIN=localhost:3000
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🌐 Production Deployment (Hostinger)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+This project is pre-configured for Hostinger's Node.js infrastructure.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. **Standalone Build**:
+   ```bash
+   npm run build
+   ```
+2. **Deployment**:
+   Follow the detailed instructions in [HOSTINGER_DEPLOYMENT.md](./HOSTINGER_DEPLOYMENT.md).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📄 Licence
+Copyright © 2026 SimplyDSE. All rights reserved.

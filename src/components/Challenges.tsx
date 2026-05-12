@@ -53,7 +53,7 @@ const Challenges = ({ data }: ChallengesProps) => {
             </Reveal>
             <Reveal delay={0.3}>
               <p className="text-text-secondary text-lg mt-8 leading-relaxed">
-                {data?.description || "Disconnected systems and manual workflows aren't just slow—they're dangerous to your organization's bottom line."}
+                {data?.description || "Disconnected systems and manual workflows aren't just slow—they're dangerous to your Organisation's bottom line."}
               </p>
             </Reveal>
           </div>
@@ -85,7 +85,7 @@ const Challenges = ({ data }: ChallengesProps) => {
                     <span className="text-sm font-bold uppercase tracking-widest">Industry Insight</span>
                   </div>
                   <p className="text-text-primary font-bold text-lg leading-snug">
-                    Manual DSE processes increase organizational liability by up to 40% annually.
+                    Manual DSE processes increase Organisational liability by up to 40% annually.
                   </p>
                 </div>
               </div>

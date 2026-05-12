@@ -25,7 +25,7 @@ const documents = [
   { id: 'DOC-001', name: 'Workplace Safety Policy 2024', category: 'Policies', type: 'PDF', size: '1.2 MB', updated: '2 days ago', version: 'v2.4', status: 'Active' },
   { id: 'DOC-002', name: 'DSE Assessment Template', category: 'Templates', type: 'DOCX', size: '450 KB', updated: '1 week ago', version: 'v1.2', status: 'Active' },
   { id: 'DOC-003', name: 'Employee Health & Safety Evidence', category: 'Evidence', type: 'ZIP', size: '14.8 MB', updated: 'May 10, 2024', version: 'v1.0', status: 'Archived' },
-  { id: 'DOC-004', name: 'TechCorp Office Layout Plan', category: 'Infrastructure', type: 'PNG', size: '2.8 MB', updated: 'May 08, 2024', version: 'v3.1', status: 'Active' },
+  { id: 'DOC-004', name: 'TechCorp Office Layout Plan', category: 'System', type: 'PNG', size: '2.8 MB', updated: 'May 08, 2024', version: 'v3.1', status: 'Active' },
   { id: 'DOC-005', name: 'Compliance Certificate - Q1', category: 'Certificates', type: 'PDF', size: '840 KB', updated: 'May 01, 2024', version: 'v1.0', status: 'Active' },
 ];
 
@@ -36,7 +36,7 @@ export default function DocumentsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Document Management</h2>
-          <p className="text-[14px] text-slate-500 font-medium">Store, manage, and track versions of compliance evidence and organizational policies.</p>
+          <p className="text-[14px] text-slate-500 font-medium">Store, manage, and track versions of compliance evidence and Organisational policies.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 transition-all">

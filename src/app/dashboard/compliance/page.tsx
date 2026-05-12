@@ -64,7 +64,7 @@ export default function CompliancePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Compliance Analytics</h2>
-          <p className="text-[14px] text-slate-500 font-medium">Real-time visibility into organization-wide compliance performance and health.</p>
+          <p className="text-[14px] text-slate-500 font-medium">Real-time visibility into Organisation-wide compliance performance and health.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 transition-all">
@@ -121,7 +121,7 @@ export default function CompliancePage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-bold text-slate-900">Compliance Trend</h3>
-              <p className="text-[13px] text-slate-400 font-medium">Organization score over the last 6 months</p>
+              <p className="text-[13px] text-slate-400 font-medium">Organisation score over the last 6 months</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-blue-600" />

@@ -57,6 +57,17 @@ export default function SecurityMonitorPage() {
       }
     }
     fetchSecurityData();
+
+    const auditSub = supabase
+      .channel('security-audit-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => {
+        fetchSecurityData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(auditSub);
+    };
   }, []);
 
   return (
@@ -65,7 +76,7 @@ export default function SecurityMonitorPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Security Command Center</h1>
-            <p className="text-[13px] text-slate-500 mt-1">Real-time threat detection, infrastructure hardening, and global security posture.</p>
+            <p className="text-[13px] text-slate-500 mt-1">Real-time threat detection, System hardening, and global security posture.</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -73,7 +84,7 @@ export default function SecurityMonitorPage() {
               Security Audit
             </button>
             <button className="px-6 py-3 bg-slate-900 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] transition-all active:scale-95">
-              Run Infrastructure Scan
+              Run System Scan
             </button>
           </div>
         </div>
@@ -115,7 +126,7 @@ export default function SecurityMonitorPage() {
           <div className="xl:col-span-8 space-y-8">
             <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
               <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-[18px] font-bold text-slate-900">Real-time Security Telemetry</h3>
+                <h3 className="text-[18px] font-bold text-slate-900">Real-time Security Health</h3>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest">Live Monitoring</span>
@@ -173,12 +184,12 @@ export default function SecurityMonitorPage() {
             </div>
           </div>
 
-          {/* Infrastructure Health */}
+          {/* System Health */}
           <div className="xl:col-span-4 space-y-8">
             <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-xl shadow-slate-900/20 space-y-8">
               <div className="space-y-2">
                 <h3 className="text-[18px] font-bold">Hardening Status</h3>
-                <p className="text-white/50 text-[13px]">Platform infrastructure security metrics.</p>
+                <p className="text-white/50 text-[13px]">Platform System security metrics.</p>
               </div>
 
               <div className="space-y-6">

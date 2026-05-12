@@ -22,9 +22,9 @@ import { cn } from '../../../lib/utils';
 import { StatCard } from '../../../components/admin/StatCard';
 
 const announcements = [
-  { id: 1, title: 'Scheduled Platform Maintenance - May 20', target: 'All Tenants', status: 'Scheduled', reach: '100%', date: 'May 20, 2026' },
+  { id: 1, title: 'Scheduled Platform Maintenance - May 20', target: 'All Workspaces', status: 'Scheduled', reach: '100%', date: 'May 20, 2026' },
   { id: 2, title: 'New Security Features: Biometric MFA', target: 'Enterprise', status: 'Sent', reach: '98%', date: 'May 10, 2026' },
-  { id: 3, title: 'Critical Bug Fix: Report Generation', target: 'All Tenants', status: 'Sent', reach: '100%', date: 'May 08, 2026' },
+  { id: 3, title: 'Critical Bug Fix: Report Generation', target: 'All Workspaces', status: 'Sent', reach: '100%', date: 'May 08, 2026' },
   { id: 4, title: 'Upcoming Webinar: Compliance 101', target: 'EU Region', status: 'Draft', reach: '0%', date: 'N/A' },
 ];
 
@@ -35,7 +35,7 @@ export default function SystemAnnouncementsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">System Announcements</h1>
-            <p className="text-[13px] text-slate-500">Dispatch global broadcasts and targeted system updates to your tenant fleet.</p>
+            <p className="text-[13px] text-slate-500">Dispatch global broadcasts and targeted system updates to your Workspace fleet.</p>
           </div>
           
           <button className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary text-white text-[12px] font-bold rounded-xl shadow-xl shadow-brand-primary/20 hover:scale-[1.02] transition-all active:scale-95">
@@ -133,7 +133,7 @@ export default function SystemAnnouncementsPage() {
           <div className="xl:col-span-4 space-y-8">
             <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-xl shadow-slate-900/20 space-y-8">
               <h3 className="text-[18px] font-bold">Smart Routing</h3>
-              <p className="text-white/50 text-[13px] leading-relaxed">Automate announcement delivery based on tenant region, plan, or user activity.</p>
+              <p className="text-white/50 text-[13px] leading-relaxed">Automate announcement delivery based on Workspace region, plan, or user activity.</p>
               
               <div className="space-y-4">
                 {[
@@ -162,7 +162,7 @@ export default function SystemAnnouncementsPage() {
               </div>
               <p className="text-[14px] font-bold text-slate-900">Audience Segmentation</p>
               <p className="text-[12px] text-slate-500 leading-relaxed font-medium">
-                Targeted announcements ensure relevant communication and higher engagement rates across different tenant types.
+                Targeted announcements ensure relevant communication and higher engagement rates across different Workspace types.
               </p>
             </div>
           </div>

@@ -51,7 +51,7 @@ const FeaturesGrid = () => {
     },
     {
       title: "How does SimplyDSE ensure data security?",
-      content: "The platform uses a secure multi-tenant architecture where each company's data is isolated. Access is role-based, ensuring only authorised users can view or manage relevant information within their organisation."
+      content: "The platform uses a secure multi-Workspace architecture where each company's data is isolated. Access is role-based, ensuring only authorised users can view or manage relevant information within their organisation."
     },
     {
       title: "Can SimplyDSE support remote and hybrid teams?",

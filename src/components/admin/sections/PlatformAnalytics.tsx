@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase';
 
 interface Snapshot {
   timestamp: string;
-  total_tenants: number;
+  total_Workspaces: number;
   active_users: number;
   avg_compliance_rate: number;
 }
@@ -34,7 +34,7 @@ export function PlatformAnalytics() {
         const [snapshotsRes, orgsRes] = await Promise.all([
           supabase
             .from('analytics_snapshots')
-            .select('timestamp, total_tenants, active_users, avg_compliance_rate')
+            .select('timestamp, total_Workspaces, active_users, avg_compliance_rate')
             .order('timestamp', { ascending: true })
             .limit(12),
           supabase
@@ -66,10 +66,10 @@ export function PlatformAnalytics() {
     );
   }
 
-  const latestSnapshot = snapshots[snapshots.length - 1] || { total_tenants: 0, avg_compliance_rate: 0, active_users: 0 };
-  const firstSnapshot = snapshots[0] || { total_tenants: 0 };
-  const growthPercent = firstSnapshot.total_tenants > 0 
-    ? ((latestSnapshot.total_tenants - firstSnapshot.total_tenants) / firstSnapshot.total_tenants * 100).toFixed(1)
+  const latestSnapshot = snapshots[snapshots.length - 1] || { total_Workspaces: 0, avg_compliance_rate: 0, active_users: 0 };
+  const firstSnapshot = snapshots[0] || { total_Workspaces: 0 };
+  const growthPercent = firstSnapshot.total_Workspaces > 0 
+    ? ((latestSnapshot.total_Workspaces - firstSnapshot.total_Workspaces) / firstSnapshot.total_Workspaces * 100).toFixed(1)
     : '0';
 
   return (
@@ -77,7 +77,7 @@ export function PlatformAnalytics() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-text-primary tracking-tight">Platform Analytics</h2>
-          <p className="text-sm text-text-secondary mt-1">Global performance metrics, tenant growth, and compliance trends.</p>
+          <p className="text-sm text-text-secondary mt-1">Global performance metrics, Workspace growth, and compliance trends.</p>
         </div>
         <div className="flex items-center gap-2 bg-white border border-border-subtle p-1 rounded-xl shadow-sm">
           {['24h', '7d', '30d', '90d'].map((period) => (
@@ -92,12 +92,12 @@ export function PlatformAnalytics() {
 
       {/* Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Tenant Growth */}
+        {/* Workspace Growth */}
         <div className="bg-white border border-border-subtle rounded-2xl p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mb-1">Tenant Growth</p>
-              <h3 className="text-xl font-bold text-text-primary tracking-tight">{latestSnapshot.total_tenants} Active Orgs</h3>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mb-1">Workspace Growth</p>
+              <h3 className="text-xl font-bold text-text-primary tracking-tight">{latestSnapshot.total_Workspaces} Active Orgs</h3>
             </div>
             <div className="flex items-center gap-2 text-emerald-600 font-bold text-[10px] bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 uppercase tracking-wider">
               <TrendingUp className="w-3.5 h-3.5" />
@@ -109,10 +109,10 @@ export function PlatformAnalytics() {
               <div key={i} className="flex-1 bg-brand-light/50 rounded-t-lg relative group transition-all hover:bg-brand-primary">
                 <div 
                   className="w-full bg-brand-primary/20 rounded-t-lg transition-all group-hover:bg-brand-primary h-full" 
-                  style={{ height: `${(s.total_tenants / (latestSnapshot.total_tenants || 1)) * 100}%` }}
+                  style={{ height: `${(s.total_Workspaces / (latestSnapshot.total_Workspaces || 1)) * 100}%` }}
                 />
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-text-primary text-white text-[9px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl border border-slate-700">
-                  {s.total_tenants} orgs
+                  {s.total_Workspaces} orgs
                 </div>
               </div>
             ))}
@@ -160,20 +160,20 @@ export function PlatformAnalytics() {
         </div>
       </div>
 
-      {/* Top Performing Tenants */}
+      {/* Top Performing Workspaces */}
       <div className="bg-white border border-border-subtle rounded-2xl p-8 shadow-sm">
-        <h3 className="font-bold text-text-primary text-sm uppercase tracking-[0.2em] mb-10 border-b border-border-subtle pb-4">Live Organization Fleet</h3>
+        <h3 className="font-bold text-text-primary text-sm uppercase tracking-[0.2em] mb-10 border-b border-border-subtle pb-4">Live Organisation Fleet</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {orgs.map((tenant) => (
-            <div key={tenant.name} className="space-y-5 group cursor-pointer">
+          {orgs.map((Workspace) => (
+            <div key={Workspace.name} className="space-y-5 group cursor-pointer">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-text-primary group-hover:text-brand-primary transition-colors">{tenant.name}</span>
+                <span className="text-sm font-bold text-text-primary group-hover:text-brand-primary transition-colors">{Workspace.name}</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-text-muted group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
               </div>
               <div className="space-y-2.5">
                 <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-text-muted">
                   <span>Plan Type</span>
-                  <span className="text-text-primary capitalize">{tenant.plan}</span>
+                  <span className="text-text-primary capitalize">{Workspace.plan}</span>
                 </div>
                 <div className="h-1.5 bg-bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-brand-primary rounded-full transition-all duration-1000 w-full opacity-20" />
@@ -182,7 +182,7 @@ export function PlatformAnalytics() {
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-widest">
                   <Globe className="w-3 h-3" />
-                  {tenant.region}
+                  {Workspace.region}
                 </div>
                 <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Active</div>
               </div>

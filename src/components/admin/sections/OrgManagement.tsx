@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import Badge from '../../ui/Badge';
 import { supabase } from '@/lib/supabase';
 
-interface Organization {
+interface Organisation {
   id: string;
   name: string;
   slug: string;
@@ -26,7 +26,7 @@ interface Organization {
 }
 
 export function OrgManagement() {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [organizations, setorganizations] = useState<Organisation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -37,7 +37,7 @@ export function OrgManagement() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (data) setOrganizations(data);
+      if (data) setorganizations(data);
     } catch (err) {
       console.error('Failed to fetch organizations:', err);
     } finally {
@@ -65,7 +65,7 @@ export function OrgManagement() {
     };
   }, []);
 
-  const toggleStatus = async (org: Organization) => {
+  const toggleStatus = async (org: Organisation) => {
     const newStatus = org.status === 'active' ? 'suspended' : 'active';
     try {
       const { error } = await supabase
@@ -76,11 +76,11 @@ export function OrgManagement() {
       if (error) throw error;
       
       // Update local state
-      setOrganizations(prev => prev.map(o => 
+      setorganizations(prev => prev.map(o => 
         o.id === org.id ? { ...o, status: newStatus } : o
       ));
     } catch (err) {
-      console.error('Failed to toggle organization status:', err);
+      console.error('Failed to toggle Organisation status:', err);
     }
   };
 
@@ -110,12 +110,12 @@ export function OrgManagement() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-text-primary tracking-tight">Organization Management</h2>
-          <p className="text-sm text-text-secondary mt-1">Monitor and manage all tenant organizations across the platform.</p>
+          <h2 className="text-xl font-bold text-text-primary tracking-tight">Organisation Management</h2>
+          <p className="text-sm text-text-secondary mt-1">Monitor and manage all Workspace organizations across the platform.</p>
         </div>
         <button className="btn-enterprise-primary !py-2.5 !px-5 !text-xs !rounded-xl !gap-2">
           <Plus className="w-4 h-4" />
-          Provision New Tenant
+          Set Up New Workspace
         </button>
       </div>
 
@@ -155,7 +155,7 @@ export function OrgManagement() {
         <table className="w-full min-w-[800px]">
           <thead>
             <tr className="bg-bg-muted/50">
-              <th className="table-header !py-4 px-6">Organization</th>
+              <th className="table-header !py-4 px-6">Organisation</th>
               <th className="table-header !py-4 px-6">Status</th>
               <th className="table-header !py-4 px-6">Plan</th>
               <th className="table-header !py-4 px-6">Region</th>
@@ -221,7 +221,7 @@ export function OrgManagement() {
                     >
                       {org.status === 'active' ? 'Suspend' : 'Activate'}
                     </button>
-                    <button className="p-2 text-text-muted hover:text-brand-primary hover:bg-brand-light rounded-lg transition-all" title="Manage Tenant">
+                    <button className="p-2 text-text-muted hover:text-brand-primary hover:bg-brand-light rounded-lg transition-all" title="Manage Workspace">
                       <ArrowUpRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -230,7 +230,7 @@ export function OrgManagement() {
             )) : (
               <tr>
                 <td colSpan={6} className="py-20 text-center text-text-muted font-bold uppercase tracking-widest text-xs italic">
-                  No organizations found
+                  No organisations found
                 </td>
               </tr>
             )}
@@ -241,7 +241,7 @@ export function OrgManagement() {
       {/* Pagination Summary */}
       <div className="flex items-center justify-between px-2 pt-2">
         <p className="text-[11px] text-text-muted font-bold uppercase tracking-wider">
-          Total Fleet size: <span className="text-text-primary">{organizations.length}</span> Entities
+          Total Organisations: <span className="text-text-primary">{organizations.length}</span>
         </p>
       </div>
     </div>

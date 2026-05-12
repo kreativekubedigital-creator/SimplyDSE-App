@@ -63,7 +63,7 @@ export function HRDashboardSidebar() {
         </div>
       </div>
 
-      {/* Organization Selector - Condensed */}
+      {/* Organisation Selector - Condensed */}
       <div className="px-4 mb-4">
         <button className="w-full flex items-center justify-between p-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 rounded-lg transition-all group">
           <div className="flex items-center gap-2.5">

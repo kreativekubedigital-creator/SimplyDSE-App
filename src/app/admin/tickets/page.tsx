@@ -112,7 +112,7 @@ export default function SupportTicketsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Global Support Queue</h1>
-            <p className="text-[13px] text-slate-500 mt-1">Manage cross-tenant support escalations, mission-critical tickets, and SLA performance.</p>
+            <p className="text-[13px] text-slate-500 mt-1">Manage cross-Workspace support escalations, mission-critical tickets, and SLA performance.</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ export default function SupportTicketsPage() {
                 <thead className="bg-slate-50/50 border-b border-slate-100">
                   <tr>
                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ticket ID</th>
-                    <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Subject & Tenant</th>
+                    <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Subject & Workspace</th>
                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</th>
                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
                     <th className="px-8 py-5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Action</th>

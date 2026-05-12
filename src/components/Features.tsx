@@ -139,7 +139,7 @@ const Features = () => {
                   <h3 className="text-3xl font-bold text-text-primary tracking-tight">Operational Insights</h3>
                   <p className="text-text-secondary text-lg leading-relaxed">
                     Move beyond simple charts. Our intelligence layer identifies hidden risk trends 
-                    before they become organizational liabilities.
+                    before they become Organisational liabilities.
                   </p>
                   <div className="pt-4 flex items-center gap-8">
                     <div className="flex flex-col">

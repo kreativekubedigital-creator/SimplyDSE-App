@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Lock, Mail, ArrowRight, X, CheckCircle2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getTenantInfo } from '../utils/multi-tenancy';
-import type { TenantConfig } from '../utils/multi-tenancy';
+import { getWorkspaceInfo } from '../utils/multi-tenancy';
+import type { WorkspaceConfig } from '../utils/multi-tenancy';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -10,14 +10,14 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
-  const [tenant, setTenant] = useState<TenantConfig | null>(null);
+  const [Workspace, setWorkspace] = useState<WorkspaceConfig | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setTenant(getTenantInfo());
+      setWorkspace(getWorkspaceInfo());
       // Prevent scrolling when modal is open
       document.body.style.overflow = 'hidden';
     } else {
@@ -70,7 +70,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                   <Shield className="w-7 h-7 text-brand-primary" />
                 </div>
                 <h2 className="text-2xl font-bold text-text-primary tracking-tight">
-                  {tenant?.id === 'main' ? 'Enterprise Login' : `Log in to ${tenant?.name}`}
+                  {Workspace?.id === 'main' ? 'Enterprise Login' : `Log in to ${Workspace?.name}`}
                 </h2>
                 <p className="text-text-secondary mt-2 text-sm font-medium">
                   Secure access to your DSE compliance portal.
@@ -140,7 +140,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-2 text-text-muted">
                   <CheckCircle2 className="w-3.5 h-3.5 text-brand-primary" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.15em]">Multi-Tenant Protected</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em]">Multi-Workspace Protected</span>
                 </div>
                 <p className="text-[10px] text-text-muted text-center leading-relaxed max-w-[240px]">
                   Protected by SimplyDSE security protocols. 

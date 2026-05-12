@@ -34,7 +34,7 @@ export default function AssessmentsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Assessment Management</h2>
-          <p className="text-[14px] text-slate-500 font-medium">Track, manage, and review organization-wide DSE assessments.</p>
+          <p className="text-[14px] text-slate-500 font-medium">Track, manage, and review Organisation-wide DSE assessments.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 transition-all">

@@ -20,7 +20,7 @@ import { cn } from '../../../lib/utils';
 import { StatCard } from '../../../components/admin/StatCard';
 
 const activeWorkflows = [
-  { id: 1, name: 'Tenant Auto-Provisioning', status: 'Running', health: '99%', type: 'Infrastructure', steps: 8 },
+  { id: 1, name: 'Workspace Auto-Provisioning', status: 'Running', health: '99%', type: 'System', steps: 8 },
   { id: 2, name: 'Security Audit Synchronization', status: 'Scheduled', health: '100%', type: 'Security', steps: 4 },
   { id: 3, name: 'Assessment Compliance Score Aggregation', status: 'Running', health: '94%', type: 'Analytics', steps: 12 },
   { id: 4, name: 'Backup & Disaster Recovery Trigger', status: 'Standby', health: '100%', type: 'System', steps: 6 },
@@ -34,7 +34,7 @@ export default function WorkflowsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">System Workflows & Automation</h1>
-            <p className="text-[13px] text-slate-500 mt-1">Orchestrate cross-tenant automated processes, infrastructure triggers, and data pipelines.</p>
+            <p className="text-[13px] text-slate-500 mt-1">Orchestrate cross-Workspace automated processes, System triggers, and data pipelines.</p>
           </div>
           
           <button className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary text-white text-[12px] font-bold rounded-xl shadow-xl shadow-brand-primary/20 hover:scale-[1.02] transition-all active:scale-95">

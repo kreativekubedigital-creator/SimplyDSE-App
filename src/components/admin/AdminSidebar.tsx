@@ -28,22 +28,22 @@ import { cn } from '../../lib/utils';
 
 const navigation = [
   { name: 'Overview', icon: LayoutDashboard, href: '/admin' },
-  { name: 'Organizations', icon: Building2, href: '/admin/organizations' },
+  { name: 'Organisations', icon: Building2, href: '/admin/organizations' },
   { name: 'Users', icon: Users, href: '/admin/users' },
   { name: 'Roles & Permissions', icon: ShieldCheck, href: '/admin/roles' },
-  { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
+  { name: 'Reports', icon: BarChart3, href: '/admin/analytics' },
   { name: 'Compliance', icon: Shield, href: '/admin/compliance' },
   { name: 'Security', icon: ShieldCheck, href: '/admin/security' },
   { name: 'Billing', icon: CreditCard, href: '/admin/billing' },
   { name: 'Workflows', icon: Workflow, href: '/admin/workflows' },
   { name: 'Notifications', icon: Bell, href: '/admin/notifications' },
   { name: 'System Health', icon: Activity, href: '/admin/health' },
-  { name: 'Audit Logs', icon: History, href: '/admin/audit' },
+  { name: 'Activity', icon: History, href: '/admin/audit' },
   { name: 'Settings', icon: Settings, href: '/admin/settings' },
 ];
 
 const shortcuts = [
-  { name: 'Create Organization', icon: PlusCircle, href: '/admin/organizations/new' },
+  { name: 'Create Organisation', icon: PlusCircle, href: '/admin/organizations/new' },
   { name: 'Add User', icon: UserPlus, href: '/admin/users/new' },
   { name: 'System Announcements', icon: Megaphone, href: '/admin/announcements' },
   { name: 'Support Tickets', icon: Ticket, href: '/admin/tickets' },
