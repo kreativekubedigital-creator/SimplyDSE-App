@@ -161,7 +161,22 @@ export default function NewOrganisationPage() {
                           placeholder="e.g. Acme Corp Industries"
                           className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
                           value={formData.orgName}
-                          onChange={(e) => setFormData({...formData, orgName: e.target.value})}
+                          onChange={(e) => {
+                            const name = e.target.value;
+                            const slug = name.toLowerCase()
+                              .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+                              .replace(/\s+/g, '-')        // Replace spaces with -
+                              .replace(/-+/g, '-');        // Remove duplicate -
+                            
+                            setFormData(prev => ({
+                              ...prev, 
+                              orgName: name,
+                              // Only auto-fill domain if it's currently empty or matches the slug of the previous name
+                              domain: (!prev.domain || prev.domain === prev.orgName.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')) 
+                                ? slug 
+                                : prev.domain
+                            }));
+                          }}
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -173,7 +188,12 @@ export default function NewOrganisationPage() {
                               placeholder="acmecorp"
                               className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-5 pr-32 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
                               value={formData.domain}
-                              onChange={(e) => setFormData({...formData, domain: e.target.value})}
+                              onChange={(e) => {
+                                const val = e.target.value.toLowerCase()
+                                  .replace(/[^a-z0-9-]/g, '') // Only allow alphanumeric and hyphens
+                                  .replace(/-+/g, '-');       // Remove duplicate -
+                                setFormData({...formData, domain: val});
+                              }}
                             />
                             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[12px] font-bold text-slate-400">
                               .simplydse.com
