@@ -111,7 +111,7 @@ export default function AdminOverviewPage() {
   }, []);
 
   const statCards = [
-    { label: 'Total organizations', value: (stats?.total_Workspaces || organizations.length).toString(), icon: Building2, change: 'Current Total', trend: 'neutral' as const, sub: 'Active & Inactive' },
+    { label: 'Total organizations', value: (stats?.total_tenants || organizations.length).toString(), icon: Building2, change: 'Current Total', trend: 'neutral' as const, sub: 'Active & Inactive' },
     { label: 'Active Workspaces', value: organizations.filter(o => o.status === 'active').length.toString(), icon: Zap, change: 'Operating', trend: 'neutral' as const, sub: 'Production nodes' },
     { label: 'Total Users', value: (stats?.total_users || 0).toString(), icon: User, change: `+${stats?.new_users_30d || 0} recent`, trend: 'up' as const, sub: 'Across all Workspaces' },
     { label: 'Compliance Rate', value: complianceRate.toFixed(1) + '%', icon: ShieldCheck, change: 'System Wide', trend: 'neutral' as const, sub: 'Global average' },

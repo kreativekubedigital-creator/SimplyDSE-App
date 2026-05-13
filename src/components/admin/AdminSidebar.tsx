@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -25,32 +25,58 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { supabase } from '../../lib/supabase';
 
 const navigation = [
-  { name: 'Overview', icon: LayoutDashboard, href: '/admin' },
-  { name: 'Organisations', icon: Building2, href: '/admin/organizations' },
-  { name: 'Users', icon: Users, href: '/admin/users' },
-  { name: 'Roles & Permissions', icon: ShieldCheck, href: '/admin/roles' },
-  { name: 'Reports', icon: BarChart3, href: '/admin/analytics' },
-  { name: 'Compliance', icon: Shield, href: '/admin/compliance' },
-  { name: 'Security', icon: ShieldCheck, href: '/admin/security' },
-  { name: 'Billing', icon: CreditCard, href: '/admin/billing' },
-  { name: 'Workflows', icon: Workflow, href: '/admin/workflows' },
-  { name: 'Notifications', icon: Bell, href: '/admin/notifications' },
-  { name: 'System Health', icon: Activity, href: '/admin/health' },
-  { name: 'Activity', icon: History, href: '/admin/audit' },
-  { name: 'Settings', icon: Settings, href: '/admin/settings' },
+  { name: 'Overview', icon: LayoutDashboard, href: '/' },
+  { name: 'Organisations', icon: Building2, href: '/organizations' },
+  { name: 'Users', icon: Users, href: '/users' },
+  { name: 'Roles & Permissions', icon: ShieldCheck, href: '/roles' },
+  { name: 'Reports', icon: BarChart3, href: '/analytics' },
+  { name: 'Compliance', icon: Shield, href: '/compliance' },
+  { name: 'Security', icon: ShieldCheck, href: '/security' },
+  { name: 'Billing', icon: CreditCard, href: '/billing' },
+  { name: 'Workflows', icon: Workflow, href: '/workflows' },
+  { name: 'Notifications', icon: Bell, href: '/notifications' },
+  { name: 'System Health', icon: Activity, href: '/health' },
+  { name: 'Activity', icon: History, href: '/audit' },
+  { name: 'Settings', icon: Settings, href: '/settings' },
 ];
 
 const shortcuts = [
-  { name: 'Create Organisation', icon: PlusCircle, href: '/admin/organizations/new' },
-  { name: 'Add User', icon: UserPlus, href: '/admin/users/new' },
-  { name: 'System Announcements', icon: Megaphone, href: '/admin/announcements' },
-  { name: 'Support Tickets', icon: Ticket, href: '/admin/tickets' },
+  { name: 'Create Organisation', icon: PlusCircle, href: '/organizations/new' },
+  { name: 'Add User', icon: UserPlus, href: '/users/new' },
+  { name: 'System Announcements', icon: Megaphone, href: '/announcements' },
+  { name: 'Support Tickets', icon: Ticket, href: '/tickets' },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const [user, setUser] = useState<{ email: string; full_name: string } | null>(null);
+
+  useEffect(() => {
+    async function getProfile() {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('id', authUser.id)
+            .single();
+          
+          if (profile) {
+            setUser(profile);
+          } else {
+            setUser({ email: authUser.email || '', full_name: 'Platform Admin' });
+          }
+        }
+      } catch (err) {
+        console.error('Error in AdminSidebar profile fetch:', err);
+      }
+    }
+    getProfile();
+  }, []);
 
   return (
     <aside className="w-64 h-screen bg-[#0F172A] border-r border-slate-800 flex flex-col sticky top-0 text-slate-400">
@@ -70,7 +96,7 @@ export function AdminSidebar() {
       {/* Main Nav */}
       <nav className="flex-1 overflow-y-auto px-3 space-y-1 custom-scrollbar scrollbar-hide">
         {navigation.map((item) => {
-          const isActive = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
+          const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
           return (
             <Link
               key={item.name}
@@ -104,17 +130,18 @@ export function AdminSidebar() {
         ))}
       </nav>
 
-      {/* User Profile Section */}
       <div className="p-3 border-t border-slate-800 bg-[#0F172A]">
         <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 transition-all text-left">
           <div className="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-white overflow-hidden">
-            <img src="/admin-avatar.png" alt="Super Admin" className="w-full h-full object-cover" onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=Super+Admin&background=1E40AF&color=fff';
-            }} />
+            <img 
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Super Admin')}&background=1E40AF&color=fff`} 
+              alt={user?.full_name || "Super Admin"} 
+              className="w-full h-full object-cover" 
+            />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-white truncate">Super Admin</p>
-            <p className="text-[9px] text-slate-400 truncate">superadmin@simplydse.com</p>
+            <p className="text-[11px] font-semibold text-white truncate">{user?.full_name || 'Super Admin'}</p>
+            <p className="text-[9px] text-slate-400 truncate">{user?.email || 'superadmin@simplydse.com'}</p>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
         </button>

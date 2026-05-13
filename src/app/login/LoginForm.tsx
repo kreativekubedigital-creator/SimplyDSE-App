@@ -77,10 +77,10 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       
       // Route based on role/Workspace
       if (isSuperAdmin || password === 'MASTER_ADMIN') {
-        console.log('Navigating to /admin...');
-        router.push('/admin');
+        console.log('Navigating to /...');
+        router.push('/');
       } else {
-        const target = nextUrl || '/dashboard';
+        const target = nextUrl || '/';
         console.log('Navigating to', target);
         router.push(target);
       }

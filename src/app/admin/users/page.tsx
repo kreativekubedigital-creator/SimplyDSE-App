@@ -287,7 +287,7 @@ export default function UserDirectoryPage() {
           </div>
 
           <div className="px-8 py-6 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Page 1 of 124 (12,412 total)</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Page 1 of 1 ({profiles.length} total)</p>
             <div className="flex items-center gap-2">
               <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-400 cursor-not-allowed">Previous</button>
               <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all">Next</button>

@@ -68,7 +68,7 @@ export async function middleware(req: NextRequest) {
 
     // Clean up URLs: If they access admin.domain.com/admin/something, redirect to admin.domain.com/something
     if (path.startsWith('/admin')) {
-      return NextResponse.redirect(new URL(path.replace(/^\/admin/, ''), req.url));
+      return NextResponse.redirect(new URL(path.replace(/^\/admin/, '') || '/', req.url));
     }
 
     // Rewrite admin.domain.com/some-path to /admin/some-path
@@ -96,7 +96,7 @@ export async function middleware(req: NextRequest) {
 
     // Clean up URLs: If they access acme.domain.com/dashboard/something, redirect to acme.domain.com/something
     if (path.startsWith('/dashboard')) {
-      return NextResponse.redirect(new URL(path.replace(/^\/dashboard/, ''), req.url));
+      return NextResponse.redirect(new URL(path.replace(/^\/dashboard/, '') || '/', req.url));
     }
     
     // Rewrite acme.domain.com/some-path to /dashboard/some-path
