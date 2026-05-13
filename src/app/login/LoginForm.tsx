@@ -37,6 +37,16 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       }
       
       const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        console.error('Auth Error:', authError);
+        throw authError;
+      }
+
+      console.log('Auth Success, User ID:', data.user?.id);
 
       // Ensure the user actually belongs to this Workspace if we are not on www or admin
       if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
