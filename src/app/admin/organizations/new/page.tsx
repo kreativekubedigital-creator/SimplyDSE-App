@@ -58,6 +58,7 @@ export default function NewOrganisationPage() {
     adminFirstName: '',
     adminLastName: '',
     adminEmail: '',
+    adminPassword: '',
     plan: 'Enterprise',
     seats: 500,
     selectedModules: ['dse', 'audit'],
@@ -361,15 +362,27 @@ export default function NewOrganisationPage() {
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Admin Email Address</label>
-                        <input 
-                          type="email" 
-                          placeholder="j.smith@acmecorp.com"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
-                          value={formData.adminEmail}
-                          onChange={(e) => setFormData({...formData, adminEmail: e.target.value})}
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Admin Email Address</label>
+                          <input 
+                            type="email" 
+                            placeholder="j.smith@acmecorp.com"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
+                            value={formData.adminEmail}
+                            onChange={(e) => setFormData({...formData, adminEmail: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Temporary Password</label>
+                          <input 
+                            type="text" 
+                            placeholder="Set a temp password"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
+                            value={formData.adminPassword}
+                            onChange={(e) => setFormData({...formData, adminPassword: e.target.value})}
+                          />
+                        </div>
                       </div>
                       
                       <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 flex gap-4">
@@ -377,7 +390,7 @@ export default function NewOrganisationPage() {
                         <div>
                           <p className="text-[13px] font-bold text-amber-900 mb-1">Onboarding Activation</p>
                           <p className="text-[11px] text-amber-700/80 leading-relaxed font-medium">
-                            An automated invitation will be sent to this email once the workspace is ready. The admin will be prompted to set their secure password upon first login.
+                            The admin can log in immediately using this password at the organization subdomain. No email verification wait required.
                           </p>
                         </div>
                       </div>

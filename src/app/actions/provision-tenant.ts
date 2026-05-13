@@ -12,6 +12,7 @@ interface ProvisionRequest {
   adminFirstName: string;
   adminLastName: string;
   adminEmail: string;
+  adminPassword?: string;
   plan: string;
 }
 
@@ -59,18 +60,21 @@ export async function provisionTenant(data: ProvisionRequest) {
 
     if (roleError) throw new Error(`Role Fetch Failed: ${roleError.message}`);
 
-    // 3. Invite User via Supabase Auth
-    // This sends an email with a secure link to set their password
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.adminEmail, {
-      data: {
+    // 3. Create User via Supabase Auth with Password
+    // This allows the user to log in immediately without waiting for an email
+    const { data: userData, error: userCreateError } = await supabaseAdmin.auth.admin.createUser({
+      email: data.adminEmail,
+      password: data.adminPassword || 'SimplyDSE2024!', // Fallback if none provided
+      email_confirm: true,
+      user_metadata: {
         first_name: data.adminFirstName,
         last_name: data.adminLastName,
         organization_id: OrganisationId
       }
     });
 
-    if (inviteError) throw new Error(`User Invite Failed: ${inviteError.message}`);
-    const userId = inviteData.user.id;
+    if (userCreateError) throw new Error(`User Creation Failed: ${userCreateError.message}`);
+    const userId = userData.user.id;
 
     // 4. Create Profile (if not created by a trigger automatically, though often it is. We will explicitly update or insert to ensure organization_id is set)
     const { error: profileError } = await supabaseAdmin
