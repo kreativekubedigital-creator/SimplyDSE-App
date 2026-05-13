@@ -6,12 +6,13 @@ export async function getTenantContext() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, organization_id, organizations(name)')
+    .select('role, organization_id, organizations(name, slug)')
     .eq('id', user.id)
     .single();
 
   let organizationId = profile?.organization_id;
   let organizationName = 'Your Organisation';
+  let organizationSlug = 'workspace';
 
   // Super Admin Logic: Detect tenant from subdomain if user is super_admin OR has no fixed org
   if (profile?.role === 'super_admin' || !organizationId) {
@@ -22,20 +23,23 @@ export async function getTenantContext() {
       if (slug && slug !== 'www' && slug !== 'admin' && slug !== 'localhost') {
         const { data: orgData } = await supabase
           .from('organizations')
-          .select('id, name')
+          .select('id, name, slug')
           .eq('slug', slug)
           .single();
         
         if (orgData) {
           organizationId = orgData.id;
           organizationName = orgData.name;
+          organizationSlug = orgData.slug;
         }
       }
     }
   } else {
     const orgs: any = profile?.organizations;
     if (orgs) {
-      organizationName = Array.isArray(orgs) ? orgs[0]?.name : orgs.name;
+      const org = Array.isArray(orgs) ? orgs[0] : orgs;
+      organizationName = org.name;
+      organizationSlug = org.slug;
     }
   }
 
@@ -43,6 +47,7 @@ export async function getTenantContext() {
     user,
     role: profile?.role,
     organizationId,
-    organizationName
+    organizationName,
+    organizationSlug
   };
 }
