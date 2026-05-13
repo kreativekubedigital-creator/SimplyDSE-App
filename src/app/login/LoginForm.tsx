@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { ArrowRight, Loader2, Lock } from 'lucide-react';
+import { ArrowRight, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface LoginFormProps {
@@ -17,6 +17,7 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleStandardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,14 +151,23 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
               Forgot password?
             </button>
           </div>
-          <input 
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
-            placeholder="••••••••••••"
-            required
-          />
+          <div className="relative group">
+            <input 
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 pr-12 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
+              placeholder="••••••••••••"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         <button 

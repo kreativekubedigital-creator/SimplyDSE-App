@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Lock, Mail, ArrowRight, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, X, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getWorkspaceInfo } from '../utils/multi-tenancy';
 import type { WorkspaceConfig } from '../utils/multi-tenancy';
@@ -18,6 +18,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -179,17 +180,24 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                     </button>
                   </div>
                   <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-brand-primary transition-colors">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-brand-primary transition-colors z-10">
                       <Lock className="w-5 h-5" />
                     </div>
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-slate-50 border border-border-strong rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all text-text-primary font-medium placeholder:text-text-muted/50 text-sm"
+                      className="w-full bg-slate-50 border border-border-strong rounded-2xl py-3.5 pl-12 pr-12 outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all text-text-primary font-medium placeholder:text-text-muted/50 text-sm"
                       placeholder="••••••••"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-brand-primary transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
 
