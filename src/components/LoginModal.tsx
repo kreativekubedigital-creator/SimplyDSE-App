@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Lock, Mail, ArrowRight, X, CheckCircle2 } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getWorkspaceInfo } from '../utils/multi-tenancy';
 import type { WorkspaceConfig } from '../utils/multi-tenancy';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -10,10 +12,12 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
+  const router = useRouter();
   const [Workspace, setWorkspace] = useState<WorkspaceConfig | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,13 +30,45 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized. Check your environment variables.');
+      }
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      if (data.user) {
+        // Fetch user role to determine redirection
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        // Successful login - Redirect based on role
+        if (profile?.role === 'super_admin') {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
+        onClose();
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Invalid email or password. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      // Auth logic will go here
-    }, 2000);
+    }
   };
 
   return (
@@ -76,6 +112,17 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                   Secure access to your DSE compliance portal.
                 </p>
               </div>
+
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-100 flex items-start gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                  <p className="text-xs font-semibold text-rose-800 leading-relaxed">{error}</p>
+                </motion.div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
