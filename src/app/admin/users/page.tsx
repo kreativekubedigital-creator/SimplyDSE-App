@@ -23,6 +23,7 @@ import {
 import { cn } from '../../../lib/utils';
 
 import { StatCard } from '../../../components/admin/StatCard';
+import { InviteUserModal } from '../../../components/admin/InviteUserModal';
 
 interface Profile {
   id: string;
@@ -49,6 +50,7 @@ export default function UserDirectoryPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchProfiles() {
@@ -95,7 +97,10 @@ export default function UserDirectoryPage() {
             <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all">
               Security Audit
             </button>
-            <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary text-white text-[12px] font-bold rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-[1.02] transition-all active:scale-95">
+            <button 
+              onClick={() => setIsInviteModalOpen(true)}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary text-white text-[12px] font-bold rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-[1.02] transition-all active:scale-95"
+            >
               <UserPlus className="w-4 h-4" />
               Invite User
             </button>
@@ -294,6 +299,21 @@ export default function UserDirectoryPage() {
             </div>
           </div>
         </div>
-      </div>
+        <InviteUserModal 
+        isOpen={isInviteModalOpen} 
+        onClose={() => setIsInviteModalOpen(false)}
+        onSuccess={() => {
+          // Refresh profiles list
+          const fetchProfiles = async () => {
+            const { data } = await supabase
+              .from('profiles')
+              .select(`*, organizations(name)`)
+              .order('created_at', { ascending: false });
+            if (data) setProfiles(data as any);
+          };
+          fetchProfiles();
+        }}
+      />
+    </div>
   );
 }

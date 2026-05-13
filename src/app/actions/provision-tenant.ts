@@ -54,7 +54,7 @@ export async function provisionTenant(data: ProvisionRequest) {
     const { data: role, error: roleError } = await supabaseAdmin
       .from('roles')
       .select('id')
-      .eq('slug', 'Organisation_admin')
+      .eq('slug', 'organization_admin')
       .single();
 
     if (roleError) throw new Error(`Role Fetch Failed: ${roleError.message}`);
@@ -80,7 +80,7 @@ export async function provisionTenant(data: ProvisionRequest) {
         email: data.adminEmail,
         full_name: `${data.adminFirstName} ${data.adminLastName}`.trim(),
         organization_id: OrganisationId,
-        role: 'Organisation_admin',
+        role: 'organization_admin',
         status: 'invited'
       });
 
