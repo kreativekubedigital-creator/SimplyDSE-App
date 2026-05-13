@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
 
 // Initialize a Supabase client with the Service Role key
 // This bypasses RLS and allows creating users/roles securely
@@ -107,8 +108,8 @@ export async function provisionTenant(data: ProvisionRequest) {
       .insert({
         action: 'Organisation_PROVISION',
         entity_type: 'Organisation',
-        organization_id: OrganisationId, // Important: Tie log to the new org
-        user_id: userId, // The system/admin who triggered this is ideal, but here we attach the new user ID
+        organization_id: OrganisationId,
+        user_id: userId,
         details: { 
           name: data.orgName, 
           admin: data.adminEmail,
@@ -116,6 +117,45 @@ export async function provisionTenant(data: ProvisionRequest) {
           plan: data.plan 
         }
       });
+
+    // 7. Send Welcome Email with Credentials
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const loginLink = `https://${slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online'}/login`;
+
+    try {
+      await resend.emails.send({
+        from: 'SimplyDSE <onboarding@simplydse.online>',
+        to: data.adminEmail,
+        subject: `Welcome to SimplyDSE - Your Workspace is Ready`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px;">
+            <h1 style="color: #1e293b; font-size: 24px; margin-bottom: 24px;">Welcome to SimplyDSE!</h1>
+            <p style="color: #64748b; font-size: 16px; line-height: 24px;">
+              Your organisation workspace for <strong>${data.orgName}</strong> has been successfully provisioned. 
+              You can now log in to your dashboard using the credentials below:
+            </p>
+            
+            <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin: 32px 0;">
+              <p style="margin: 0 0 12px 0;"><strong>Dashboard Link:</strong> <a href="${loginLink}" style="color: #2563eb;">${loginLink}</a></p>
+              <p style="margin: 0 0 12px 0;"><strong>Email:</strong> ${data.adminEmail}</p>
+              <p style="margin: 0;"><strong>Temporary Password:</strong> ${data.adminPassword || 'SimplyDSE2024!'}</p>
+            </div>
+
+            <p style="color: #64748b; font-size: 14px; line-height: 20px;">
+              For security reasons, we recommend that you change your password once you have logged in for the first time.
+            </p>
+
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
+            <p style="color: #94a3b8; font-size: 12px;">
+              This is an automated message from the SimplyDSE Provisioning System.
+            </p>
+          </div>
+        `
+      });
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // We don't throw here because the org is already created, just log it.
+    }
 
     return { success: true, OrganisationId };
   } catch (error: any) {
