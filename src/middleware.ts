@@ -72,22 +72,23 @@ export async function middleware(req: NextRequest) {
     }
 
     // Rewrite admin.domain.com/some-path to /admin/some-path
-    if (path !== '/login') {
+    // EXEMPT /auth paths so callback works!
+    if (path !== '/login' && !path.startsWith('/auth')) {
       return NextResponse.rewrite(new URL(`/admin${path === '/' ? '' : path}`, req.url));
     }
   } 
   
-  // Public Marketing Site (www.simplydse.com)
+  // Public Marketing Site (www.simplydse.online)
   else if (currentHost === 'www') {
     if (path.startsWith('/admin') || path.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
   } 
   
-  // Workspace Zone (acme.simplydse.com)
+  // Workspace Zone (acme.simplydse.online)
   else {
     // Auth Check
-    if (!user && path !== '/login') {
+    if (!user && path !== '/login' && !path.startsWith('/auth')) {
        const loginUrl = new URL('/login', req.url);
        if (path !== '/') loginUrl.searchParams.set('next', path);
        return NextResponse.redirect(loginUrl);
@@ -99,7 +100,8 @@ export async function middleware(req: NextRequest) {
     }
     
     // Rewrite acme.domain.com/some-path to /dashboard/some-path
-    if (path !== '/login') {
+    // EXEMPT /auth paths
+    if (path !== '/login' && !path.startsWith('/auth')) {
       return NextResponse.rewrite(new URL(`/dashboard${path === '/' ? '' : path}`, req.url));
     }
   }
