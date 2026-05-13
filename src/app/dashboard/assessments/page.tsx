@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -13,21 +13,83 @@ import {
   AlertCircle,
   AlertTriangle,
   User,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const assessments = [
-  { id: 'AS-2024-001', employee: 'Alice Thompson', department: 'Operations', status: 'Completed', dueDate: 'May 12, 2024', riskLevel: 'Low', completion: 100, reviewer: 'Sarah Johnson' },
-  { id: 'AS-2024-002', employee: 'Bob Smith', department: 'Engineering', status: 'In Progress', dueDate: 'Jun 05, 2024', riskLevel: 'Medium', completion: 45, reviewer: 'David Chen' },
-  { id: 'AS-2024-003', employee: 'Charlie Davis', department: 'Marketing', status: 'Overdue', dueDate: 'May 01, 2024', riskLevel: 'High', completion: 0, reviewer: 'Sarah Johnson' },
-  { id: 'AS-2024-004', employee: 'Diana Prince', department: 'Sales', status: 'In Progress', dueDate: 'Jun 12, 2024', riskLevel: 'Low', completion: 80, reviewer: 'Emma Wilson' },
-  { id: 'AS-2024-005', employee: 'Edward Norton', department: 'Engineering', status: 'Completed', dueDate: 'Apr 28, 2024', riskLevel: 'Medium', completion: 100, reviewer: 'David Chen' },
-  { id: 'AS-2024-006', employee: 'Fiona Gallagher', department: 'Operations', status: 'Not Started', dueDate: 'Jul 15, 2024', riskLevel: 'Low', completion: 0, reviewer: 'Sarah Johnson' },
-  { id: 'AS-2024-007', employee: 'George Miller', department: 'Legal', status: 'Completed', dueDate: 'May 10, 2024', riskLevel: 'Low', completion: 100, reviewer: 'Sarah Johnson' },
-];
+import { supabase } from '@/lib/supabase';
 
 export default function AssessmentsPage() {
+  const [assessments, setAssessments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    inProgress: 0,
+    overdue: 0
+  });
+
+  useEffect(() => {
+    async function fetchAssessments() {
+      try {
+        setLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.organization_id) return;
+
+        const { data: records, error } = await supabase
+          .from('assessments')
+          .select(`
+            *,
+            profiles(full_name, email)
+          `)
+          .eq('organization_id', profile.organization_id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const processedRecords = records.map((rec: any) => ({
+          id: rec.id.substring(0, 12).toUpperCase(),
+          employee: rec.profiles?.full_name || rec.profiles?.email || 'Unnamed',
+          department: 'General',
+          status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Pending',
+          dueDate: rec.completed_at ? new Date(rec.completed_at).toLocaleDateString() : 'Pending',
+          riskLevel: rec.risk_level === 'high' ? 'High' : rec.risk_level === 'medium' ? 'Medium' : 'Low',
+          completion: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? 50 : 0,
+          reviewer: 'System'
+        }));
+
+        setAssessments(processedRecords);
+
+        setStats({
+          total: processedRecords.length,
+          completed: processedRecords.filter((r: any) => r.status === 'Completed').length,
+          inProgress: processedRecords.filter((r: any) => r.status === 'In Progress').length,
+          overdue: 0 // Logic for overdue would depend on a due_date column
+        });
+
+      } catch (err) {
+        console.error('Error fetching assessments:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAssessments();
+  }, []);
+
+  const filteredAssessments = assessments.filter((item: any) => 
+    item.employee.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -50,10 +112,10 @@ export default function AssessmentsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Total Assessments" value="1,428" trend="+12.5%" icon={ClipboardList} iconColor="bg-blue-50 text-blue-600" />
-        <StatCard title="Completed" value="1,142" trend="+8.2%" icon={CheckCircle2} iconColor="bg-emerald-50 text-emerald-600" />
-        <StatCard title="In Progress" value="194" trend="-2.4%" icon={Clock} iconColor="bg-amber-50 text-amber-600" />
-        <StatCard title="Overdue" value="92" trend="+5.1%" icon={AlertCircle} iconColor="bg-rose-50 text-rose-600" />
+        <StatCard title="Total Assessments" value={stats.total.toString()} trend="Live" icon={ClipboardList} iconColor="bg-blue-50 text-blue-600" />
+        <StatCard title="Completed" value={stats.completed.toString()} trend="Success" icon={CheckCircle2} iconColor="bg-emerald-50 text-emerald-600" />
+        <StatCard title="In Progress" value={stats.inProgress.toString()} trend="Pending" icon={Clock} iconColor="bg-amber-50 text-amber-600" />
+        <StatCard title="Overdue" value={stats.overdue.toString()} trend="Warning" icon={AlertCircle} iconColor="bg-rose-50 text-rose-600" />
       </div>
 
       {/* Filters & Search */}
@@ -63,6 +125,8 @@ export default function AssessmentsPage() {
           <input 
             type="text" 
             placeholder="Search by employee, department, or ID..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           />
         </div>
@@ -101,73 +165,93 @@ export default function AssessmentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {assessments.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                        <User className="w-5 h-5 text-slate-400" />
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-slate-900 leading-none">{item.employee}</p>
-                        <p className="text-[11px] text-slate-400 font-medium mt-1">{item.id}</p>
-                      </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                      <p className="text-sm font-medium text-slate-500">Loading assessments...</p>
                     </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className="text-[13px] font-semibold text-slate-600">{item.department}</span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className={cn(
-                      "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tight",
-                      item.status === 'Completed' ? "bg-emerald-50 text-emerald-600" :
-                      item.status === 'In Progress' ? "bg-blue-50 text-blue-600" :
-                      item.status === 'Overdue' ? "bg-rose-50 text-rose-600" :
-                      "bg-slate-100 text-slate-500"
-                    )}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className="text-[13px] font-semibold text-slate-900">{item.dueDate}</span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        item.riskLevel === 'Low' ? "bg-emerald-500" :
-                        item.riskLevel === 'Medium' ? "bg-amber-500" :
-                        "bg-rose-500"
-                      )} />
-                      <span className="text-[13px] font-bold text-slate-700">{item.riskLevel}</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className={cn(
-                            "h-full rounded-full transition-all duration-1000",
-                            item.completion === 100 ? "bg-emerald-500" : "bg-blue-500"
-                          )} 
-                          style={{ width: `${item.completion}%` }} 
-                        />
-                      </div>
-                      <span className="text-[11px] font-bold text-slate-400">{item.completion}%</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
-                      <MoreHorizontal className="w-5 h-5" />
-                    </button>
                   </td>
                 </tr>
-              ))}
+              ) : filteredAssessments.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <ClipboardList className="w-8 h-8 text-slate-300" />
+                      <p className="text-sm font-medium text-slate-500">No assessments found.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredAssessments.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                          <User className="w-5 h-5 text-slate-400" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-slate-900 leading-none">{item.employee}</p>
+                          <p className="text-[11px] text-slate-400 font-medium mt-1">{item.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className="text-[13px] font-semibold text-slate-600">{item.department}</span>
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tight",
+                        item.status === 'Completed' ? "bg-emerald-50 text-emerald-600" :
+                        item.status === 'In Progress' ? "bg-blue-50 text-blue-600" :
+                        item.status === 'Overdue' ? "bg-rose-50 text-rose-600" :
+                        "bg-slate-100 text-slate-500"
+                      )}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className="text-[13px] font-semibold text-slate-900">{item.dueDate}</span>
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          item.riskLevel === 'Low' ? "bg-emerald-500" :
+                          item.riskLevel === 'Medium' ? "bg-amber-500" :
+                          "bg-rose-500"
+                        )} />
+                        <span className="text-[13px] font-bold text-slate-700">{item.riskLevel}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className={cn(
+                              "h-full rounded-full transition-all duration-1000",
+                              item.completion === 100 ? "bg-emerald-500" : "bg-blue-500"
+                            )} 
+                            style={{ width: `${item.completion}%` }} 
+                          />
+                        </div>
+                        <span className="text-[11px] font-bold text-slate-400">{item.completion}%</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
+                        <MoreHorizontal className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         <div className="px-8 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-[12px] text-slate-500 font-medium">Showing 7 of 1,428 assessments</p>
+          <p className="text-[12px] text-slate-500 font-medium">Showing {filteredAssessments.length} assessments</p>
           <div className="flex items-center gap-2">
             <button className="px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-[12px] font-bold text-slate-400 cursor-not-allowed">Previous</button>
             <button className="px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-[12px] font-bold text-slate-900 hover:bg-slate-50 transition-all">Next</button>

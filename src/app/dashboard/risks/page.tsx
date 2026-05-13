@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, 
   ShieldAlert, 
@@ -14,19 +14,81 @@ import {
   Flag,
   User,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const riskIncidents = [
-  { id: 'RSK-1024', employee: 'Alice Thompson', department: 'Operations', risk: 'Critical', issue: 'Severe Repetitive Strain (RSI) reported', date: '2 hours ago', status: 'Under Review' },
-  { id: 'RSK-1025', employee: 'Bob Smith', department: 'Engineering', risk: 'High', issue: 'Inadequate lumbar support / Posture risk', date: '5 hours ago', status: 'Pending Action' },
-  { id: 'RSK-1026', employee: 'Charlie Davis', department: 'Marketing', risk: 'Medium', issue: 'Eye strain reported / Lighting issues', date: '1 day ago', status: 'Escalated' },
-  { id: 'RSK-1027', employee: 'Diana Prince', department: 'Sales', risk: 'High', issue: 'Non-compliant workspace setup', date: '2 days ago', status: 'Resolved' },
-  { id: 'RSK-1028', employee: 'Edward Norton', department: 'Engineering', risk: 'Critical', issue: 'Workplace injury report submitted', date: '3 days ago', status: 'Under Review' },
-];
+import { supabase } from '@/lib/supabase';
 
 export default function RisksPage() {
+  const [incidents, setIncidents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({
+    critical: 0,
+    high: 0,
+    consultations: 0
+  });
+
+  useEffect(() => {
+    async function fetchRisks() {
+      try {
+        setLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.organization_id) return;
+
+        const { data: records, error } = await supabase
+          .from('assessments')
+          .select(`
+            *,
+            profiles(full_name, email)
+          `)
+          .eq('organization_id', profile.organization_id)
+          .in('risk_level', ['high', 'medium'])
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const processedIncidents = records.map((rec: any) => ({
+          id: rec.id.substring(0, 8).toUpperCase(),
+          employee: rec.profiles?.full_name || rec.profiles?.email || 'Unnamed',
+          department: 'General',
+          risk: rec.risk_level === 'high' ? 'Critical' : 'High',
+          issue: rec.results_summary || 'Risk detected in recent assessment',
+          date: new Date(rec.created_at).toLocaleDateString(),
+          status: rec.status === 'completed' ? 'Resolved' : 'Under Review'
+        }));
+
+        setIncidents(processedIncidents);
+
+        setStats({
+          critical: processedIncidents.filter((i: any) => i.risk === 'Critical').length,
+          high: processedIncidents.filter((i: any) => i.risk === 'High').length,
+          consultations: 0 // Placeholder
+        });
+
+      } catch (err) {
+        console.error('Error fetching risks:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRisks();
+  }, []);
+
+  const filteredIncidents = incidents.filter((i: any) => 
+    i.employee.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    i.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -56,11 +118,11 @@ export default function RisksPage() {
             </div>
             <div>
               <p className="text-[10px] font-semibold text-slate-700 uppercase tracking-widest">Critical Issues</p>
-              <h4 className="text-2xl font-bold text-slate-900">12</h4>
+              <h4 className="text-2xl font-bold text-slate-900">{stats.critical}</h4>
             </div>
           </div>
           <p className="text-[12px] text-slate-700 font-medium leading-relaxed">
-            Require immediate intervention. Average response time: <span className="text-rose-600 font-bold">4.2 hours</span>.
+            Require immediate intervention based on high-risk assessment results.
           </p>
         </div>
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm border-l-4 border-l-amber-500">
@@ -70,11 +132,11 @@ export default function RisksPage() {
             </div>
             <div>
               <p className="text-[10px] font-semibold text-slate-700 uppercase tracking-widest">High Priority</p>
-              <h4 className="text-2xl font-bold text-slate-900">28</h4>
+              <h4 className="text-2xl font-bold text-slate-900">{stats.high}</h4>
             </div>
           </div>
           <p className="text-[12px] text-slate-700 font-medium leading-relaxed">
-            Assigned for review. <span className="text-amber-600 font-bold">8 unresolved</span> for more than 48 hours.
+            Medium risk cases assigned for safety review and follow-up.
           </p>
         </div>
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm border-l-4 border-l-blue-500">
@@ -84,7 +146,7 @@ export default function RisksPage() {
             </div>
             <div>
               <p className="text-[10px] font-semibold text-slate-700 uppercase tracking-widest">Open Consultations</p>
-              <h4 className="text-2xl font-bold text-slate-900">15</h4>
+              <h4 className="text-2xl font-bold text-slate-900">{stats.consultations}</h4>
             </div>
           </div>
           <p className="text-[12px] text-slate-700 font-medium leading-relaxed">
@@ -105,6 +167,8 @@ export default function RisksPage() {
                 <input 
                   type="text" 
                   placeholder="Search incidents..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 pr-4 py-1.5 bg-white border border-slate-200 rounded-lg text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -116,59 +180,71 @@ export default function RisksPage() {
 
           <div className="bg-white border border-slate-200 rounded-[1.5rem] overflow-hidden shadow-sm">
             <div className="divide-y divide-slate-50">
-              {riskIncidents.map((incident) => (
-                <div key={incident.id} className="p-6 hover:bg-slate-50/50 transition-all group flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                      incident.risk === 'Critical' ? "bg-rose-50 text-rose-600" :
-                      incident.risk === 'High' ? "bg-amber-50 text-amber-600" :
-                      "bg-blue-50 text-blue-600"
-                    )}>
-                      <Flag className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-semibold text-slate-900">{incident.employee}</span>
-                        <span className="text-[11px] text-slate-700 font-medium">• {incident.id}</span>
-                        <span className={cn(
-                          "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight",
-                          incident.risk === 'Critical' ? "bg-rose-500 text-white" :
-                          incident.risk === 'High' ? "bg-amber-500 text-white" :
-                          "bg-blue-500 text-white"
-                        )}>
-                          {incident.risk}
-                        </span>
-                      </div>
-                      <p className="text-[12px] text-slate-800 font-medium mt-1">{incident.issue}</p>
-                      <div className="flex items-center gap-4 mt-3">
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-700 font-semibold">
-                          <User className="w-3 h-3" />
-                          {incident.department}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-700 font-semibold">
-                          <Clock className="w-3 h-3" />
-                          {incident.date}
-                        </span>
-                        <span className={cn(
-                          "text-[10px] font-bold uppercase tracking-widest",
-                          incident.status === 'Resolved' ? "text-emerald-600" : "text-blue-600"
-                        )}>
-                          {incident.status}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-xl text-[11px] font-semibold transition-all">
-                      Investigate
-                    </button>
-                    <button className="p-2 text-slate-400 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-all">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                  </div>
+              {loading ? (
+                <div className="p-20 text-center flex flex-col items-center gap-3">
+                  <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  <p className="text-sm font-medium text-slate-500">Fetching risk incidents...</p>
                 </div>
-              ))}
+              ) : filteredIncidents.length === 0 ? (
+                <div className="p-20 text-center flex flex-col items-center gap-3 text-slate-400">
+                  <Flag className="w-10 h-10 opacity-20" />
+                  <p className="text-sm font-medium">No active risk incidents found.</p>
+                </div>
+              ) : (
+                filteredIncidents.map((incident) => (
+                  <div key={incident.id} className="p-6 hover:bg-slate-50/50 transition-all group flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                        incident.risk === 'Critical' ? "bg-rose-50 text-rose-600" :
+                        incident.risk === 'High' ? "bg-amber-50 text-amber-600" :
+                        "bg-blue-50 text-blue-600"
+                      )}>
+                        <Flag className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] font-semibold text-slate-900">{incident.employee}</span>
+                          <span className="text-[11px] text-slate-700 font-medium">• {incident.id}</span>
+                          <span className={cn(
+                            "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight",
+                            incident.risk === 'Critical' ? "bg-rose-500 text-white" :
+                            incident.risk === 'High' ? "bg-amber-500 text-white" :
+                            "bg-blue-500 text-white"
+                          )}>
+                            {incident.risk}
+                          </span>
+                        </div>
+                        <p className="text-[12px] text-slate-800 font-medium mt-1">{incident.issue}</p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="flex items-center gap-1.5 text-[10px] text-slate-700 font-semibold">
+                            <User className="w-3 h-3" />
+                            {incident.department}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-[10px] text-slate-700 font-semibold">
+                            <Clock className="w-3 h-3" />
+                            {incident.date}
+                          </span>
+                          <span className={cn(
+                            "text-[10px] font-bold uppercase tracking-widest",
+                            incident.status === 'Resolved' ? "text-emerald-600" : "text-blue-600"
+                          )}>
+                            {incident.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-xl text-[11px] font-semibold transition-all">
+                        Investigate
+                      </button>
+                      <button className="p-2 text-slate-400 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-all">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

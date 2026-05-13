@@ -86,16 +86,16 @@ export default function ComplianceOverviewPage() {
           }
         }
 
-        // 3. Fetch Workspace-Isolated KPIs
-        const { count: totalEmp } = await supabase
+        // 3. Fetch All Profiles in Org
+        const { data: profiles, error: profileError } = await supabase
           .from('profiles')
-          .select('*', { count: 'exact', head: true })
+          .select(`
+            *,
+            assessments(status, risk_level, score, completed_at)
+          `)
           .eq('organization_id', currentOrgId);
 
-        const { data: assessments } = await supabase
-          .from('assessments')
-          .select('*, profiles(full_name, email)')
-          .eq('organization_id', currentOrgId);
+        if (profileError) throw profileError;
 
         let completed = 0;
         let nonCompliant = 0;
@@ -103,34 +103,39 @@ export default function ComplianceOverviewPage() {
         let atRisk = 0;
         let empList: any[] = [];
 
-        if (assessments) {
-          (assessments as any[]).forEach((a: any) => {
-            if (a.status === 'completed') {
+        if (profiles) {
+          profiles.forEach((p: any) => {
+            const latestAssessment = p.assessments?.sort((a: any, b: any) => 
+              new Date(b.completed_at || 0).getTime() - new Date(a.completed_at || 0).getTime()
+            )[0];
+
+            const status = latestAssessment?.status || 'not_started';
+            const risk = latestAssessment?.risk_level || 'none';
+
+            if (status === 'completed') {
               completed++;
-              if (a.risk_level === 'high') {
+              if (risk === 'high') {
                 nonCompliant++;
                 atRisk++;
-              } else if (a.risk_level === 'medium') {
+              } else if (risk === 'medium') {
                 atRisk++;
               }
-            } else if (a.status === 'pending' || a.status === 'in_progress') {
+            } else if (status === 'pending' || status === 'in_progress') {
               pending++;
             }
 
-            // Map for the table
             empList.push({
-              id: a.id,
-              name: a.profiles?.full_name || 'Unknown',
-              dept: 'Operations', // Hardcoded for now as dept is not in schema
-              issue: a.status === 'completed' ? (a.risk_level === 'high' ? 'High Risk Identified' : 'None') : 'Pending Assessment',
-              dueDate: 'N/A', // Would be calculated based on creation date
-              status: a.status,
-              risk: a.risk_level || 'none'
+              id: p.id,
+              name: p.full_name || p.email || 'Unnamed',
+              dept: 'General',
+              issue: status === 'completed' ? (risk === 'high' ? 'High Risk Identified' : 'None') : 'Awaiting Assessment',
+              status: status,
+              risk: risk
             });
           });
         }
 
-        const safeTotal = totalEmp || 0;
+        const safeTotal = profiles?.length || 0;
         const rate = safeTotal > 0 ? Math.round((completed / safeTotal) * 100) : 0;
 
         setKpis({
