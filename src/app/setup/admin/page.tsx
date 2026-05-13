@@ -70,13 +70,8 @@ export default async function AdminSetupPage({
       full_name: 'Platform Administrator'
     });
 
-    // 3. Log them in
-    const { data: sessionData } = await supabase.auth.admin.createSession({ user_id: userId });
-    
-    if (sessionData.session) {
-      await supabase.auth.setSession(sessionData.session);
-      redirect('/admin');
-    }
+    // 3. Redirect to login
+    redirect('/login?setup=success');
   }
 
   return (

