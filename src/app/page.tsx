@@ -1,47 +1,43 @@
-'use client';
-
-import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Hero from '../components/Hero';
 import Trust from '../components/Trust';
-import FeaturesGrid from '../components/FeaturesGrid';
-import Solutions from '../components/Solutions';
-import Workflow from '../components/Workflow';
-import DashboardPreview from '../components/DashboardPreview';
-import Challenges from '../components/Challenges';
-import Security from '../components/Security';
-import Testimonials from '../components/Testimonials';
-import CTA from '../components/CTA';
-import HumanImpact from '../components/HumanImpact';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import LoginModal from '../components/LoginModal';
+import ClientLayoutWrapper from '../components/ClientLayoutWrapper';
+
+// Below the fold components - Defer loading
+const FeaturesGrid = dynamic(() => import('../components/FeaturesGrid'));
+const Solutions = dynamic(() => import('../components/Solutions'));
+const Workflow = dynamic(() => import('../components/Workflow'));
+const DashboardPreview = dynamic(() => import('../components/DashboardPreview'));
+const Challenges = dynamic(() => import('../components/Challenges'));
+const Security = dynamic(() => import('../components/Security'));
+const Testimonials = dynamic(() => import('../components/Testimonials'));
+const CTA = dynamic(() => import('../components/CTA'));
+const HumanImpact = dynamic(() => import('../components/HumanImpact'));
 
 export default function HomePage() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-
   return (
     <div className="simplydse-root min-h-screen bg-white text-text-primary selection:bg-brand-primary/10 selection:text-brand-primary overflow-x-hidden">
-      <Navbar onLoginClick={() => setIsLoginOpen(true)} />
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      
-      <main>
-        <Hero />
-        <Trust />
-        <FeaturesGrid />
-        <Workflow />
-        <Challenges />
-        <Solutions />
-        <HumanImpact />
-        <div className="bg-slate-50 border-y border-border-subtle">
-          <DashboardPreview />
-        </div>
-        <div className="bg-bg-light border-y border-border-subtle">
-          <Security />
-        </div>
-        <Testimonials />
-        <CTA />
-      </main>
-
+      <ClientLayoutWrapper>
+        <main>
+          <Hero />
+          <Trust />
+          <FeaturesGrid />
+          <Workflow />
+          <Challenges />
+          <Solutions />
+          <HumanImpact />
+          <div className="bg-slate-50 border-y border-border-subtle">
+            <DashboardPreview />
+          </div>
+          <div className="bg-bg-light border-y border-border-subtle">
+            <Security />
+          </div>
+          <Testimonials />
+          <CTA />
+        </main>
+      </ClientLayoutWrapper>
       <Footer />
     </div>
   );

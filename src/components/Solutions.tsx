@@ -1,5 +1,8 @@
+'use client';
+
 import Reveal from './ui/Reveal';
 import { ArrowRight, Globe, BarChart2, Briefcase } from 'lucide-react';
+import Image from 'next/image';
 
 const Solutions = () => {
   const solutions = [
@@ -67,10 +70,12 @@ const Solutions = () => {
             <div className="flex-1 w-full">
               <Reveal delay={0.4} direction={item.reverse ? "left" : "right"} width="100%">
                 <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-border-subtle aspect-[4/3] bg-slate-50 group">
-                  <img 
+                  <Image 
                     src={item.image} 
                     alt={item.title} 
+                    fill
                     className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1500ms]"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 </div>

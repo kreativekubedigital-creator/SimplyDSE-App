@@ -1,4 +1,7 @@
+'use client';
+
 import Reveal from './ui/Reveal';
+import Image from 'next/image';
 
 interface HumanImpactProps {
   badge?: string;
@@ -49,11 +52,12 @@ const HumanImpact = ({ badge, headline, items }: HumanImpactProps) => {
           {images.map((img, i) => (
             <Reveal key={i} delay={0.2 + i * 0.1} direction="up" hFull>
               <div className="group relative rounded-[2rem] overflow-hidden border border-border-subtle aspect-[3/4] bg-bg-muted">
-                <img 
+                <Image 
                   src={img.src} 
                   alt={img.title}
+                  fill
                   className="w-full h-full object-cover grayscale-[40%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[2000ms]"
-                  loading="lazy"
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
                 <div className="absolute bottom-8 left-8 right-8 text-white">

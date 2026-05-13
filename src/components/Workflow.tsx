@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { Zap, CheckCircle } from 'lucide-react';
 import Reveal from './ui/Reveal';

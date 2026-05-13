@@ -5,8 +5,10 @@ import { supabase } from '@/lib/supabase';
 import { AssessmentWizard } from '@/components/assessments/AssessmentWizard';
 import { ShieldCheck, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function TakeAssessmentPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [template, setTemplate] = useState<any>(null);
   const [loading, setLoading] = useState(true);

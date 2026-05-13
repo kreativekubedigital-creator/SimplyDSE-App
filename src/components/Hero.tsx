@@ -1,6 +1,9 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Play } from 'lucide-react';
+
 import Reveal from './ui/Reveal';
 import HeroVisuals from './HeroVisuals';
 
@@ -43,7 +46,8 @@ const Hero = ({ data }: HeroProps) => {
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
+          poster="/hero-poster.png"
           onCanPlayThrough={() => setIsVideoLoaded(true)}
           className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-40' : 'opacity-0'}`}
         >

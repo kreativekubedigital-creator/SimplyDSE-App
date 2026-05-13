@@ -59,12 +59,14 @@ export default function AssessmentReportPage({ params }: { params: Promise<{ id:
     fullMark: 100,
   }));
 
-  const riskInfo = {
+  const riskMapping = {
     low: { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', icon: CheckCircle2, text: 'Low Risk - Compliant' },
     medium: { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', icon: AlertTriangle, text: 'Medium Risk - Monitor' },
     high: { color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100', icon: AlertCircle, text: 'High Risk - Action Required' },
     critical: { color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', icon: AlertCircle, text: 'Critical Risk - Urgent Escalation' },
-  }[results.riskLevel as 'low' | 'medium' | 'high' | 'critical'] || riskInfo.low;
+  };
+
+  const riskInfo = riskMapping[results.riskLevel as keyof typeof riskMapping] || riskMapping.low;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">

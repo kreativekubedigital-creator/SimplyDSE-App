@@ -1,3 +1,5 @@
+'use client';
+
 import Reveal from './ui/Reveal';
 import { ArrowRight } from 'lucide-react';
 

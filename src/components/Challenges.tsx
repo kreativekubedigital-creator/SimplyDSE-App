@@ -1,3 +1,5 @@
+'use client';
+
 import Reveal from './ui/Reveal';
 import { AlertCircle, Clock, FileWarning, TrendingDown } from 'lucide-react';
 

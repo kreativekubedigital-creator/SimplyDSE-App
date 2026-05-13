@@ -1,6 +1,9 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Reveal from './ui/Reveal';
+import Image from 'next/image';
 
 interface TrustProps {
   headline?: string;
@@ -58,11 +61,13 @@ const Trust = ({ headline }: TrustProps) => {
               className="flex justify-center items-center w-full grayscale opacity-60 px-4 gap-12 md:gap-24"
             >
               {rows[index].map((logo, i) => (
-                <div key={i} className="flex-none flex justify-center">
-                  <img 
+                <div key={i} className="flex-none relative h-10 md:h-12 w-32">
+                  <Image 
                     src={logo.src} 
                     alt={logo.alt} 
-                    className="h-10 md:h-12 w-auto object-contain hover:opacity-100 transition-opacity"
+                    fill
+                    className="object-contain hover:opacity-100 transition-opacity"
+                    sizes="128px"
                   />
                 </div>
               ))}

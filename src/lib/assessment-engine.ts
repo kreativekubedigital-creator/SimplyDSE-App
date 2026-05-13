@@ -37,7 +37,7 @@ export function calculateRisk(responses: any[]): AssessmentResult {
 
     // Track scores per category
     categoryScores[categoryName] = (categoryScores[categoryName] || 0) + option.score;
-    categoryMaxScores[categoryName] = (categoryMaxScores[categoryMaxScores] || 0) + 10; // Assuming 10 is max per question
+    categoryMaxScores[categoryName] = (categoryMaxScores[categoryName] || 0) + 10; // Assuming 10 is max per question
 
     // Overall metrics
     totalScore += option.score;

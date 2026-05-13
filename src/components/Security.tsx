@@ -1,3 +1,5 @@
+'use client';
+
 import { ShieldCheck, Lock, Server, Eye } from 'lucide-react';
 import Reveal from './ui/Reveal';
 

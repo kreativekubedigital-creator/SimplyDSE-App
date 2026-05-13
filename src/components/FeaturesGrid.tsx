@@ -1,7 +1,10 @@
+'use client';
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Reveal from './ui/Reveal';
 import { Plus, Minus, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 const AccordionItem = ({ title, content, isOpen, onClick }: { title: string, content: string, isOpen: boolean, onClick: () => void }) => {
   return (
@@ -89,11 +92,13 @@ const FeaturesGrid = () => {
                 Structured questionnaires with automated scoring and clear risk classification, 
                 helping organisations quickly identify and address potential ergonomic issues.
               </p>
-              <div className="mt-auto rounded-2xl overflow-hidden aspect-[4/3] bg-white/5">
-                <img 
+              <div className="mt-auto rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 relative">
+                <Image 
                   src="/features-1.png" 
                   alt="Modern office" 
+                  fill
                   className="w-full h-full object-cover opacity-90"
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
             </div>
@@ -156,11 +161,13 @@ const FeaturesGrid = () => {
                 Role-based access control ensures HR teams and staff only access relevant data, 
                 maintaining privacy, security, and proper organisational boundaries.
               </p>
-              <div className="mt-auto rounded-2xl overflow-hidden aspect-[4/3] bg-white/5">
-                <img 
+              <div className="mt-auto rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 relative">
+                <Image 
                   src="/features-3.png" 
                   alt="Data security" 
+                  fill
                   className="w-full h-full object-cover opacity-90"
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
             </div>
