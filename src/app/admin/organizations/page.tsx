@@ -16,9 +16,11 @@ import {
   ChevronDown,
   Globe,
   Users,
-  CheckCircle2
+  CheckCircle2,
+  Mail
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
+import { resendWelcomeEmail } from '../../../app/actions/resend-welcome-email';
 
 import { StatCard } from '../../../components/admin/StatCard';
 
@@ -33,6 +35,7 @@ interface Organisation {
   users?: string;
   compliance?: number;
   region?: string;
+  admin_email?: string;
 }
 
 import { supabase } from '@/lib/supabase';
@@ -49,7 +52,11 @@ export default function organizationsPage() {
         const [orgsRes, analyticsRes] = await Promise.all([
           supabase
             .from('organizations')
-            .select('*')
+            .select(`
+              *,
+              profiles!profiles_organization_id_fkey(email, role)
+            `)
+            .eq('profiles.role', 'organization_admin')
             .order('created_at', { ascending: false }),
           supabase
             .from('analytics_snapshots')
@@ -60,7 +67,11 @@ export default function organizationsPage() {
         ]);
         
         if (orgsRes.data) {
-          setorganizations(orgsRes.data as any);
+          const formattedOrgs = orgsRes.data.map((org: any) => ({
+            ...org,
+            admin_email: org.profiles?.[0]?.email || org.profiles?.email
+          }));
+          setorganizations(formattedOrgs);
         }
         if (analyticsRes.data) {
           setGlobalCompliance(analyticsRes.data.avg_compliance_rate);
@@ -203,6 +214,40 @@ export default function organizationsPage() {
                           Manage
                           <ArrowUpRight className="w-3 h-3" />
                         </button>
+
+                        {org.admin_email && (
+                          <button 
+                            onClick={async (e) => {
+                              const btn = e.currentTarget;
+                              btn.disabled = true;
+                              const originalText = btn.innerHTML;
+                              btn.innerText = 'Sending...';
+                              
+                              const result = await resendWelcomeEmail({
+                                adminEmail: org.admin_email!,
+                                orgName: org.name,
+                                orgSlug: org.slug,
+                                tempPassword: 'SimplyDSE2024!' // Use the default or what was used
+                              });
+
+                              if (result.success) {
+                                btn.innerText = 'Sent!';
+                                setTimeout(() => {
+                                  btn.innerHTML = originalText;
+                                  btn.disabled = false;
+                                }, 2000);
+                              } else {
+                                alert('Failed: ' + result.error);
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                              }
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary/5 text-brand-primary text-[10px] font-bold rounded-lg hover:bg-brand-primary hover:text-white transition-all shadow-sm"
+                          >
+                            Resend Email
+                            <Mail className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
