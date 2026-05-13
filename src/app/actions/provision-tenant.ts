@@ -81,7 +81,7 @@ export async function provisionTenant(data: ProvisionRequest) {
         full_name: `${data.adminFirstName} ${data.adminLastName}`.trim(),
         organization_id: OrganisationId,
         role: 'organization_admin',
-        status: 'invited'
+        status: 'active'
       });
 
     if (profileError) throw new Error(`Profile Creation Failed: ${profileError.message}`);
