@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 export async function inviteUserAction(email: string, role: string, fullName: string) {
   try {
     // 1. Verify current user is a super_admin
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) throw new Error('Unauthorized');

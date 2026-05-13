@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { 
   MessageSquare, 
   Bell, 
@@ -18,16 +19,25 @@ import {
   Phone,
   Mail,
   HelpCircle,
-  FileText
+  FileText,
+  Download,
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatCard } from '@/components/dashboard/StatCard';
 
-export default function CommunicationHubPage() {
+function CommunicationContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'messages' | 'notifications' | 'support' || 'messages';
-  const [activeTab, setActiveTab] = useState<'messages' | 'notifications' | 'support'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'messages' | 'notifications' | 'support'>('messages');
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const tab = searchParams.get('tab') as any;
+    if (tab && ['messages', 'notifications', 'support'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const tabs = [
     { id: 'messages', label: 'Messages', icon: MessageSquare, badge: '2' },
@@ -318,5 +328,17 @@ export default function CommunicationHubPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CommunicationHubPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    }>
+      <CommunicationContent />
+    </Suspense>
   );
 }

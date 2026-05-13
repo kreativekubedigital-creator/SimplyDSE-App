@@ -64,13 +64,20 @@ const trendData = [
 ];
 
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function RiskCompliancePage() {
+function ComplianceContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'analytics' | 'risks' | 'tracking' || 'analytics';
-  const [activeTab, setActiveTab] = useState<'analytics' | 'risks' | 'tracking'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'analytics' | 'risks' | 'tracking'>('analytics');
   const [searchTerm, setSearchTerm] = useState('');
   const { assessments, risks, stats, loading } = useComplianceData();
+
+  React.useEffect(() => {
+    const tab = searchParams.get('tab') as any;
+    if (tab && ['analytics', 'risks', 'tracking'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const data = { assessments, risks, stats };
 
@@ -378,5 +385,17 @@ export default function RiskCompliancePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function RiskCompliancePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    }>
+      <ComplianceContent />
+    </Suspense>
   );
 }

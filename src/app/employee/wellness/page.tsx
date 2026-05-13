@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useEmployeeData } from '@/hooks/useEmployeeData';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { 
   ClipboardList, 
   LineChart, 
@@ -20,7 +21,8 @@ import {
   Video,
   PlayCircle,
   ExternalLink,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -37,7 +39,7 @@ import {
   CartesianGrid
 } from 'recharts';
 
-export default function WellnessHubPage() {
+function WellnessContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') as 'assessments' | 'analytics' | 'resources' || 'assessments';
   const [activeTab, setActiveTab] = useState<'assessments' | 'analytics' | 'resources'>(initialTab);
@@ -137,7 +139,12 @@ export default function WellnessHubPage() {
             </div>
 
             <div className="space-y-4">
-              {assessments.length === 0 ? (
+              {loading ? (
+                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
+                  <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
+                  <p className="text-sm font-medium text-slate-500">Hydrating assessments...</p>
+                </div>
+              ) : assessments.length === 0 ? (
                 <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
                   <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-4" />
                   <p className="text-sm font-medium text-slate-500">No assessment records found.</p>
@@ -312,5 +319,17 @@ export default function WellnessHubPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function WellnessHubPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    }>
+      <WellnessContent />
+    </Suspense>
   );
 }

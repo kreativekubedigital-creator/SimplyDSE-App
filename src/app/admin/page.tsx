@@ -169,10 +169,10 @@ export default function AdminOverviewPage() {
       {/* Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8 gap-4">
         {statCards.map((card, i) => {
-          const href = card.label === 'Compliance Rate' ? '/admin/compliance' :
-                       card.label === 'System Health' ? '/admin/workflows?tab=health' :
-                       card.label === 'Total Users' ? '/admin/users' :
-                       card.label === 'Risk Alerts' ? '/admin/compliance?tab=security' :
+          const href = card.title === 'Compliance Rate' ? '/admin/compliance' :
+                       card.title === 'System Health' ? '/admin/workflows?tab=health' :
+                       card.title === 'Total Users' ? '/admin/users' :
+                       card.title === 'Risk Alerts' ? '/admin/compliance?tab=security' :
                        undefined;
           
           if (href) {

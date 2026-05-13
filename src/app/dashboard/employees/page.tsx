@@ -32,13 +32,18 @@ import { cn } from '@/lib/utils';
 import { StatCard } from '@/components/dashboard/StatCard';
 
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function EmployeesPage() {
+function EmployeesContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'directory' | 'training' || 'directory';
-  const [activeTab, setActiveTab] = useState<'directory' | 'training'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'directory' | 'training'>('directory');
   const [searchTerm, setSearchTerm] = useState('');
   const { employees, loading, stats } = useWorkforceData();
+
+  React.useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'training') setActiveTab('training');
+  }, [searchParams]);
 
   const filteredEmployees = employees.filter((emp: any) => 
     emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -253,5 +258,17 @@ export default function EmployeesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function EmployeesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    }>
+      <EmployeesContent />
+    </Suspense>
   );
 }
