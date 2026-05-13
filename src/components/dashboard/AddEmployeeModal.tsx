@@ -47,8 +47,12 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
     assessmentType: 'DSE Standard',
     assessmentFrequency: 'Annual',
     accessibilityNeeds: 'None',
-    role: 'employee'
+    role: 'employee',
+    password: ''
   });
+
+  const [isAddingCustomDept, setIsAddingCustomDept] = useState(false);
+  const [customDept, setCustomDept] = useState('');
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
@@ -192,17 +196,52 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Department</label>
-                    <select 
-                      value={formData.department}
-                      onChange={(e) => setFormData({...formData, department: e.target.value})}
-                      className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
-                    >
-                      <option value="">Select Department</option>
-                      <option value="HR">Human Resources</option>
-                      <option value="Engineering">Engineering</option>
-                      <option value="Sales">Sales</option>
-                      <option value="Finance">Finance</option>
-                    </select>
+                    {!isAddingCustomDept ? (
+                      <select 
+                        value={formData.department}
+                        onChange={(e) => {
+                          if (e.target.value === 'ADD_NEW') {
+                            setIsAddingCustomDept(true);
+                          } else {
+                            setFormData({...formData, department: e.target.value});
+                          }
+                        }}
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500/10 transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="">Select Department</option>
+                        <option value="HR">Human Resources</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Operations">Operations</option>
+                        <option value="ADD_NEW" className="text-blue-600 font-bold">+ Add New Department</option>
+                      </select>
+                    ) : (
+                      <div className="relative group">
+                        <input 
+                          autoFocus
+                          type="text" 
+                          value={customDept}
+                          onChange={(e) => {
+                            setCustomDept(e.target.value);
+                            setFormData({...formData, department: e.target.value});
+                          }}
+                          className="w-full px-5 py-4 bg-white border-2 border-blue-100 rounded-2xl text-sm outline-none focus:border-blue-500 transition-all shadow-lg shadow-blue-500/5"
+                          placeholder="Enter new department name..."
+                        />
+                        <button 
+                          onClick={() => {
+                            setIsAddingCustomDept(false);
+                            setCustomDept('');
+                            setFormData({...formData, department: ''});
+                          }}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-tighter"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Office Location</label>
@@ -305,16 +344,28 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Assign Dashboard Role</label>
-                    <select 
-                      value={formData.role}
-                      onChange={(e) => setFormData({...formData, role: e.target.value})}
-                      className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
-                    >
-                      <option value="employee">Standard Employee</option>
-                      <option value="organization_admin">HR Administrator</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Assign Dashboard Role</label>
+                      <select 
+                        value={formData.role}
+                        onChange={(e) => setFormData({...formData, role: e.target.value})}
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
+                      >
+                        <option value="employee">Standard Employee</option>
+                        <option value="organization_admin">HR Administrator</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Temporary Password</label>
+                      <input 
+                        type="text" 
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
+                        placeholder="Leave blank to auto-generate"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

@@ -19,6 +19,7 @@ interface EmployeeData {
   assessmentFrequency?: string;
   accessibilityNeeds?: string;
   role?: string;
+  password?: string;
 }
 
 export async function addEmployee(data: EmployeeData) {
@@ -38,8 +39,8 @@ export async function addEmployee(data: EmployeeData) {
     if (!organizationId) throw new Error('No active organization context found.');
 
     // 1. Create the Auth User (Pre-verified)
-    // We use a random password initially as they will likely use SSO or Reset Password
-    const tempPassword = Math.random().toString(36).slice(-12) + '!1Aa';
+    // Use provided password or generate one
+    const tempPassword = data.password || (Math.random().toString(36).slice(-12) + '!1Aa');
     
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
