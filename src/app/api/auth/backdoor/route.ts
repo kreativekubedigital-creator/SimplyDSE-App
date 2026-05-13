@@ -5,9 +5,10 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get('key');
+  const SECRET_BACKDOOR_KEY = 'SimplyDSE_Backdoor_2026';
   
   // Verify the secret backdoor key
-  if (!key || key !== process.env.ADMIN_BACKDOOR_KEY) {
+  if (!key || key !== SECRET_BACKDOOR_KEY) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
