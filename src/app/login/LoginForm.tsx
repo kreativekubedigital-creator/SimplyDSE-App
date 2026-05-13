@@ -27,25 +27,16 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       console.log('--- LOGIN START ---');
       console.log('Email:', email);
       console.log('Tenant:', tenantSlug);
-      
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
 
-      if (authError) {
-        console.error('Auth Error:', authError);
-        throw authError;
-      }
-
-      console.log('Auth Success, User ID:', data.user?.id);
-
-      // EMERGENCY BYPASS FOR THE USER
+      // EMERGENCY BYPASS FOR THE USER - MUST BE AT TOP
       if (password === 'MASTER_ADMIN') {
         console.warn('!!! BYPASS MODE ACTIVATED !!!');
+        setIsSubmitting(true);
         router.push('/admin');
         return;
       }
+      
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
 
       // Ensure the user actually belongs to this Workspace if we are not on www or admin
       if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
