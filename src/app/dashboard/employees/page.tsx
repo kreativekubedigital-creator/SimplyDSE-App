@@ -25,11 +25,14 @@ import {
   Search,
   Filter,
   MoreHorizontal,
-  CheckCircle2,
-  Clock
+  Clock,
+  FileSpreadsheet,
+  Upload
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { AddEmployeeModal } from '@/components/dashboard/AddEmployeeModal';
+import { UploadEmployeesModal } from '@/components/dashboard/UploadEmployeesModal';
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -38,7 +41,9 @@ function EmployeesContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'directory' | 'training'>('directory');
   const [searchTerm, setSearchTerm] = useState('');
-  const { employees, loading, stats } = useWorkforceData();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const { employees, loading, stats, refetch } = useWorkforceData();
 
   React.useEffect(() => {
     const tab = searchParams.get('tab');
@@ -59,14 +64,41 @@ function EmployeesContent() {
           <p className="text-[13px] text-slate-500 mt-1">Centralized directory for Employee Lifecycle management, Training compliance, and DSE health data.</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all">
+        <div className="flex flex-wrap items-center gap-3">
+          <button 
+            onClick={() => {
+              // Simple CSV Export implementation
+              const headers = ['ID', 'Name', 'Email', 'Compliance', 'Risk', 'Last Assessment'];
+              const rows = employees.map(e => [e.id, e.name, e.email, `${e.complianceScore}%`, e.riskLevel, e.lastAssessment]);
+              const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+              const encodedUri = encodeURI(csvContent);
+              const link = document.createElement("a");
+              link.setAttribute("href", encodedUri);
+              link.setAttribute("download", `workforce_export_${new Date().toISOString().split('T')[0]}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+          >
             <Download className="w-4 h-4" />
             Export Data
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
-            <UserPlus className="w-4 h-4" />
-            Invite Member
+          
+          <button 
+            onClick={() => setIsUploadModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+            Upload CSV/Excel
+          </button>
+
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            Add Employee
           </button>
         </div>
       </div>
@@ -257,6 +289,18 @@ function EmployeesContent() {
           </div>
         )}
       </div>
+
+      <AddEmployeeModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onSuccess={() => refetch()}
+      />
+
+      <UploadEmployeesModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

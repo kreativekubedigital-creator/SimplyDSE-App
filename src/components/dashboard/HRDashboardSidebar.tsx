@@ -115,9 +115,11 @@ export function HRDashboardSidebar() {
               {section.title}
             </p>
             {section.items.map((item) => {
+              // Ensure active state only applies to the exact match for Overview
+              // or prefix matches for specific management sections
               const isActive = item.href === '/dashboard' 
-                ? pathname === '/dashboard' 
-                : pathname.startsWith(item.href);
+                ? (pathname === '/dashboard' || pathname === '/dashboard/')
+                : (pathname === item.href || pathname.startsWith(item.href + '/'));
               
               return (
                 <Link
