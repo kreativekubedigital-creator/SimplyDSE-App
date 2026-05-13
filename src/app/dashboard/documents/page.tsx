@@ -20,16 +20,33 @@ import {
   Folder
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getTenantContext } from '@/lib/tenant-context';
 
-const documents = [
+const initialDocuments = [
   { id: 'DOC-001', name: 'Workplace Safety Policy 2024', category: 'Policies', type: 'PDF', size: '1.2 MB', updated: '2 days ago', version: 'v2.4', status: 'Active' },
   { id: 'DOC-002', name: 'DSE Assessment Template', category: 'Templates', type: 'DOCX', size: '450 KB', updated: '1 week ago', version: 'v1.2', status: 'Active' },
   { id: 'DOC-003', name: 'Employee Health & Safety Evidence', category: 'Evidence', type: 'ZIP', size: '14.8 MB', updated: 'May 10, 2024', version: 'v1.0', status: 'Archived' },
-  { id: 'DOC-004', name: 'TechCorp Office Layout Plan', category: 'System', type: 'PNG', size: '2.8 MB', updated: 'May 08, 2024', version: 'v3.1', status: 'Active' },
+  { id: 'DOC-004', name: 'Office Layout Plan', category: 'System', type: 'PNG', size: '2.8 MB', updated: 'May 08, 2024', version: 'v3.1', status: 'Active' },
   { id: 'DOC-005', name: 'Compliance Certificate - Q1', category: 'Certificates', type: 'PDF', size: '840 KB', updated: 'May 01, 2024', version: 'v1.0', status: 'Active' },
 ];
 
 export default function DocumentsPage() {
+  const [orgName, setOrgName] = React.useState('Loading...');
+  const [displayDocs, setDisplayDocs] = React.useState(initialDocuments);
+
+  React.useEffect(() => {
+    async function resolveOrg() {
+      const { organizationName } = await getTenantContext();
+      if (organizationName) {
+        setOrgName(organizationName);
+        setDisplayDocs(prev => prev.map(doc => ({
+          ...doc,
+          name: doc.name.includes('Office Layout Plan') ? `${organizationName} Office Layout Plan` : doc.name
+        })));
+      }
+    }
+    resolveOrg();
+  }, []);
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -98,7 +115,7 @@ export default function DocumentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {documents.map((doc) => (
+              {displayDocs.map((doc) => (
                 <tr key={doc.id} className="hover:bg-slate-50/50 transition-all group">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-3">

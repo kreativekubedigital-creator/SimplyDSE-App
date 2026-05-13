@@ -17,15 +17,25 @@ import {
   ChevronRight,
   UserPlus
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { getTenantContext } from '@/lib/tenant-context';
 
 export default function SettingsPage() {
+  const [orgName, setOrgName] = React.useState('Loading...');
+
+  React.useEffect(() => {
+    async function resolveOrg() {
+      const { organizationName } = await getTenantContext();
+      setOrgName(organizationName || 'Your Organisation');
+    }
+    resolveOrg();
+  }, []);
+
   return (
     <div className="max-w-[1000px] mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Organisation Settings</h2>
+          <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">{orgName} Settings</h2>
           <p className="text-[14px] text-slate-500 font-medium">Configure Organisation-wide compliance rules, notification preferences, and team permissions.</p>
         </div>
         <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[14px] font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
@@ -53,7 +63,7 @@ export default function SettingsPage() {
             <h3 className="text-lg font-bold text-slate-900 mb-6">General Information</h3>
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputGroup label="Organisation Name" placeholder="TechCorp Ltd." />
+                <InputGroup label="Organisation Name" placeholder={orgName} />
                 <InputGroup label="Industry" placeholder="Technology / SaaS" />
               </div>
               <InputGroup label="Primary Domain" placeholder="techcorp.com" />

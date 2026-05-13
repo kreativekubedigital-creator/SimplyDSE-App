@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getTenantContext } from '@/lib/tenant-context';
 
 export function useComplianceData() {
   const [loading, setLoading] = useState(true);
@@ -17,16 +18,12 @@ export function useComplianceData() {
   async function fetchData() {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { organizationId } = await getTenantContext();
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.organization_id) return;
+      if (!organizationId) {
+        setLoading(false);
+        return;
+      }
 
       // Fetch all assessments for this org
       const { data: assessments, error } = await supabase
@@ -35,7 +32,7 @@ export function useComplianceData() {
           *,
           profiles(full_name, email)
         `)
-        .eq('organization_id', profile.organization_id)
+        .eq('organization_id', organizationId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

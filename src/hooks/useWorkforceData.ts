@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getTenantContext } from '@/lib/tenant-context';
 
 export function useWorkforceData() {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -13,16 +14,12 @@ export function useWorkforceData() {
   async function fetchWorkforce() {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { organizationId } = await getTenantContext();
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.organization_id) return;
+      if (!organizationId) {
+        setLoading(false);
+        return;
+      }
 
       const { data: emps, error } = await supabase
         .from('profiles')
@@ -30,7 +27,7 @@ export function useWorkforceData() {
           *,
           assessments(status, risk_level, score, completed_at)
         `)
-        .eq('organization_id', profile.organization_id)
+        .eq('organization_id', organizationId)
         .order('full_name', { ascending: true });
 
       if (error) throw error;

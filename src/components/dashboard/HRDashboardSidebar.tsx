@@ -69,6 +69,15 @@ const quickActions = [
 
 export function HRDashboardSidebar() {
   const pathname = usePathname();
+  const [orgName, setOrgName] = React.useState('Loading...');
+
+  React.useEffect(() => {
+    async function resolveOrg() {
+      const { organizationName } = await import('@/lib/tenant-context').then(m => m.getTenantContext());
+      setOrgName(organizationName || 'Your Organisation');
+    }
+    resolveOrg();
+  }, []);
 
   return (
     <aside className="w-[260px] bg-[#0F172A] text-slate-300 h-screen flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
@@ -92,7 +101,7 @@ export function HRDashboardSidebar() {
             <div className="w-7 h-7 rounded-md bg-slate-700 flex items-center justify-center text-slate-200 group-hover:text-white transition-colors">
               <Building2 className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[12px] font-semibold text-white group-hover:text-white transition-colors">TechCorp Ltd.</span>
+            <span className="text-[12px] font-semibold text-white group-hover:text-white transition-colors">{orgName}</span>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-200 group-hover:text-white transition-all" />
         </button>

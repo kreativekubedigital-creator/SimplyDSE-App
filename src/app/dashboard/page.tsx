@@ -31,6 +31,7 @@ import {
   Cell
 } from 'recharts';
 import { supabase } from '@/lib/supabase';
+import { getTenantContext } from '@/lib/tenant-context';
 import { StatCard } from '@/components/dashboard/StatCard';
 import Link from 'next/link';
 
@@ -61,27 +62,16 @@ export default function ComplianceOverviewPage() {
           return;
         }
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('organization_id, organizations(name)')
-          .eq('id', user.id)
-          .single();
+        const { organizationId, organizationName } = await getTenantContext();
 
-        if (!profile?.organization_id) {
+        if (!organizationId) {
           setLoading(false);
           return;
         }
 
-        const currentOrgId = profile.organization_id;
+        const currentOrgId = organizationId;
         setOrgId(currentOrgId);
-        
-        const orgs: any = profile.organizations;
-        if (orgs) {
-          const name = Array.isArray(orgs) ? orgs[0]?.name : orgs.name;
-          if (name) {
-            setOrgName(name);
-          }
-        }
+        setOrgName(organizationName || 'Your Organisation');
 
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')

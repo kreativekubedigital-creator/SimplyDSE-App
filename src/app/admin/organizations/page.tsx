@@ -193,7 +193,13 @@ export default function organizationsPage() {
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-brand-primary hover:text-white transition-all">
+                        <button 
+                          onClick={() => {
+                            const rootDomain = window.location.hostname.split('.').slice(-2).join('.');
+                            window.location.href = `https://${org.slug}.${rootDomain}/dashboard`;
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-brand-primary hover:text-white transition-all shadow-sm"
+                        >
                           Manage
                           <ArrowUpRight className="w-3 h-3" />
                         </button>
