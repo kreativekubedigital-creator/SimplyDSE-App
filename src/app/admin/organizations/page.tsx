@@ -46,9 +46,6 @@ export default function organizationsPage() {
   useEffect(() => {
     async function fetchOrgs() {
       try {
-        setLoading(true);
-        console.log('Fetching organizations...');
-        
         const [orgsRes, analyticsRes] = await Promise.all([
           supabase
             .from('organizations')
@@ -62,20 +59,14 @@ export default function organizationsPage() {
             .single()
         ]);
         
-        if (orgsRes.error) {
-          console.error('Error fetching organizations:', orgsRes.error);
-        } else if (orgsRes.data) {
-          console.log(`Fetched ${orgsRes.data.length} organizations`);
+        if (orgsRes.data) {
           setorganizations(orgsRes.data as any);
         }
-
-        if (analyticsRes.error && analyticsRes.error.code !== 'PGRST116') {
-          console.error('Error fetching analytics:', analyticsRes.error);
-        } else if (analyticsRes.data) {
+        if (analyticsRes.data) {
           setGlobalCompliance(analyticsRes.data.avg_compliance_rate);
         }
       } catch (error) {
-        console.error('Unexpected error fetching organizations:', error);
+        console.error('Error fetching organizations:', error);
       } finally {
         setLoading(false);
       }
