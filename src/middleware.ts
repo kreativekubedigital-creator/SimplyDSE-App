@@ -38,17 +38,16 @@ export async function middleware(req: NextRequest) {
   const hostname = req.headers.get('host') || '';
 
   // Calculate subdomain:
-  // e.g. "acme.simplydse.com" -> "acme"
-  // e.g. "admin.simplydse.com" -> "admin"
-  // e.g. "simplydse.com" -> "" or "www"
-  // e.g. "localhost:3000" -> "localhost"
+  // e.g. "acme.simplydse.online" -> "acme"
+  // e.g. "admin.simplydse.online" -> "admin"
+  // e.g. "localhost:3000" -> "www"
   
   let currentHost = hostname
-    .replace(`.localhost:3000`, '')
-    .replace(`.${ROOT_DOMAIN}`, '');
+    .replace(`localhost:3000`, '')
+    .replace(`${ROOT_DOMAIN}`, '')
+    .replace(/\.$/, ''); // Remove trailing dot if it exists
 
-  if (currentHost === hostname) {
-    // No subdomain found
+  if (!currentHost || currentHost === 'www') {
     currentHost = 'www';
   }
 
