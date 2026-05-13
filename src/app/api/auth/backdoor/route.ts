@@ -37,16 +37,17 @@ export async function GET(request: Request) {
   console.log(`--- BACKDOOR ACCESS REQUESTED ---`);
 
   // Force sign in using administrative privileges
-  const { data, error } = await supabase.auth.admin.getUserByEmail(email);
+  const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+  const user = users?.find(u => u.email === email);
 
-  if (error || !data.user) {
-    console.error('Backdoor error: User not found');
+  if (listError || !user) {
+    console.error('Backdoor error: User not found', listError?.message);
     return new NextResponse('User not found', { status: 404 });
   }
 
   // Generate a session for the user
   const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-    user_id: data.user.id
+    user_id: user.id
   });
 
   if (sessionError) {
