@@ -5,14 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Home, 
-  ClipboardList, 
   Users, 
   ShieldCheck, 
-  AlertTriangle, 
   GitBranch, 
-  BarChart3, 
-  Folder, 
-  GraduationCap, 
   Bell, 
   Settings,
   Plus,
@@ -20,22 +15,49 @@ import {
   FileText,
   Download,
   ChevronDown,
-  Building2
+  Building2,
+  FileBarChart,
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navigation = [
-  { name: 'Overview', href: '/dashboard', icon: Home },
-  { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
-  { name: 'Employees', href: '/dashboard/employees', icon: Users },
-  { name: 'Compliance', href: '/dashboard/compliance', icon: ShieldCheck },
-  { name: 'Risks', href: '/dashboard/risks', icon: AlertTriangle },
-  { name: 'Workflows', href: '/dashboard/workflows', icon: GitBranch },
-  { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-  { name: 'Documents', href: '/dashboard/documents', icon: Folder },
-  { name: 'Training', href: '/dashboard/training', icon: GraduationCap },
-  { name: 'Communications', href: '/dashboard/communications', icon: Bell },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+const navSections = [
+  {
+    title: 'Platform',
+    items: [
+      { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    ]
+  },
+  {
+    title: 'Management',
+    items: [
+      { name: 'Workforce Hub', href: '/dashboard/employees', icon: Users },
+    ]
+  },
+  {
+    title: 'Intelligence',
+    items: [
+      { name: 'Risk & Compliance', href: '/dashboard/compliance', icon: ShieldCheck },
+    ]
+  },
+  {
+    title: 'Operations',
+    items: [
+      { name: 'Operations Center', href: '/dashboard/workflows', icon: GitBranch },
+    ]
+  },
+  {
+    title: 'Engagement',
+    items: [
+      { name: 'Communications', href: '/dashboard/communications', icon: Bell },
+    ]
+  },
+  {
+    title: 'Configuration',
+    items: [
+      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    ]
+  }
 ];
 
 const quickActions = [
@@ -77,31 +99,38 @@ export function HRDashboardSidebar() {
       </div>
 
       {/* Navigation items - Reduced vertical padding and font size */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto no-scrollbar">
-        {navigation.map((item) => {
-          const isActive = item.href === '/dashboard' 
-            ? pathname === '/dashboard' 
-            : pathname.startsWith(item.href);
-          
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-[12px] font-semibold transition-all group",
-                isActive 
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20" 
-                  : "text-slate-200 hover:text-white hover:bg-slate-800/80"
-              )}
-            >
-              <item.icon className={cn(
-                "w-4 h-4 transition-colors",
-                isActive ? "text-white" : "text-slate-300 group-hover:text-slate-200"
-              )} />
-              {item.name}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-3 space-y-6 overflow-y-auto no-scrollbar py-4">
+        {navSections.map((section) => (
+          <div key={section.title} className="space-y-1">
+            <p className="px-3 text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">
+              {section.title}
+            </p>
+            {section.items.map((item) => {
+              const isActive = item.href === '/dashboard' 
+                ? pathname === '/dashboard' 
+                : pathname.startsWith(item.href);
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-[12px] font-semibold transition-all group",
+                    isActive 
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/20" 
+                      : "text-slate-200 hover:text-white hover:bg-slate-800/80"
+                  )}
+                >
+                  <item.icon className={cn(
+                    "w-4 h-4 transition-colors",
+                    isActive ? "text-white" : "text-slate-300 group-hover:text-slate-200"
+                  )} />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Quick Actions Footer Card - Slimmer profile */}

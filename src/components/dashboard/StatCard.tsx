@@ -1,42 +1,26 @@
-'use client';
-
 import React from 'react';
-import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StatCardProps {
-  label?: string; // Legacy
-  title?: string; // New
+  title: string;
   value: string | number;
-  change?: string; // Legacy/New
-  trend?: 'up' | 'down' | 'neutral' | string; // Enhanced
-  icon: LucideIcon | React.ElementType;
-  subValue?: string;
-  iconColor?: string;
+  trend?: string;
   isPositive?: boolean;
+  icon: React.ElementType;
+  iconColor?: string;
   className?: string;
 }
 
 export function StatCard({ 
-  label, 
   title, 
   value, 
-  change, 
   trend, 
+  isPositive = true, 
   icon: Icon, 
-  subValue,
   iconColor = "blue",
-  isPositive,
-  className
+  className 
 }: StatCardProps) {
-  const displayTitle = title || label || 'Metric';
-  const displayTrend = change || (typeof trend === 'string' ? trend : undefined);
-  
-  // Determine positivity if not explicitly provided
-  const finalIsPositive = isPositive !== undefined 
-    ? isPositive 
-    : (trend === 'up' || (displayTrend && !displayTrend.startsWith('-') && !displayTrend.includes('Risk')));
-
   const colorMap: Record<string, string> = {
     blue: "bg-blue-50 text-blue-600 border-blue-100",
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
@@ -44,12 +28,11 @@ export function StatCard({
     amber: "bg-amber-50 text-amber-600 border-amber-100",
     indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
     purple: "bg-purple-50 text-purple-600 border-purple-100",
-    slate: "bg-slate-50 text-slate-600 border-slate-100",
   };
 
   return (
     <div className={cn(
-      "bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 group cursor-default relative overflow-hidden",
+      "bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 group cursor-default",
       className
     )}>
       <div className="flex items-center justify-between mb-4">
@@ -59,25 +42,22 @@ export function StatCard({
         )}>
           <Icon className="w-6 h-6" />
         </div>
-        {displayTrend && (
+        {trend && (
           <div className={cn(
             "flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border",
-            finalIsPositive 
+            isPositive 
               ? "bg-emerald-50/50 text-emerald-600 border-emerald-100/50" 
               : "bg-rose-50/50 text-rose-600 border-rose-100/50"
           )}>
-            {trend === 'up' ? <TrendingUp className="w-3 h-3" /> : 
-             trend === 'down' ? <TrendingDown className="w-3 h-3" /> : 
-             finalIsPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {displayTrend}
+            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {trend}
           </div>
         )}
       </div>
       <div>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">{displayTitle}</p>
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">{title}</p>
         <div className="flex items-baseline gap-2 mt-1">
           <h4 className="text-3xl font-black text-slate-900 tracking-tighter">{value}</h4>
-          {subValue && <span className="text-[11px] font-bold text-slate-400">{subValue}</span>}
         </div>
       </div>
       

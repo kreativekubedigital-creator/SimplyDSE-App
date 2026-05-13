@@ -1,24 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useEmployeeData } from '@/hooks/useEmployeeData';
 import { 
   ShieldCheck, 
   ClipboardList, 
   Clock, 
-  Zap,
-  ChevronRight,
-  TrendingUp,
-  Monitor,
-  Heart,
+  ChevronRight, 
+  TrendingUp, 
+  Monitor, 
+  Heart, 
+  CheckCircle2, 
+  Calendar, 
+  MessageSquare,
+  Loader2,
   FileText,
   Video,
   LifeBuoy,
   AlertTriangle,
-  CheckCircle2,
-  Calendar,
-  MessageSquare,
-  LayoutDashboard,
-  Loader2
+  ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
@@ -26,207 +26,141 @@ import {
   PieChart, 
   Pie, 
   Cell, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
   Tooltip 
 } from 'recharts';
-import { supabase } from '@/lib/supabase';
+import { StatCard } from '@/components/dashboard/StatCard';
+import Link from 'next/link';
 
 export default function EmployeeDashboardPage() {
-  const [loading, setLoading] = useState(true);
-  const [assessments, setAssessments] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    compliance: 0,
-    completedCount: 0,
-    totalCount: 0,
-    nextDue: 'N/A',
-    dueInDays: 0,
-    riskLevel: 'None',
-    pendingTasks: 0
-  });
-  const [progressData, setProgressData] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
-  const [upcomingTasks, setUpcomingTasks] = useState<any[]>([]);
+  const { loading, assessments, stats, progressData, activities, upcomingTasks } = useEmployeeData();
 
-  useEffect(() => {
-    async function fetchEmployeeData() {
-      try {
-        setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest">Hydrating Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
-        // Fetch user's assessments
-        const { data: records, error } = await supabase
-          .from('assessments')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        // Process assessments for UI
-        const processedAssessments = records.map((rec: any) => ({
-          id: rec.id,
-          title: rec.type === 'dse' ? 'DSE Assessment' : 'Workstation Review',
-          subtitle: rec.results_summary || 'Self-assessment of your workstation',
-          status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Not Started',
-          progress: rec.status === 'in_progress' ? 50 : rec.status === 'completed' ? 100 : 0,
-          date: rec.completed_at ? new Date(rec.completed_at).toLocaleDateString() : 'Pending',
-          dateLabel: rec.status === 'completed' ? 'Completed on' : 'Due date',
-          icon: rec.type === 'dse' ? Monitor : ClipboardList,
-          iconBg: rec.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
-        }));
-
-        setAssessments(processedAssessments);
-
-        // Calculate stats
-        const completed = records.filter((r: any) => r.status === 'completed');
-        const pending = records.filter((r: any) => r.status !== 'completed');
-        const compliance = records.length > 0 ? Math.round((completed.length / records.length) * 100) : 0;
-        
-        const latestRisk = records[0]?.risk_level || 'Low';
-        
-        setStats({
-          compliance,
-          completedCount: completed.length,
-          totalCount: records.length,
-          nextDue: 'TBD', // In a real app, this would come from a due_date column
-          dueInDays: 0,
-          riskLevel: latestRisk.charAt(0).toUpperCase() + latestRisk.slice(1),
-          pendingTasks: pending.length
-        });
-
-        // Mock progress breakdown based on real data
-        setProgressData([
-          { name: 'Assessments', value: compliance, color: '#10B981' },
-          { name: 'Ergonomics Training', value: 0, color: '#3B82F6' },
-          { name: 'Recommendations', value: 0, color: '#8B5CF6' },
-        ]);
-
-        // Recent activity from assessments
-        const recentActivities = records.slice(0, 4).map((rec: any) => ({
-          text: `${rec.status === 'completed' ? 'Completed' : 'Updated'} ${rec.type.toUpperCase()} Assessment`,
-          time: new Date(rec.updated_at || rec.created_at).toLocaleString(),
-          icon: rec.status === 'completed' ? CheckCircle2 : Calendar,
-          color: rec.status === 'completed' ? 'text-emerald-500' : 'text-blue-500'
-        }));
-        setActivities(recentActivities);
-
-        // Derive upcoming tasks from pending assessments
-        const upcoming = records.filter((r: any) => r.status !== 'completed').map((r: any) => ({
-          title: r.type === 'dse' ? 'DSE Assessment' : 'Workstation Review',
-          date: r.created_at ? new Date(r.created_at).toLocaleDateString() : 'TBD',
-          due: 'Action Required',
-          priority: r.risk_level === 'high' ? 'High Priority' : 'Medium Priority',
-          priorityColor: r.risk_level === 'high' ? 'text-rose-500' : 'text-amber-600'
-        }));
-        setUpcomingTasks(upcoming);
-
-      } catch (err) {
-        console.error('Error fetching employee dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchEmployeeData();
-  }, []);
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
-      {/* KPI Row */}
+      {/* Welcome Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <span className="px-3 py-1 bg-blue-600/10 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 inline-block">
+            Health & Wellness Status
+          </span>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Welcome back, Olivia</h1>
+          <p className="text-[13px] text-slate-500 mt-2 font-medium">Your workplace ergonomics and wellness overview is ready.</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <Link href="/employee/wellness?tab=assessments" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-600/20">
+            <ClipboardList className="w-4 h-4" />
+            New Assessment
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI Row with Deep Linking */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        <KPICard 
-          title="Overall Compliance" 
-          value={`${stats.compliance}%`} 
-          sub={stats.compliance > 80 ? "Excellent" : stats.compliance > 50 ? "Good" : "Action Required"}
-          icon={ShieldCheck}
-          iconColor="bg-blue-50 text-blue-600"
-        />
-        <KPICard 
-          title="Assessments" 
-          value={`${stats.completedCount} of ${stats.totalCount}`} 
-          sub="Completed"
-          icon={CheckCircle2}
-          iconColor="bg-emerald-50 text-emerald-600"
-        />
-        <KPICard 
-          title="Next Due" 
-          value={stats.nextDue} 
-          sub={stats.dueInDays > 0 ? `${stats.dueInDays} days` : "TBD"}
-          icon={Clock}
-          iconColor="bg-orange-50 text-orange-600"
-        />
-        <KPICard 
-          title="Current Risk Level" 
-          value={stats.riskLevel} 
-          sub={stats.riskLevel === 'Low' ? "No action" : "Review needed"}
-          icon={TrendingUp}
-          iconColor="bg-purple-50 text-purple-600"
-        />
-        <KPICard 
-          title="Pending Tasks" 
-          value={stats.pendingTasks.toString()} 
-          sub="Tasks"
-          icon={ClipboardList}
-          iconColor="bg-rose-50 text-rose-600"
-        />
+        <Link href="/employee/wellness?tab=analytics">
+          <StatCard 
+            title="Compliance" 
+            value={`${stats.compliance}%`} 
+            trend={stats.compliance > 80 ? "On Track" : "Needs Action"} 
+            isPositive={stats.compliance > 80}
+            icon={ShieldCheck}
+            iconColor="blue"
+          />
+        </Link>
+        <Link href="/employee/wellness?tab=assessments">
+          <StatCard 
+            title="Assessments" 
+            value={stats.completedCount} 
+            trend={`of ${stats.totalCount}`} 
+            icon={CheckCircle2}
+            iconColor="emerald"
+          />
+        </Link>
+        <Link href="/employee/wellness?tab=analytics">
+          <StatCard 
+            title="Next Due" 
+            value={stats.nextDue} 
+            trend="Scheduled" 
+            icon={Clock}
+            iconColor="amber"
+          />
+        </Link>
+        <Link href="/employee/wellness?tab=analytics">
+          <StatCard 
+            title="Risk Level" 
+            value={stats.riskLevel} 
+            trend="Stable" 
+            icon={TrendingUp}
+            iconColor="purple"
+          />
+        </Link>
+        <Link href="/employee/wellness?tab=assessments">
+          <StatCard 
+            title="Pending" 
+            value={stats.pendingTasks} 
+            trend="Tasks" 
+            isPositive={stats.pendingTasks === 0}
+            icon={ClipboardList}
+            iconColor="rose"
+          />
+        </Link>
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column (8 units) */}
         <div className="lg:col-span-8 space-y-8">
-          {/* My Assessments */}
-          <section className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+          {/* Wellness Hub Summary */}
+          <section className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-[16px] font-semibold text-slate-900">My Assessments</h3>
-              <button className="text-[11px] font-semibold text-blue-600 hover:underline">View all</button>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Active Assessments</h3>
+              <Link href="/employee/wellness?tab=assessments" className="text-[11px] font-bold text-blue-600 hover:underline">Manage All Hubs</Link>
             </div>
             <div className="space-y-4">
-              {loading ? (
-                <div className="py-20 flex flex-col items-center gap-3">
-                  <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                  <p className="text-sm font-medium text-slate-500">Loading your assessments...</p>
-                </div>
-              ) : assessments.length === 0 ? (
-                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-3xl">
+              {assessments.length === 0 ? (
+                <div className="py-12 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
                   <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                  <p className="text-sm font-medium text-slate-500">No assessments assigned yet.</p>
+                  <p className="text-sm font-medium text-slate-400">No active assessments found.</p>
                 </div>
               ) : (
-                assessments.map((assessment) => (
-                  <div key={assessment.id} className="group relative p-5 rounded-3xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer">
-                    <div className="flex items-center gap-5">
-                      <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm", assessment.iconBg)}>
-                        <assessment.icon className="w-7 h-7" />
+                assessments.slice(0, 3).map((assessment) => (
+                  <div key={assessment.id} className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer">
+                    <div className="flex items-center gap-6">
+                      <div className={cn(
+                        "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
+                        assessment.status === 'Completed' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                      )}>
+                        {assessment.title.includes('DSE') ? <Monitor className="w-7 h-7" /> : <ClipboardList className="w-7 h-7" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-[14px] font-semibold text-slate-900 truncate">{assessment.title}</h4>
+                        <div className="flex items-center gap-3 mb-1">
+                          <h4 className="text-[15px] font-bold text-slate-900">{assessment.title}</h4>
                           <span className={cn(
-                            "px-2.5 py-0.5 rounded-lg text-[9px] font-semibold",
-                            assessment.status === 'Completed' ? "bg-emerald-50 text-emerald-600" :
-                            assessment.status === 'In Progress' ? "bg-blue-50 text-blue-600" :
-                            "bg-slate-100 text-slate-700"
+                            "px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight",
+                            assessment.status === 'Completed' ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
                           )}>
                             {assessment.status}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-700 font-medium mb-3">{assessment.subtitle}</p>
+                        <p className="text-[11px] text-slate-500 font-medium mb-3 truncate">{assessment.subtitle}</p>
                         {assessment.progress > 0 && assessment.status !== 'Completed' && (
                           <div className="flex items-center gap-4">
                             <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                               <div className="h-full bg-blue-500 rounded-full" style={{ width: `${assessment.progress}%` }} />
                             </div>
-                            <span className="text-[11px] font-bold text-slate-400">{assessment.progress}%</span>
+                            <span className="text-[10px] font-black text-slate-400">{assessment.progress}%</span>
                           </div>
                         )}
-                      </div>
-                      <div className="text-right pl-6 border-l border-slate-100 ml-4 hidden sm:block">
-                        <p className="text-[9px] font-semibold text-slate-700 uppercase tracking-widest">{assessment.dateLabel}</p>
-                        <p className="text-[12px] font-semibold text-slate-900 mt-1">{assessment.date}</p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors ml-4" />
                     </div>
@@ -236,221 +170,129 @@ export default function EmployeeDashboardPage() {
             </div>
           </section>
 
-          {/* My Progress */}
-          <section className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-[16px] font-semibold text-slate-900">My Progress</h3>
-              <button className="text-[11px] font-semibold text-blue-600 hover:underline">View progress details</button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-              <div className="md:col-span-4 flex flex-col items-center justify-center">
-                <div className="w-48 h-48 relative">
+          {/* Health Insights */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <section className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Performance Mix</h3>
+                <div className="h-[200px] relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={[{ value: 67 }, { value: 33 }]}
+                        data={[{ value: stats.compliance }, { value: 100 - stats.compliance }]}
                         cx="50%"
                         cy="50%"
-                        innerRadius={65}
-                        outerRadius={85}
+                        innerRadius={60}
+                        outerRadius={80}
                         startAngle={90}
                         endAngle={-270}
                         dataKey="value"
                       >
-                        <Cell fill="#10B981" />
-                        <Cell fill="#F1F5F9" />
+                        <Cell fill="#3b82f6" />
+                        <Cell fill="#f1f5f9" />
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-3xl font-semibold text-slate-900">{stats.compliance}%</p>
-                    <p className="text-[9px] font-semibold text-slate-700 uppercase tracking-widest">Overall Progress</p>
+                    <p className="text-2xl font-black text-slate-900 tracking-tighter">{stats.compliance}%</p>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Health Index</p>
                   </div>
                 </div>
-              </div>
-              <div className="md:col-span-8 space-y-6">
-                {progressData.map((item) => (
-                  <div key={item.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] font-semibold text-slate-700">{item.name}</span>
-                      <span className="text-[12px] font-semibold text-slate-900">{item.value}%</span>
+                <div className="mt-8 space-y-4">
+                  {progressData.map((item) => (
+                    <div key={item.name} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px] font-bold">
+                        <span className="text-slate-500 uppercase tracking-tight">{item.name}</span>
+                        <span className="text-slate-900">{item.value}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-600 rounded-full transition-all duration-1000" style={{ width: `${item.value}%` }} />
+                      </div>
                     </div>
-                    <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
-                    </div>
-                  </div>
-                ))}
-                <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
-                    <TrendingUp className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <p className="text-[12px] font-semibold text-blue-700 leading-relaxed">
-                    Great progress! Complete your pending assessment to improve your workplace health.
-                  </p>
+                  ))}
                 </div>
-              </div>
-            </div>
-          </section>
+             </section>
 
-          {/* Health Tips */}
-          <section className="bg-slate-900 rounded-[2.5rem] p-10 overflow-hidden relative group">
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-blue-600/20 transition-all duration-700" />
-            <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
-              <div className="flex-1 space-y-3">
-                <h3 className="text-[16px] font-semibold text-white">Workplace Health Tips</h3>
-                <div className="space-y-3">
-                  <h4 className="text-xl font-semibold text-white tracking-tight">Take regular breaks</h4>
-                  <p className="text-slate-400 text-[14px] leading-relaxed max-w-md">
-                    Stand up, stretch, and take a short walk every hour to reduce fatigue and improve focus. 
-                    It helps maintain circulation and reduces muscle tension.
-                  </p>
-                </div>
-                <button className="text-[13px] font-bold text-blue-400 hover:text-white flex items-center gap-2 transition-all pt-2 group/btn">
-                  View more tips <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </button>
-              </div>
-              <div className="w-64 h-64 shrink-0 relative">
-                {/* Illustration Placeholder - Using a stylized representation */}
-                <div className="w-full h-full bg-slate-800 rounded-[3rem] border border-slate-700 flex items-center justify-center shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-500">
-                  <Heart className="w-20 h-20 text-blue-500 opacity-20" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <img 
-                      src="https://ouch-cdn2.icons8.com/r_z_3_f_1_m_X_7_z_f_Z_G_z_v_o_y_X_u_s_Z_v_o_y_X_u_s.png" 
-                      alt="Workplace Wellness" 
-                      className="w-48 h-48 object-contain"
-                    />
+             <section className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-blue-600/20 transition-all duration-700" />
+                <div className="relative z-10 h-full flex flex-col">
+                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6">
+                    <Heart className="w-6 h-6 text-blue-400" />
                   </div>
+                  <h3 className="text-xl font-bold mb-3 tracking-tight">Ergonomic Tip</h3>
+                  <p className="text-slate-400 text-[13px] leading-relaxed mb-8 flex-1">
+                    Take regular breaks! Stand up, stretch, and take a short walk every hour to reduce fatigue and improve focus.
+                  </p>
+                  <Link href="/employee/wellness?tab=resources" className="flex items-center gap-2 text-blue-400 text-[11px] font-black uppercase tracking-widest hover:text-white transition-colors group/link">
+                    Explore Wellness Library <ArrowRight className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" />
+                  </Link>
                 </div>
-              </div>
-            </div>
-          </section>
+             </section>
+          </div>
         </div>
 
         {/* Right Column (4 units) */}
         <div className="lg:col-span-4 space-y-8">
-          {/* Upcoming */}
-          <section className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-[16px] font-semibold text-slate-900">Upcoming & Due Soon</h3>
-              <button className="text-[11px] font-semibold text-blue-600 hover:underline">View calendar</button>
-            </div>
-            <div className="space-y-8">
-              {loading ? (
-                <div className="py-10 flex justify-center">
-                  <Loader2 className="w-6 h-6 text-slate-300 animate-spin" />
+          {/* Quick Actions / Communication Hub */}
+          <section className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Communications</h3>
+            <div className="space-y-4">
+              <Link href="/employee/communication?tab=messages" className="flex items-center gap-4 p-4 rounded-2xl border border-slate-50 hover:border-blue-100 hover:bg-slate-50 transition-all group">
+                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-5 h-5" />
                 </div>
-              ) : upcomingTasks.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-10">No pending tasks.</p>
-              ) : (
-                upcomingTasks.map((task) => (
-                  <div key={task.title} className="flex items-start gap-5 group cursor-pointer">
-                    <div className="w-12 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-white group-hover:border-blue-100 transition-all">
-                      <Calendar className="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[12px] font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{task.title}</p>
-                        <p className="text-[11px] font-semibold text-slate-900">{task.date}</p>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-[11px] text-slate-700 font-medium">{task.due}</p>
-                        <p className={cn("text-[9px] font-semibold uppercase tracking-widest", task.priorityColor)}>{task.priority}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-slate-900">Unread Messages</p>
+                  <p className="text-[11px] text-slate-400 font-medium">2 from Admin Support</p>
+                </div>
+                <span className="w-5 h-5 bg-rose-500 text-white text-[9px] font-black flex items-center justify-center rounded-lg">2</span>
+              </Link>
+
+              <Link href="/employee/communication?tab=notifications" className="flex items-center gap-4 p-4 rounded-2xl border border-slate-50 hover:border-emerald-100 hover:bg-slate-50 transition-all group">
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-slate-900">Notifications</p>
+                  <p className="text-[11px] text-slate-400 font-medium">3 alerts today</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition-colors" />
+              </Link>
+            </div>
+            
+            <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 gap-4">
+               <Link href="/employee/communication?tab=support" className="flex flex-col items-center text-center p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-blue-100 hover:bg-white transition-all group">
+                  <LifeBuoy className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-2 transition-colors" />
+                  <span className="text-[11px] font-bold text-slate-900">Get Help</span>
+               </Link>
+               <Link href="/employee/wellness?tab=resources" className="flex flex-col items-center text-center p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-blue-100 hover:bg-white transition-all group">
+                  <FileText className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-2 transition-colors" />
+                  <span className="text-[11px] font-bold text-slate-900">Documents</span>
+               </Link>
             </div>
           </section>
 
-          {/* Recent Activity */}
-          <section className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-[17px] font-bold text-slate-900">Recent Activity</h3>
-              <button className="text-[12px] font-bold text-blue-600 hover:underline">View all</button>
-            </div>
-            <div className="space-y-8">
-              {loading ? (
-                <div className="py-10 flex justify-center">
-                  <Loader2 className="w-6 h-6 text-slate-300 animate-spin" />
+          {/* Recent Timeline */}
+          <section className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Recent Timeline</h3>
+            <div className="space-y-8 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-px before:bg-slate-100">
+              {activities.map((activity, i) => (
+                <div key={i} className="flex items-start gap-4 relative z-10">
+                  <div className={cn(
+                    "w-10 h-10 rounded-full border-4 border-white flex items-center justify-center shrink-0 shadow-sm",
+                    activity.type === 'success' ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"
+                  )}>
+                    {activity.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 pt-1">
+                    <p className="text-[13px] font-bold text-slate-800 leading-snug">{activity.text}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{activity.time}</p>
+                  </div>
                 </div>
-              ) : activities.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-10">No recent activity found.</p>
-              ) : (
-                activities.map((activity, i) => (
-                  <div key={i} className="flex items-start gap-4">
-                    <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100", activity.color)}>
-                      <activity.icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[13px] font-bold text-slate-800 leading-snug">{activity.text}</p>
-                      <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-1">{activity.time}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-
-          {/* Need Help? */}
-          <section className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-[17px] font-bold text-slate-900">Need Help?</h3>
-              <button className="text-[12px] font-bold text-blue-600 hover:underline">View all resources</button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { title: 'Ergonomic Guide', sub: 'Best practices', icon: FileText, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                { title: 'Video Tutorials', sub: 'Watch guides', icon: Video, color: 'text-purple-500', bg: 'bg-purple-50' },
-                { title: 'Contact Support', sub: 'Get assistance', icon: LifeBuoy, color: 'text-blue-500', bg: 'bg-blue-50' },
-                { title: 'Report an Issue', sub: 'Let us know', icon: AlertTriangle, color: 'text-rose-500', bg: 'bg-rose-50' },
-              ].map((item) => (
-                <button key={item.title} className="flex flex-col items-center text-center p-4 rounded-3xl border border-slate-50 hover:border-blue-100 hover:bg-blue-50/50 transition-all group">
-                  <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm", item.bg, item.color)}>
-                    <item.icon className="w-6 h-6" />
-                  </div>
-                  <p className="text-[12px] font-bold text-slate-900 leading-tight mb-1">{item.title}</p>
-                  <p className="text-[10px] text-slate-400 font-medium">{item.sub}</p>
-                </button>
               ))}
             </div>
           </section>
         </div>
       </div>
-    </div>
-  );
-}
-
-function KPICard({ title, value, sub, trend, isPositive, icon: Icon, iconColor, action }: any) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-xl hover:shadow-slate-200/40 transition-all group relative overflow-hidden flex items-center gap-4">
-      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", iconColor)}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-semibold text-slate-700 uppercase tracking-widest leading-none mb-1">{title}</p>
-        <div className="flex items-baseline gap-1.5 flex-wrap">
-          <h4 className="text-[17px] font-semibold text-slate-900 tracking-tight leading-tight">{value}</h4>
-          {sub && <span className="text-[11px] font-medium text-slate-700 leading-tight">{sub}</span>}
-        </div>
-        {trend && (
-          <div className={cn(
-            "flex items-center gap-1 text-[9px] font-bold mt-0.5",
-            isPositive ? "text-emerald-500" : "text-rose-500"
-          )}>
-            <TrendingUp className={cn("w-2.5 h-2.5", !isPositive && "rotate-180")} />
-            {trend}
-          </div>
-        )}
-      </div>
-      {action && (
-        <div className="absolute top-1.5 right-1.5 group-hover:scale-105 transition-transform">
-          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-600 text-white rounded-md shadow-lg shadow-blue-600/20">
-            <action.icon className="w-2 h-2" />
-            <span className="text-[7px] font-black uppercase leading-none">{action.label}</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

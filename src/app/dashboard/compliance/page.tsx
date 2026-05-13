@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useComplianceData } from '@/hooks/useComplianceData';
 import { 
   BarChart, 
   Bar, 
@@ -12,8 +13,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
   AreaChart,
   Area
 } from 'recharts';
@@ -27,9 +26,23 @@ import {
   Info,
   Calendar,
   Filter,
-  Download
+  Download,
+  AlertTriangle,
+  ClipboardList,
+  Zap,
+  MessageCircle,
+  Flag,
+  User,
+  Clock,
+  ArrowRight,
+  Loader2,
+  MoreVertical,
+  MoreHorizontal,
+  Search,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { StatCard } from '@/components/dashboard/StatCard';
 
 const departmentData = [
   { name: 'Engineering', compliance: 88, risk: 12 },
@@ -50,273 +63,320 @@ const trendData = [
   { month: 'Jun', score: 88 },
 ];
 
-const riskDistribution = [
-  { name: 'Low', value: 720, color: '#10b981' },
-  { name: 'Medium', value: 340, color: '#f59e0b' },
-  { name: 'High', value: 120, color: '#ef4444' },
-  { name: 'Critical', value: 68, color: '#991b1b' },
-];
+import { useSearchParams } from 'next/navigation';
 
-export default function CompliancePage() {
+export default function RiskCompliancePage() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') as 'analytics' | 'risks' | 'tracking' || 'analytics';
+  const [activeTab, setActiveTab] = useState<'analytics' | 'risks' | 'tracking'>(initialTab);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { assessments, risks, stats, loading } = useComplianceData();
+
+  const data = { assessments, risks, stats };
+
+  const filteredItems = (activeTab === 'risks' ? data.risks : data.assessments).filter((item: any) => 
+    item.employee.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-[24px] font-bold text-slate-900 tracking-tight">Compliance Analytics</h2>
-          <p className="text-[14px] text-slate-500 font-medium">Real-time visibility into Organisation-wide compliance performance and health.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Risk & Compliance</h1>
+          <p className="text-[13px] text-slate-500 mt-1">Real-time intelligence Hub for Organisation-wide compliance performance and risk mitigations.</p>
         </div>
+        
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 transition-all">
-            <Calendar className="w-4 h-4" />
-            Last 30 Days
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-[13px] font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
+          <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all">
             <Download className="w-4 h-4" />
-            Download PDF Report
+            Generate Compliance Audit
+          </button>
+          <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
+            <Plus className="w-4 h-4" />
+            New Assessment
           </button>
         </div>
       </div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <ComplianceMetric 
-          title="Global Compliance" 
-          value="88.4%" 
-          trend="+4.2%" 
-          isPositive={true}
-          icon={ShieldCheck}
-          color="blue"
-        />
-        <ComplianceMetric 
-          title="Assigned Target" 
-          value="95.0%" 
-          trend="-6.6%" 
-          isPositive={false}
-          icon={Target}
-          color="indigo"
-        />
-        <ComplianceMetric 
-          title="Growth Rate" 
-          value="+12%" 
-          trend="+2.1%" 
-          isPositive={true}
-          icon={TrendingUp}
-          color="emerald"
-        />
-        <ComplianceMetric 
-          title="At-Risk Units" 
-          value="18" 
-          trend="+2" 
-          isPositive={false}
-          icon={AlertCircle}
-          color="rose"
-        />
+      {/* Tab Navigation */}
+      <div className="flex items-center gap-8 border-b border-slate-100">
+        {[
+          { id: 'analytics', label: 'Compliance Analytics', icon: TrendingUp },
+          { id: 'risks', label: 'Risks & Escalations', icon: AlertTriangle },
+          { id: 'tracking', label: 'Assessment Tracking', icon: ClipboardList },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={cn(
+              "pb-4 text-[13px] font-bold transition-all relative flex items-center gap-2",
+              activeTab === tab.id ? "text-blue-600" : "text-slate-400 hover:text-slate-600"
+            )}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+            {activeTab === tab.id && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Compliance Trend */}
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">Compliance Trend</h3>
-              <p className="text-[13px] text-slate-400 font-medium">Organisation score over the last 6 months</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-blue-600" />
-              <span className="text-[11px] font-bold text-slate-500 uppercase">Avg Score</span>
-            </div>
+      {activeTab === 'analytics' && (
+        <>
+          {/* KPI Row */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <StatCard 
+              title="Global Compliance" 
+              value={`${data.assessments.length > 0 ? Math.round((data.stats.completed / data.assessments.length) * 100) : 0}%`} 
+              trend="+4.2%" 
+              icon={ShieldCheck}
+              iconColor="blue"
+            />
+            <StatCard 
+              title="Assigned Target" 
+              value="95.0%" 
+              trend="-6.6%" 
+              isPositive={false}
+              icon={Target}
+              iconColor="indigo"
+            />
+            <StatCard 
+              title="Critical Risks" 
+              value={data.stats.critical} 
+              trend={data.stats.critical > 0 ? "Action Required" : "Stable"} 
+              isPositive={data.stats.critical === 0}
+              icon={Zap}
+              iconColor="rose"
+            />
+            <StatCard 
+              title="Pending Reviews" 
+              value={data.stats.pending} 
+              trend="Awaiting" 
+              isPositive={false}
+              icon={Clock}
+              iconColor="amber"
+            />
           </div>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData}>
-                <defs>
-                  <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="month" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }}
-                  domain={[0, 100]}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#0f172a', 
-                    border: 'none', 
-                    borderRadius: '12px',
-                    color: '#fff',
-                    fontSize: '12px'
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="score" 
-                  stroke="#2563eb" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorScore)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        {/* Department Performance */}
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">Department Benchmarking</h3>
-              <p className="text-[13px] text-slate-400 font-medium">Compliance performance by business unit</p>
-            </div>
-            <button className="p-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all">
-              <Filter className="w-4 h-4 text-slate-500" />
-            </button>
-          </div>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={departmentData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                <XAxis type="number" hide />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fill: '#475569', fontSize: 12, fontWeight: 600 }}
-                  width={100}
-                />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ 
-                    backgroundColor: '#0f172a', 
-                    border: 'none', 
-                    borderRadius: '12px',
-                    color: '#fff',
-                    fontSize: '12px'
-                  }}
-                />
-                <Bar 
-                  dataKey="compliance" 
-                  fill="#2563eb" 
-                  radius={[0, 4, 4, 0]} 
-                  barSize={12}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Risk Analysis Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Risk Distribution</h3>
-          <p className="text-[13px] text-slate-400 font-medium mb-8">Current risk severity breakdown</p>
-          <div className="h-[240px] relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={riskDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={8}
-                  dataKey="value"
-                >
-                  {riskDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-slate-900">1,248</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
-            </div>
-          </div>
-          <div className="mt-6 space-y-3">
-            {riskDistribution.map((item) => (
-              <div key={item.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-[12px] font-semibold text-slate-600">{item.name}</span>
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Compliance Trend</h3>
+                  <p className="text-[13px] text-slate-400 font-medium">Organisation score over the last 6 months</p>
                 </div>
-                <span className="text-[12px] font-bold text-slate-900">{item.value}</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 text-blue-400 mb-2">
-              <Info className="w-4 h-4" />
-              <span className="text-[12px] font-bold uppercase tracking-wider">Compliance Insight</span>
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-4">Improvement Opportunity</h3>
-            <p className="text-slate-400 text-[15px] leading-relaxed max-w-lg mb-8">
-              The Engineering department shows a 12% increase in compliance after the latest ergonomic training module. 
-              Implementing the same module for Marketing could resolve 65% of currently overdue assessments.
-            </p>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Estimated Impact</p>
-                <h4 className="text-xl font-bold text-emerald-400 mt-1">+14.5% Overall</h4>
-              </div>
-              <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Risk Mitigation</p>
-                <h4 className="text-xl font-bold text-blue-400 mt-1">-32 High Priority</h4>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData}>
+                    <defs>
+                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} domain={[0, 100]} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px', color: '#fff' }} />
+                    <Area type="monotone" dataKey="score" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
+
+            <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Department Benchmarking</h3>
+                  <p className="text-[13px] text-slate-400 font-medium">Compliance performance by business unit</p>
+                </div>
+              </div>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={departmentData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 12 }} width={100} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px', color: '#fff' }} />
+                    <Bar dataKey="compliance" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={12} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
-          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-blue-600/10 blur-[80px] rounded-full" />
-          <div className="absolute -top-20 -left-20 w-64 h-64 bg-emerald-600/10 blur-[80px] rounded-full" />
-        </div>
-      </div>
-    </div>
-  );
-}
+        </>
+      )}
 
-function ComplianceMetric({ title, value, trend, isPositive, icon: Icon, color }: any) {
-  const colors: any = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
-    emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
-    rose: "bg-rose-50 text-rose-600 border-rose-100",
-  };
+      {activeTab === 'risks' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-3xl p-6 shadow-sm border-l-4 border-l-rose-500">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold text-slate-700 uppercase tracking-widest">Critical Issues</p>
+                  <h4 className="text-2xl font-bold text-slate-900">{data.stats.critical}</h4>
+                </div>
+              </div>
+              <p className="text-[12px] text-slate-700 font-medium leading-relaxed">Require immediate intervention based on high-risk results.</p>
+            </div>
+            <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-3xl p-6 shadow-sm border-l-4 border-l-amber-500">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold text-slate-700 uppercase tracking-widest">High Priority</p>
+                  <h4 className="text-2xl font-bold text-slate-900">{data.stats.high}</h4>
+                </div>
+              </div>
+              <p className="text-[12px] text-slate-700 font-medium leading-relaxed">Medium risk cases assigned for safety review and follow-up.</p>
+            </div>
+            <div className="bg-slate-900 rounded-3xl p-6 text-white relative overflow-hidden">
+               <div className="relative z-10">
+                 <h4 className="text-sm font-bold mb-2">Automated Escalation</h4>
+                 <p className="text-[11px] text-slate-400">System automatically escalates high-risk cases after 48h non-response.</p>
+               </div>
+            </div>
+          </div>
 
-  return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all cursor-default">
-      <div className="flex items-center justify-between mb-4">
-        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", colors[color])}>
-          <Icon className="w-6 h-6" />
+          <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2rem] overflow-hidden shadow-sm">
+             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900">Active Risk Incidents</h3>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search risks..." 
+                    className="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+             </div>
+             <div className="divide-y divide-slate-50">
+                {loading ? (
+                  <div className="p-20 text-center">
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
+                    <p className="text-[13px] text-slate-400 font-medium mt-3">Loading risk data...</p>
+                  </div>
+                ) : data.risks.length === 0 ? (
+                  <div className="p-20 text-center text-slate-400 text-[13px]">No active risk incidents found.</div>
+                ) : (
+                  data.risks.map((incident: any) => (
+                    <div key={incident.id} className="p-6 hover:bg-slate-50/50 transition-all flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                          incident.riskLevel === 'High' ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"
+                        )}>
+                          <Flag className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-bold text-slate-900">{incident.employee}</span>
+                            <span className="text-[11px] text-slate-500 font-medium">• {incident.id}</span>
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight",
+                              incident.riskLevel === 'High' ? "bg-rose-500 text-white" : "bg-amber-500 text-white"
+                            )}>
+                              {incident.riskLevel} Risk
+                            </span>
+                          </div>
+                          <p className="text-[12px] text-slate-600 font-medium mt-1">Review required for ergonomic risk escalations.</p>
+                          <div className="flex items-center gap-4 mt-3">
+                            <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold"><User className="w-3 h-3" /> {incident.department}</span>
+                            <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold"><Clock className="w-3 h-3" /> {incident.dueDate}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button className="px-4 py-2 bg-blue-600 text-white text-[11px] font-bold rounded-xl shadow-lg shadow-blue-600/10 hover:scale-[1.02] transition-all">Investigate</button>
+                    </div>
+                  ))
+                )}
+             </div>
+          </div>
         </div>
-        <div className={cn(
-          "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold",
-          isPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-        )}>
-          {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-          {trend}
+      )}
+
+      {activeTab === 'tracking' && (
+        <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2rem] overflow-hidden shadow-sm">
+           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900">Assessment Logs</h3>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search tracking..." 
+                  className="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+           </div>
+           <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50">
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID / Employee</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Level</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-20 text-center">
+                      <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
+                      <p className="text-[13px] text-slate-400 font-medium mt-3">Hydrating assessment records...</p>
+                    </td>
+                  </tr>
+                ) : filteredItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-20 text-center text-slate-400 text-[13px]">No matching records found.</td>
+                  </tr>
+                ) : (
+                  filteredItems.map((item: any) => (
+                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-8 py-5">
+                        <div>
+                          <p className="text-[13px] font-bold text-slate-900">{item.employee}</p>
+                          <p className="text-[11px] text-slate-400 font-medium">{item.id}</p>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
+                        <span className={cn(
+                          "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tight",
+                          item.status === 'Completed' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                        )}>{item.status}</span>
+                      </td>
+                      <td className="px-8 py-5">
+                         <div className="flex items-center gap-2">
+                           <div className={cn("w-2 h-2 rounded-full", item.riskLevel === 'Low' ? "bg-emerald-500" : item.riskLevel === 'Medium' ? "bg-amber-500" : "bg-rose-500")} />
+                           <span className="text-[12px] font-bold text-slate-700">{item.riskLevel}</span>
+                         </div>
+                      </td>
+                      <td className="px-8 py-5">
+                         <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className={cn("h-full rounded-full transition-all duration-1000", item.completion === 100 ? "bg-emerald-500" : "bg-blue-500")} style={{ width: `${item.completion}%` }} />
+                         </div>
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                         <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><MoreHorizontal className="w-5 h-5" /></button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+           </table>
         </div>
-      </div>
-      <div>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-        <h4 className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{value}</h4>
-      </div>
+      )}
     </div>
   );
 }

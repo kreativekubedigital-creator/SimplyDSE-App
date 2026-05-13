@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { StatCard } from '../../components/admin/StatCard';
+import { StatCard } from '@/components/dashboard/StatCard';
 import { supabase } from '@/lib/supabase';
 import { 
   Building2, 
@@ -111,14 +111,14 @@ export default function AdminOverviewPage() {
   }, []);
 
   const statCards = [
-    { label: 'Total organizations', value: (stats?.total_tenants || organizations.length).toString(), icon: Building2, change: 'Current Total', trend: 'neutral' as const, sub: 'Active & Inactive' },
-    { label: 'Active Workspaces', value: organizations.filter(o => o.status === 'active').length.toString(), icon: Zap, change: 'Operating', trend: 'neutral' as const, sub: 'Production nodes' },
-    { label: 'Total Users', value: (stats?.total_users || 0).toString(), icon: User, change: `+${stats?.new_users_30d || 0} recent`, trend: 'up' as const, sub: 'Across all Workspaces' },
-    { label: 'Compliance Rate', value: complianceRate.toFixed(1) + '%', icon: ShieldCheck, change: 'System Wide', trend: 'neutral' as const, sub: 'Global average' },
-    { label: 'System Health', value: (stats?.avg_infra_health || 0).toFixed(1) + '%', icon: Activity, change: 'Optimal', trend: 'neutral' as const, sub: 'All clusters' },
-    { label: 'Open Tickets', value: ticketCount.toString(), icon: Ticket, change: `${stats?.critical_tickets || 0} critical`, trend: 'down' as const, sub: 'Support queue' },
-    { label: 'Risk Alerts', value: (stats?.high_risk_assessments || 0).toString(), icon: ShieldAlert, change: 'Attention', trend: 'down' as const, sub: 'Require attention' },
-    { label: 'Total Assessments', value: (stats?.total_assessments || 0).toString(), icon: CheckCircle2, change: `${stats?.completed_assessments || 0} done`, trend: 'neutral' as const, sub: 'Global total' },
+    { title: 'Total Organizations', value: (stats?.total_tenants || organizations.length).toString(), icon: Building2, trend: 'Current Total', iconColor: 'blue' },
+    { title: 'Active Workspaces', value: organizations.filter(o => o.status === 'active').length.toString(), icon: Zap, trend: 'Operating', iconColor: 'emerald' },
+    { title: 'Total Users', value: (stats?.total_users || 0).toString(), icon: User, trend: `+${stats?.new_users_30d || 0} recent`, iconColor: 'indigo' },
+    { title: 'Compliance Rate', value: complianceRate.toFixed(1) + '%', icon: ShieldCheck, trend: 'System Wide', iconColor: 'purple' },
+    { title: 'System Health', value: (stats?.avg_infra_health || 0).toFixed(1) + '%', icon: Activity, trend: 'Optimal', iconColor: 'emerald' },
+    { title: 'Open Tickets', value: ticketCount.toString(), icon: Ticket, trend: `${stats?.critical_tickets || 0} critical`, isPositive: false, iconColor: 'rose' },
+    { title: 'Risk Alerts', value: (stats?.high_risk_assessments || 0).toString(), icon: ShieldAlert, trend: 'Attention', isPositive: false, iconColor: 'rose' },
+    { title: 'Total Assessments', value: (stats?.total_assessments || 0).toString(), icon: CheckCircle2, trend: `${stats?.completed_assessments || 0} done`, iconColor: 'blue' },
   ];
 
   const chartData = analytics.map(a => ({
@@ -168,9 +168,22 @@ export default function AdminOverviewPage() {
 
       {/* Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8 gap-4">
-        {statCards.map((card, i) => (
-          <StatCard key={i} {...card} />
-        ))}
+        {statCards.map((card, i) => {
+          const href = card.label === 'Compliance Rate' ? '/admin/compliance' :
+                       card.label === 'System Health' ? '/admin/workflows?tab=health' :
+                       card.label === 'Total Users' ? '/admin/users' :
+                       card.label === 'Risk Alerts' ? '/admin/compliance?tab=security' :
+                       undefined;
+          
+          if (href) {
+            return (
+              <Link key={i} href={href} className="transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                <StatCard {...card} />
+              </Link>
+            );
+          }
+          return <StatCard key={i} {...card} />;
+        })}
       </div>
 
       {/* Main Charts Row */}
@@ -450,9 +463,12 @@ export default function AdminOverviewPage() {
                   <p className="text-[11px] font-bold text-slate-400 uppercase">No system data available</p>
                 )}
               </div>
-              <button className="w-full mt-8 py-3 bg-white/5 border border-white/10 rounded-xl text-[12px] font-bold text-white hover:bg-white/10 transition-all uppercase tracking-[0.2em]">
+              <Link 
+                href="/admin/compliance"
+                className="w-full mt-8 py-3 bg-white/5 border border-white/10 rounded-xl text-[12px] font-bold text-white hover:bg-white/10 transition-all uppercase tracking-[0.2em] flex items-center justify-center"
+              >
                 Execute Global Audit
-              </button>
+              </Link>
             </div>
           </div>
         </div>

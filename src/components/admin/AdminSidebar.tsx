@@ -28,26 +28,26 @@ import { cn } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 
 const navigation = [
-  { name: 'Overview', icon: LayoutDashboard, href: '/' },
-  { name: 'Organisations', icon: Building2, href: '/organizations' },
-  { name: 'Users', icon: Users, href: '/users' },
-  { name: 'Roles & Permissions', icon: ShieldCheck, href: '/roles' },
-  { name: 'Reports', icon: BarChart3, href: '/analytics' },
-  { name: 'Compliance', icon: Shield, href: '/compliance' },
-  { name: 'Security', icon: ShieldCheck, href: '/security' },
-  { name: 'Billing', icon: CreditCard, href: '/billing' },
-  { name: 'Workflows', icon: Workflow, href: '/workflows' },
-  { name: 'Notifications', icon: Bell, href: '/notifications' },
-  { name: 'System Health', icon: Activity, href: '/health' },
-  { name: 'Activity', icon: History, href: '/audit' },
-  { name: 'Settings', icon: Settings, href: '/settings' },
+  { name: 'Dashboard', icon: LayoutDashboard, href: '/', section: 'Platform' },
+  
+  { name: 'Organisations', icon: Building2, href: '/organizations', section: 'Management' },
+  { name: 'Identity & Access', icon: Users, href: '/users', section: 'Management' },
+  
+  { name: 'Intelligence', icon: BarChart3, href: '/analytics', section: 'Intelligence' },
+  
+  { name: 'Risk & Compliance', icon: Shield, href: '/compliance', section: 'Security' },
+  { name: 'Audit Logs', icon: History, href: '/audit', section: 'Security' },
+  
+  { name: 'Operations Center', icon: Workflow, href: '/workflows', section: 'Operations' },
+  
+  { name: 'Billing', icon: CreditCard, href: '/billing', section: 'Configuration' },
+  { name: 'Settings', icon: Settings, href: '/settings', section: 'Configuration' },
 ];
 
 const shortcuts = [
-  { name: 'Create Organisation', icon: PlusCircle, href: '/organizations/new' },
-  { name: 'Add User', icon: UserPlus, href: '/users/new' },
-  { name: 'System Announcements', icon: Megaphone, href: '/announcements' },
-  { name: 'Support Tickets', icon: Ticket, href: '/tickets' },
+  { name: 'Provision Workspace', icon: PlusCircle, href: '/organizations/new' },
+  { name: 'System Alerts', icon: Bell, href: '/notifications' },
+  { name: 'Support Center', icon: Ticket, href: '/tickets' },
 ];
 
 export function AdminSidebar() {
@@ -94,23 +94,35 @@ export function AdminSidebar() {
       </div>
 
       {/* Main Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 space-y-1 custom-scrollbar scrollbar-hide">
-        {navigation.map((item) => {
-          const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+      <nav className="flex-1 overflow-y-auto px-3 space-y-6 custom-scrollbar scrollbar-hide pb-10">
+        {['Platform', 'Management', 'Intelligence', 'Security', 'Operations', 'Configuration'].map((section) => {
+          const sectionItems = navigation.filter(item => item.section === section);
+          if (sectionItems.length === 0) return null;
+          
           return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-1.5 rounded-lg transition-all duration-200 group",
-                isActive 
-                  ? 'bg-brand-primary text-white font-semibold shadow-lg shadow-brand-primary/20' 
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-              )}
-            >
-              <item.icon className={cn("w-4 h-4", isActive ? 'text-white' : 'text-slate-400 group-hover:text-white')} />
-              <span className="text-[12px]">{item.name}</span>
-            </Link>
+            <div key={section} className="space-y-1">
+              <div className="px-3 mb-2">
+                <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">{section}</h3>
+              </div>
+              {sectionItems.map((item) => {
+                const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-1.5 rounded-lg transition-all duration-200 group",
+                      isActive 
+                        ? 'bg-brand-primary text-white font-semibold shadow-lg shadow-brand-primary/20' 
+                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                    )}
+                  >
+                    <item.icon className={cn("w-4 h-4", isActive ? 'text-white' : 'text-slate-400 group-hover:text-white')} />
+                    <span className="text-[12px]">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
 

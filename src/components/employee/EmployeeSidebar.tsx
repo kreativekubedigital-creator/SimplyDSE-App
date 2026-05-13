@@ -21,14 +21,9 @@ import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/employee', icon: LayoutDashboard },
-  { name: 'My Assessments', href: '/employee/assessments', icon: ClipboardList },
-  { name: 'My Progress', href: '/employee/progress', icon: LineChart },
-  { name: 'Ergonomic Advice', href: '/employee/advice', icon: Heart },
-  { name: 'Documents', href: '/employee/documents', icon: FileText },
-  { name: 'Messages', href: '/employee/messages', icon: MessageCircle, badge: '2' },
-  { name: 'Notifications', href: '/employee/notifications', icon: Bell, badge: '3' },
+  { name: 'Wellness Hub', href: '/employee/wellness', icon: ShieldCheck },
+  { name: 'Communication', href: '/employee/communication', icon: MessageCircle, badge: '5' },
   { name: 'My Profile', href: '/employee/profile', icon: User },
-  { name: 'Help & Support', href: '/employee/support', icon: HelpCircle },
 ];
 
 export function EmployeeSidebar() {
