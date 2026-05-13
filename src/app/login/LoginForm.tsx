@@ -60,12 +60,6 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       setIsSubmitting(false);
     }
   };
-
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
   const handleOAuthLogin = async (provider: 'google' | 'azure') => {
     try {
       setIsSubmitting(true);
