@@ -2,10 +2,17 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-// Define the root domain from env or default to simplydse.com
-const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.com';
+// Define the root domain fallback
+const FALLBACK_DOMAIN = 'simplydse.com';
 
 export async function middleware(req: NextRequest) {
+  const hostname = req.headers.get('host') || '';
+  
+  // Dynamically resolve ROOT_DOMAIN if not in env
+  // e.g. "admin.simplydse.online" -> "simplydse.online"
+  // e.g. "localhost:3000" -> "localhost:3000"
+  const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 
+    (hostname.includes('localhost') ? 'localhost:3000' : hostname.split('.').slice(-2).join('.'));
   let res = NextResponse.next({
     request: {
       headers: req.headers,
@@ -22,8 +29,9 @@ export async function middleware(req: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
+            const domain = ROOT_DOMAIN === 'localhost:3000' ? undefined : `.${ROOT_DOMAIN}`;
             req.cookies.set(name, value);
-            res.cookies.set({ name, value, ...options });
+            res.cookies.set({ name, value, ...options, domain });
           });
         },
       },
@@ -35,7 +43,6 @@ export async function middleware(req: NextRequest) {
 
   // 2. Multi-Workspace Subdomain Resolution
   const url = req.nextUrl;
-  const hostname = req.headers.get('host') || '';
 
   // Calculate subdomain:
   // e.g. "acme.simplydse.online" -> "acme"
