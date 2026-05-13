@@ -28,26 +28,26 @@ import { cn } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 
 const navigation = [
-  { name: 'Dashboard', icon: LayoutDashboard, href: '/', section: 'Platform' },
+  { name: 'Dashboard', icon: LayoutDashboard, href: '/admin', section: 'Platform' },
   
-  { name: 'Organisations', icon: Building2, href: '/organizations', section: 'Management' },
-  { name: 'Identity & Access', icon: Users, href: '/users', section: 'Management' },
+  { name: 'Organisations', icon: Building2, href: '/admin/organizations', section: 'Management' },
+  { name: 'Identity & Access', icon: Users, href: '/admin/users', section: 'Management' },
   
-  { name: 'Intelligence', icon: BarChart3, href: '/analytics', section: 'Intelligence' },
+  { name: 'Intelligence', icon: BarChart3, href: '/admin/analytics', section: 'Intelligence' },
   
-  { name: 'Risk & Compliance', icon: Shield, href: '/compliance', section: 'Security' },
-  { name: 'Audit Logs', icon: History, href: '/audit', section: 'Security' },
+  { name: 'Risk & Compliance', icon: Shield, href: '/admin/compliance', section: 'Security' },
+  { name: 'Audit Logs', icon: History, href: '/admin/audit', section: 'Security' },
   
-  { name: 'Operations Center', icon: Workflow, href: '/workflows', section: 'Operations' },
+  { name: 'Operations Center', icon: Workflow, href: '/admin/workflows', section: 'Operations' },
   
-  { name: 'Billing', icon: CreditCard, href: '/billing', section: 'Configuration' },
-  { name: 'Settings', icon: Settings, href: '/settings', section: 'Configuration' },
+  { name: 'Billing', icon: CreditCard, href: '/admin/billing', section: 'Configuration' },
+  { name: 'Settings', icon: Settings, href: '/admin/settings', section: 'Configuration' },
 ];
 
 const shortcuts = [
-  { name: 'Provision Workspace', icon: PlusCircle, href: '/organizations/new' },
-  { name: 'System Alerts', icon: Bell, href: '/notifications' },
-  { name: 'Support Center', icon: Ticket, href: '/tickets' },
+  { name: 'Provision Workspace', icon: PlusCircle, href: '/admin/organizations/new' },
+  { name: 'System Alerts', icon: Bell, href: '/admin/notifications' },
+  { name: 'Support Center', icon: Ticket, href: '/admin/tickets' },
 ];
 
 export function AdminSidebar() {
@@ -105,20 +105,28 @@ export function AdminSidebar() {
                 <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">{section}</h3>
               </div>
               {sectionItems.map((item) => {
-                const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                const isActive = item.href === '/admin' 
+                  ? pathname === '/admin' || pathname === '/admin/'
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-1.5 rounded-lg transition-all duration-200 group",
+                      "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative",
                       isActive 
                         ? 'bg-brand-primary text-white font-semibold shadow-lg shadow-brand-primary/20' 
                         : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
                     )}
                   >
-                    <item.icon className={cn("w-4 h-4", isActive ? 'text-white' : 'text-slate-400 group-hover:text-white')} />
-                    <span className="text-[12px]">{item.name}</span>
+                    <item.icon className={cn("w-4 h-4 transition-colors duration-200", isActive ? 'text-white' : 'text-slate-400 group-hover:text-white')} />
+                    <span className="text-[12px] relative z-10">{item.name}</span>
+                    
+                    {/* Active Indicator Pillar */}
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                    )}
                   </Link>
                 );
               })}

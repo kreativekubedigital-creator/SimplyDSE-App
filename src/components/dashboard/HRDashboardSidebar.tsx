@@ -115,28 +115,35 @@ export function HRDashboardSidebar() {
               {section.title}
             </p>
             {section.items.map((item) => {
-              // Ensure active state only applies to the exact match for Overview
-              // or prefix matches for specific management sections
+              // Robust matching logic:
+              // 1. Exact match for the current href
+              // 2. For non-root paths, match if the pathname starts with the href followed by a slash (nested routes)
+              // 3. Special case for /dashboard to ensure it doesn't over-match sub-modules
               const isActive = item.href === '/dashboard' 
-                ? (pathname === '/dashboard' || pathname === '/dashboard/')
-                : (pathname === item.href || pathname.startsWith(item.href + '/'));
+                ? pathname === '/dashboard' || pathname === '/dashboard/'
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
               
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-[12px] font-semibold transition-all group",
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-[12px] font-semibold transition-all duration-200 group relative",
                     isActive 
                       ? "bg-blue-600 text-white shadow-md shadow-blue-600/20" 
                       : "text-slate-200 hover:text-white hover:bg-slate-800/80"
                   )}
                 >
                   <item.icon className={cn(
-                    "w-4 h-4 transition-colors",
+                    "w-4 h-4 transition-colors duration-200",
                     isActive ? "text-white" : "text-slate-300 group-hover:text-slate-200"
                   )} />
-                  {item.name}
+                  <span className="relative z-10">{item.name}</span>
+                  
+                  {/* Active Indicator Pillar */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                  )}
                 </Link>
               );
             })}
