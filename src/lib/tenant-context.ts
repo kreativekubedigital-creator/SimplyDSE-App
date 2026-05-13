@@ -33,7 +33,7 @@ export async function getTenantContext() {
       }
     }
   } else {
-    const orgs: any = profile.organizations;
+    const orgs: any = profile?.organizations;
     if (orgs) {
       organizationName = Array.isArray(orgs) ? orgs[0]?.name : orgs.name;
     }

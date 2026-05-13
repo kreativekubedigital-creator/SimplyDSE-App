@@ -17,6 +17,7 @@ import {
   ChevronRight,
   UserPlus
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { getTenantContext } from '@/lib/tenant-context';
 
 export default function SettingsPage() {
