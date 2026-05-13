@@ -185,6 +185,53 @@ export default function ComplianceOverviewPage() {
         </div>
         
         <div className="flex items-center gap-3">
+          <button 
+            onClick={async () => {
+              try {
+                setLoading(true);
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                // 1. Get the template ID
+                const { data: template } = await supabase
+                  .from('assessment_templates')
+                  .select('id')
+                  .eq('is_active', true)
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .single();
+
+                if (!template) throw new Error('No active assessment templates found.');
+
+                // 2. Create the assessment record
+                const { data: assessment, error } = await supabase
+                  .from('assessments')
+                  .insert({
+                    organization_id: orgId,
+                    user_id: user.id,
+                    template_id: template.id,
+                    type: 'DSE_2024',
+                    status: 'pending'
+                  })
+                  .select()
+                  .single();
+
+                if (error) throw error;
+
+                // 3. Redirect to the take page
+                window.location.href = `/dashboard/assessments/${assessment.id}/take`;
+              } catch (err) {
+                console.error('Failed to start assessment:', err);
+                alert('Could not start assessment. Please contact support.');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[12px] font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-slate-900/10"
+          >
+            <ClipboardList className="w-4 h-4" />
+            Start New Assessment
+          </button>
           <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-[12px] font-semibold text-slate-900 hover:bg-slate-50 transition-all shadow-sm">
             <Filter className="w-4 h-4 text-slate-500" />
             Filters
