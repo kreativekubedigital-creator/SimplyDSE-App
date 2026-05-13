@@ -1,0 +1,11 @@
+{
+  "cleanUrls": true,
+  "framework": "nextjs",
+  "regions": ["lhr1"],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}

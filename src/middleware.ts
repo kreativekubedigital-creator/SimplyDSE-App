@@ -57,56 +57,51 @@ export async function middleware(req: NextRequest) {
 
   const path = url.pathname;
 
-  // 3. Routing & Access Control
+  // 3. Routing & Access Control (Rewrites)
   // ----------------------------------------------------
   
-  // Super Admin Zone
+  // Super Admin Zone (admin.simplydse.com)
   if (currentHost === 'admin') {
-    // If not on an admin route, rewrite to /admin
-    // (If the app uses /admin path inside Next.js pages)
-    if (!path.startsWith('/admin') && path !== '/login') {
-       // We let them access the /admin path. If they try to go to the root on admin.domain.com,
-       // redirect them to /admin.
-       if (path === '/') {
-         return NextResponse.redirect(new URL('/admin', req.url));
-       }
-    }
-    
     // Auth Check: Super Admins only
     if (!user && path !== '/login') {
        return NextResponse.redirect(new URL('/login', req.url));
     }
-    
-    // If logged in, you could optionally verify their role here or in the layout
+
+    // Clean up URLs: If they access admin.domain.com/admin/something, redirect to admin.domain.com/something
+    if (path.startsWith('/admin')) {
+      return NextResponse.redirect(new URL(path.replace(/^\/admin/, ''), req.url));
+    }
+
+    // Rewrite admin.domain.com/some-path to /admin/some-path
+    if (path !== '/login') {
+      return NextResponse.rewrite(new URL(`/admin${path === '/' ? '' : path}`, req.url));
+    }
   } 
   
-  // Public Marketing Site
+  // Public Marketing Site (www.simplydse.com)
   else if (currentHost === 'www') {
-    // Don't block access, standard marketing pages
     if (path.startsWith('/admin') || path.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
   } 
   
-  // Workspace Workspace Zone
+  // Workspace Zone (acme.simplydse.com)
   else {
-    // It's a Workspace (e.g. acme.simplydse.com)
-    
     // Auth Check
     if (!user && path !== '/login') {
-       // Save intended URL for redirect after login
        const loginUrl = new URL('/login', req.url);
-       loginUrl.searchParams.set('next', path);
+       if (path !== '/') loginUrl.searchParams.set('next', path);
        return NextResponse.redirect(loginUrl);
     }
+
+    // Clean up URLs: If they access acme.domain.com/dashboard/something, redirect to acme.domain.com/something
+    if (path.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL(path.replace(/^\/dashboard/, ''), req.url));
+    }
     
-    // Optional: Cross-Workspace Isolation
-    // In a production scenario, you would verify the user.organization_id matches the tenant_slug.
-    // For now, the DB RLS handles the heavy lifting, but middleware can enforce basic routing.
-    
-    if (path === '/') {
-       // Redirect to their dashboard
-       return NextResponse.redirect(new URL('/dashboard', req.url));
+    // Rewrite acme.domain.com/some-path to /dashboard/some-path
+    if (path !== '/login') {
+      return NextResponse.rewrite(new URL(`/dashboard${path === '/' ? '' : path}`, req.url));
     }
   }
 
