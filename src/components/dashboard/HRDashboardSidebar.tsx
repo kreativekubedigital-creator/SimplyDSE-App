@@ -26,12 +26,12 @@ const navSections = [
   {
     title: 'Organization Platform',
     items: [
-      { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-      { name: 'Employee Management', href: '/dashboard/employees', icon: Users },
-      { name: 'Risk & Compliance', href: '/dashboard/compliance', icon: ShieldCheck },
-      { name: 'Operations Center', href: '/dashboard/workflows', icon: GitBranch },
-      { name: 'Communications', href: '/dashboard/communications', icon: Bell },
-      { name: 'Platform Settings', href: '/dashboard/settings', icon: Settings },
+      { name: 'Overview', href: '/', icon: LayoutDashboard },
+      { name: 'Employee Management', href: '/employees', icon: Users },
+      { name: 'Risk & Compliance', href: '/compliance', icon: ShieldCheck },
+      { name: 'Operations Center', href: '/workflows', icon: GitBranch },
+      { name: 'Communications', href: '/communications', icon: Bell },
+      { name: 'Platform Settings', href: '/settings', icon: Settings },
     ]
   }
 ];
@@ -95,8 +95,8 @@ export function HRDashboardSidebar() {
               // 1. Exact match for the current href
               // 2. For non-root paths, match if the pathname starts with the href followed by a slash (nested routes)
               // 3. Special case for /dashboard to ensure it doesn't over-match sub-modules
-              const isActive = item.href === '/dashboard' 
-                ? pathname === '/dashboard' || pathname === '/dashboard/'
+              const isActive = item.href === '/' 
+                ? pathname === '/' || pathname === ''
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
               
               return (

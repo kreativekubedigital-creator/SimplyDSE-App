@@ -189,9 +189,14 @@ export async function middleware(req: NextRequest) {
 
       // 6. Rewrite to correct internal route
       if (path !== '/login' && !path.startsWith('/auth')) {
-        // If the path already starts with the correct prefix, we don't need to prepend it again
-        // This handles cases where links in the app already include the /dashboard or /employee prefix
-        const finalPath = path.startsWith(dashboardPrefix) ? path : `${dashboardPrefix}${path === '/' ? '' : path}`;
+        // If the path already starts with the correct prefix, we don't need to rewrite
+        // Next.js will handle the explicit path directly.
+        if (path.startsWith(dashboardPrefix)) {
+          return res;
+        }
+
+        // Otherwise, rewrite the clean URL to the internal route
+        const finalPath = `${dashboardPrefix}${path === '/' ? '' : path}`;
         return NextResponse.rewrite(new URL(finalPath, req.url));
       }
     }
