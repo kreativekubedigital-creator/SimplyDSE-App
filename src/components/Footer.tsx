@@ -48,10 +48,15 @@ const Footer = () => {
           <div className="space-y-8">
             <h4 className="label-secondary">Resources</h4>
             <ul className="space-y-4">
-              {['About SimplyDSE', 'Clinical Framework', 'Case Studies', 'Compliance Blog'].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300 font-medium">
-                    {link}
+              {[
+                { name: 'About SimplyDSE', href: '/about' },
+                { name: 'Clinical Framework', href: '#' },
+                { name: 'Case Studies', href: '#' },
+                { name: 'Compliance Blog', href: '/blog' }
+              ].map((link) => (
+                <li key={link.name}>
+                  <a href={link.href} className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300 font-medium">
+                    {link.name}
                   </a>
                 </li>
               ))}

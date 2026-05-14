@@ -2,6 +2,7 @@
 
 import Reveal from './ui/Reveal';
 import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 const CTA = () => {
   return (
@@ -24,13 +25,13 @@ const CTA = () => {
           </Reveal>
           <Reveal delay={0.4}>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-8">
-              <button className="btn-enterprise-primary text-lg px-10 py-5">
+              <Link href="/contact" className="btn-enterprise-primary text-lg px-10 py-5">
                 Get Started Today
-              </button>
-              <button className="text-text-primary font-bold hover:text-brand-primary transition-colors flex items-center gap-2 group">
+              </Link>
+              <Link href="/contact" className="text-text-primary font-bold hover:text-brand-primary transition-colors flex items-center gap-2 group">
                 Contact Sales
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+              </Link>
             </div>
           </Reveal>
         </div>

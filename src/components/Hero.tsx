@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Play } from 'lucide-react';
+import Link from 'next/link';
 
 import Reveal from './ui/Reveal';
 import HeroVisuals from './HeroVisuals';
@@ -102,10 +103,10 @@ const Hero = ({ data }: HeroProps) => {
 
             <Reveal delay={1.0} direction="left">
               <div className="flex flex-col sm:flex-row items-center gap-6 pt-4">
-                <button className="btn-enterprise-primary !py-5 !px-12 text-lg shadow-2xl shadow-brand-primary/20">
+                <Link href="/contact" className="btn-enterprise-primary !py-5 !px-12 text-lg shadow-2xl shadow-brand-primary/20 flex items-center justify-center">
                   {primaryCta}
                   <ArrowRight className="ml-2 w-5 h-5" />
-                </button>
+                </Link>
                 <button className="flex items-center gap-4 text-text-primary font-bold hover:text-brand-primary transition-all group px-4 py-3">
                   <div className="w-12 h-12 rounded-full border border-border-strong flex items-center justify-center group-hover:border-brand-primary transition-colors bg-white/50 backdrop-blur-sm shadow-sm">
                     <Play className="w-4 h-4 fill-current ml-1" />
