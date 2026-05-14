@@ -40,7 +40,7 @@ const FeatureCard = ({
         </div>
 
         {image && (
-          <div className={`${variant === 'hero' ? 'flex-1 mt-0' : 'mt-12'} relative aspect-[4/3] rounded-3xl overflow-hidden border border-slate-800/50 bg-slate-900/50`}>
+          <div className={`${variant === 'hero' ? 'flex-1 mt-0' : 'mt-auto pt-12'} relative aspect-[4/3] rounded-3xl overflow-hidden border border-slate-800/50 bg-slate-900/50`}>
             <Image 
               src={image} 
               alt={title} 
@@ -98,6 +98,8 @@ const FeaturesGrid = () => {
                 icon={Bell}
                 title="Automated Notifications"
                 description="Send assessment invitations, reminders, and follow-ups automatically, reducing manual effort and ensuring higher completion rates."
+                image="/notifications-visual.png"
+                className="h-full"
               />
             </Reveal>
 
@@ -106,6 +108,8 @@ const FeaturesGrid = () => {
                 icon={BarChart3}
                 title="Dashboard & Reporting"
                 description="Monitor assessment progress, track completion rates, and view risk insights in real time with easy-to-export reports."
+                image="/dashboard-visual.png"
+                className="h-full"
               />
             </Reveal>
 
@@ -115,6 +119,7 @@ const FeaturesGrid = () => {
                 title="Secure User Access"
                 description="Role-based access control ensures HR teams and staff only access relevant data, maintaining privacy and security."
                 image="/features-3.png"
+                className="h-full"
               />
             </Reveal>
           </div>
