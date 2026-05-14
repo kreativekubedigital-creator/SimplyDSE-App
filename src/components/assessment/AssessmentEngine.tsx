@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/hooks/useProfile';
 import { 
@@ -10,10 +10,25 @@ import {
   CheckCircle2, 
   AlertCircle,
   HelpCircle,
-  Info
+  Info,
+  Clock,
+  Shield,
+  Heart,
+  Monitor,
+  Zap,
+  Truck,
+  Download,
+  Eye,
+  Activity,
+  ArrowRight,
+  Save,
+  TriangleAlert,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+
+// --- TYPES --- //
 
 interface Option {
   id: string;
@@ -38,37 +53,90 @@ interface Category {
   id: string;
   name: string;
   description: string;
+  display_order: number;
   questions: Question[];
 }
 
 interface AssessmentEngineProps {
-  assessmentId?: string; // If provided, update this existing assessment instead of creating a new one
+  assessmentId?: string;
 }
+
+// --- GUIDANCE MODAL COMPONENT --- //
+
+function GuidanceModal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  content, 
+  riskLevel 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  title: string; 
+  content: string;
+  riskLevel: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
+      <div className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg p-8 animate-in zoom-in-95 duration-300">
+        <div className={cn(
+          "w-16 h-16 rounded-2xl flex items-center justify-center mb-6",
+          riskLevel === 'critical' ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"
+        )}>
+          <TriangleAlert className="w-8 h-8" />
+        </div>
+        
+        <h3 className="text-2xl font-bold text-slate-900 mb-4">{title}</h3>
+        <div className="text-slate-600 text-sm mb-8 leading-relaxed space-y-4">
+          {content.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}
+        </div>
+
+        <button 
+          onClick={onClose}
+          className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:scale-[1.02] transition-all active:scale-95 shadow-xl shadow-slate-900/20"
+        >
+          I have read and understand this guidance
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- MAIN ENGINE --- //
 
 export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngineProps = {}) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState(-1);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [textDetails, setTextDetails] = useState<Record<string, string>>({});
+  const [viewState, setViewState] = useState<'intro' | 'guided' | 'review' | 'completed'>('intro');
+  const [currentCatIndex, setCurrentCatIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [textResponses, setTextResponses] = useState<Record<string, string>>({});
+  const [acknowledgements, setAcknowledgements] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [guidanceModal, setGuidanceModal] = useState<{ isOpen: boolean; title: string; content: string; riskLevel: string } | null>(null);
+  
   const profile = useProfile();
   const organizationId = profile.organizationId;
   const userId = profile.id;
   const router = useRouter();
 
+  // Load Data
   useEffect(() => {
     async function loadAssessment() {
       try {
-        // Fetch Template (assuming we just use the first active one for now)
+        setLoading(true);
+        // Fetch the "Hybrid DSE Assessment" Template
         const { data: template, error: tErr } = await supabase
           .from('assessment_templates')
-          .select('id')
+          .select('*')
+          .eq('name', 'Hybrid DSE Assessment')
           .eq('is_active', true)
-          .limit(1)
           .single();
 
-        if (tErr || !template) throw new Error('No active template found');
+        if (tErr || !template) throw new Error('Hybrid DSE Assessment template not found');
 
         // Fetch Categories
         const { data: cats, error: cErr } = await supabase
@@ -88,18 +156,36 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
         if (qErr) throw qErr;
 
-        // Sort options
-        qs.forEach(q => {
-          q.options = q.assessment_options.sort((a: any, b: any) => a.display_order - b.display_order);
-        });
-
         // Map questions to categories
         const structuredCats = cats.map(c => ({
           ...c,
-          questions: qs.filter(q => q.category_id === c.id)
+          questions: qs.filter(q => q.category_id === c.id).map(q => ({
+            ...q,
+            options: q.assessment_options.sort((a: any, b: any) => a.display_order - b.display_order)
+          }))
         }));
 
         setCategories(structuredCats);
+
+        // If preAssignedId, load existing answers
+        if (preAssignedId) {
+          const { data: resp, error: rErr } = await supabase
+            .from('assessment_responses')
+            .select('*')
+            .eq('assessment_id', preAssignedId);
+          
+          if (!rErr && resp) {
+            const ansMap: Record<string, string> = {};
+            const textMap: Record<string, string> = {};
+            resp.forEach(r => {
+              if (r.option_id) ansMap[r.question_id] = r.option_id;
+              if (r.text_response) textMap[r.question_id] = r.text_response;
+            });
+            setAnswers(ansMap);
+            setTextResponses(textMap);
+            setViewState('guided'); // Jump to assessment if resuming
+          }
+        }
       } catch (err) {
         console.error('Error loading assessment:', err);
       } finally {
@@ -108,434 +194,407 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
     }
 
     loadAssessment();
-  }, []);
+  }, [preAssignedId]);
+
+  // --- LOGIC --- //
+
+  const getVisibleCategories = useCallback(() => {
+    return categories.filter(cat => {
+      // Conditional Logic: Driving Sections (17-20)
+      if (cat.display_order >= 17 && cat.display_order <= 20) {
+        // Question 6: "Do you use a car, van, or any other vehicle..."
+        const q6 = categories[0]?.questions.find(q => q.text.includes('use a car, van, or any other vehicle'));
+        if (q6) {
+          const selectedOptId = answers[q6.id];
+          const selectedOpt = q6.options.find(o => o.id === selectedOptId);
+          return selectedOpt?.text === 'Yes';
+        }
+      }
+      return true;
+    });
+  }, [categories, answers]);
+
+  const visibleCategories = getVisibleCategories();
+  const currentCategory = visibleCategories[currentCatIndex];
+
+  const handleAnswer = (questionId: string, optionId: string) => {
+    const question = categories.flatMap(c => c.questions).find(q => q.id === questionId);
+    const option = question?.options.find(o => o.id === optionId);
+    
+    setAnswers(prev => ({ ...prev, [questionId]: optionId }));
+
+    // Trigger Guidance Modal for High/Critical Risk
+    if (option?.risk_level === 'high' || option?.risk_level === 'critical') {
+      setGuidanceModal({
+        isOpen: true,
+        title: 'Important Guidance',
+        content: `You have indicated a potential risk regarding: "${question?.text}".\n\nIt is important to follow health and safety best practices to prevent long-term health issues. Please ensure you adjust your setup as soon as possible and consult your manager if the issue persists.`,
+        riskLevel: option.risk_level
+      });
+      setAcknowledgements(prev => ({ ...prev, [questionId]: new Date().toISOString() }));
+    }
+
+    // Autosave
+    saveProgress(questionId, optionId, textResponses[questionId]);
+  };
+
+  const handleTextResponse = (questionId: string, text: string) => {
+    setTextResponses(prev => ({ ...prev, [questionId]: text }));
+    saveProgress(questionId, answers[questionId], text);
+  };
+
+  const saveProgress = async (qId: string, optId?: string, text?: string) => {
+    if (!preAssignedId || !organizationId) return;
+    
+    await supabase.from('assessment_responses').upsert({
+      assessment_id: preAssignedId,
+      organization_id: organizationId,
+      question_id: qId,
+      option_id: optId,
+      text_response: text,
+      acknowledgement_at: acknowledgements[qId],
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'assessment_id,question_id' });
+  };
 
   const handleNext = () => {
-    setCurrentStep(prev => prev + 1);
-    window.scrollTo(0, 0);
+    if (currentCatIndex < visibleCategories.length - 1) {
+      setCurrentCatIndex(prev => prev + 1);
+      window.scrollTo(0, 0);
+    } else {
+      setViewState('review');
+      window.scrollTo(0, 0);
+    }
   };
 
   const handleBack = () => {
-    setCurrentStep(prev => prev - 1);
-    window.scrollTo(0, 0);
-  };
-
-  const handleAnswer = (questionId: string, value: any) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
-  };
-
-  const handleTextDetail = (questionId: string, value: string) => {
-    setTextDetails(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
-  };
-
-  const isStepComplete = () => {
-    if (currentStep < 0 || currentStep >= categories.length) return true;
-    const cat = categories[currentStep];
-    
-    // Check conditional visibility for category
-    if ((cat as any).metadata?.condition) {
-      const cond = (cat as any).metadata.condition;
-      // We would need a more complex lookup to find the question ID by text in a real app,
-      // but for simplicity, let's assume if it's conditional and we didn't answer the dependency, we skip it.
-      // Actually, if a category is skipped, it's complete.
-      // We need to implement proper conditional logic here later.
+    if (currentCatIndex > 0) {
+      setCurrentCatIndex(prev => prev - 1);
+      window.scrollTo(0, 0);
+    } else {
+      setViewState('intro');
+      window.scrollTo(0, 0);
     }
+  };
 
-    return cat.questions.every(q => {
+  const isCategoryComplete = () => {
+    if (!currentCategory) return false;
+    return currentCategory.questions.every(q => {
       if (!q.is_mandatory) return true;
-      const answer = answers[q.id];
-      if (q.type === 'single_choice' || q.type === 'boolean') {
-        return answer !== undefined;
-      }
-      return true; // add other type checks
+      return !!answers[q.id];
     });
   };
 
-  const submitAssessment = async () => {
-    if (!organizationId || !userId) return;
-    try {
-      setSubmitting(true);
-      
-      // Calculate scores
-      let totalScore = 0;
-      let maxRisk = 'low';
-      const riskOrder = { 'low': 1, 'medium': 2, 'high': 3, 'critical': 4 };
+  const calculateResults = () => {
+    let totalScore = 0;
+    let maxPossibleScore = 0;
+    const categoryResults: any[] = [];
+    let overallRisk = 'low';
 
-      const responsesToInsert: any[] = [];
-      const reportCategories: any[] = [];
-      const strengths: string[] = [];
-      const improvements: string[] = [];
-      const recommendations: any[] = [];
+    visibleCategories.forEach(cat => {
+      let catScore = 0;
+      let catMax = 0;
+      let catRisk = 'low';
 
-      categories.forEach(cat => {
-        let catScore = 0;
-        let catMaxScore = 0;
-        let catMaxRisk = 'low';
+      cat.questions.forEach(q => {
+        const qMax = Math.max(...q.options.map(o => o.score));
+        catMax += qMax;
 
-        cat.questions.forEach(q => {
-          // Calculate max possible score for the question
-          const maxQScore = Math.max(...q.options.map(o => o.score || 0));
-          catMaxScore += maxQScore;
-
-          const ans = answers[q.id];
-          if (ans) {
-            const selectedOpt = q.options.find(o => o.id === ans);
-            if (selectedOpt) {
-              const score = selectedOpt.score || 0;
-              catScore += score;
-              totalScore += score;
-              
-              const risk = selectedOpt.risk_level || 'low';
-              if ((riskOrder as any)[risk] > (riskOrder as any)[maxRisk]) maxRisk = risk;
-              if ((riskOrder as any)[risk] > (riskOrder as any)[catMaxRisk]) catMaxRisk = risk;
-              
-              if (risk === 'low') {
-                if (q.type === 'boolean' && selectedOpt.text === 'Yes') {
-                  strengths.push(q.text);
-                }
-              } else {
-                improvements.push(`${q.text} (Risk: ${risk})`);
-              }
-
-              if (selectedOpt.guidance_resource_url || selectedOpt.hr_flag) {
-                recommendations.push({
-                  title: `Action needed for: ${q.text}`,
-                  description: selectedOpt.hr_flag 
-                    ? 'Flagged for HR review. A compliance officer will reach out.' 
-                    : `Please review training resource: ${selectedOpt.guidance_resource_url}`
-                });
-              }
-
-              responsesToInsert.push({
-                question_id: q.id,
-                option_id: selectedOpt.id,
-              });
-            }
-          }
-        });
-
-        reportCategories.push({
-          name: cat.name,
-          score: catScore,
-          maxScore: catMaxScore,
-          riskLevel: catMaxRisk
-        });
+        const ansId = answers[q.id];
+        const opt = q.options.find(o => o.id === ansId);
+        if (opt) {
+          catScore += opt.score;
+          if (opt.risk_level === 'critical') catRisk = 'critical';
+          else if (opt.risk_level === 'high' && catRisk !== 'critical') catRisk = 'high';
+          else if (opt.risk_level === 'medium' && catRisk === 'low') catRisk = 'medium';
+        }
       });
 
-      // Insert Assessment Record
-      // Insert or Update Assessment Record
-      let assessmentRecordId: string;
+      totalScore += catScore;
+      maxPossibleScore += catMax;
+      categoryResults.push({ name: cat.name, score: catScore, riskLevel: catRisk });
+    });
 
-      if (preAssignedId) {
-        // Update the pre-assigned assessment
-        const { error: uErr } = await supabase
-          .from('assessments')
-          .update({
-            status: 'completed',
-            score: totalScore,
-            risk_level: maxRisk,
-            completed_at: new Date().toISOString(),
-            results_summary: JSON.stringify({ categories: reportCategories, strengths, improvements, recommendations }),
+    // Score Normalize to 100
+    const normalizedScore = maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
+    
+    if (normalizedScore > 70) overallRisk = 'critical';
+    else if (normalizedScore > 40) overallRisk = 'high';
+    else if (normalizedScore > 20) overallRisk = 'medium';
+    else overallRisk = 'low';
+
+    return { normalizedScore, overallRisk, categoryResults };
+  };
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    const { normalizedScore, overallRisk, categoryResults } = calculateResults();
+
+    try {
+      const { error: updateErr } = await supabase
+        .from('assessments')
+        .update({
+          status: 'completed',
+          score: normalizedScore,
+          risk_level: overallRisk,
+          completed_at: new Date().toISOString(),
+          results_summary: JSON.stringify({ 
+            categories: categoryResults,
+            total_questions: categories.reduce((acc, c) => acc + c.questions.length, 0),
+            answered_questions: Object.keys(answers).length
           })
-          .eq('id', preAssignedId);
+        })
+        .eq('id', preAssignedId);
 
-        if (uErr) throw uErr;
-        assessmentRecordId = preAssignedId;
-      } else {
-        // Create a brand new assessment (self-service mode)
-        const { data: assessment, error: aErr } = await supabase
-          .from('assessments')
-          .insert({
-            organization_id: organizationId,
-            user_id: userId,
-            type: 'dse_workstation',
-            status: 'completed',
-            score: totalScore,
-            risk_level: maxRisk,
-            template_id: (categories[0] as any)?.template_id,
-            completed_at: new Date().toISOString(),
-            results_summary: JSON.stringify({ categories: reportCategories, strengths, improvements, recommendations }),
-          })
-          .select()
-          .single();
+      if (updateErr) throw updateErr;
 
-        if (aErr) throw aErr;
-        assessmentRecordId = assessment.id;
-      }
+      // Call PDF Generation API
+      await fetch('/api/generate-assessment-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assessmentId: preAssignedId,
+          organizationId,
+          userId,
+          employeeName: profile.fullName,
+          employeeEmail: profile.email,
+          companyName: profile.organizationName,
+          assessmentDate: new Date().toLocaleDateString('en-GB'),
+          overallScore: normalizedScore,
+          overallRiskLevel: overallRisk,
+          categories: categoryResults
+        })
+      });
 
-      // Insert Responses
-      const mappedResponses = responsesToInsert.map(r => ({
-        ...r,
-        assessment_id: assessmentRecordId,
-        organization_id: organizationId
-      }));
-
-      const { error: rErr } = await supabase
-        .from('assessment_responses')
-        .insert(mappedResponses);
-
-      if (rErr) throw rErr;
-
-      // Generate PDF Report via API
-      try {
-        const pdfResponse = await fetch('/api/generate-assessment-report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            assessmentId: assessmentRecordId,
-            organizationId,
-            userId,
-            employeeName: profile.fullName || 'Employee',
-            employeeEmail: profile.email || '',
-            companyName: profile.organizationName || 'Your Organisation',
-            assessmentDate: new Date().toLocaleDateString(),
-            overallScore: totalScore,
-            overallRiskLevel: maxRisk,
-            categories: reportCategories,
-            strengths: strengths.slice(0, 5), // Keep top 5 to fit PDF
-            improvements: improvements.slice(0, 5),
-            recommendations: recommendations.slice(0, 5)
-          })
-        });
-        
-        if (!pdfResponse.ok) {
-          console.error('Failed to generate PDF', await pdfResponse.text());
-        }
-      } catch (pdfErr) {
-        console.error('Error calling PDF API:', pdfErr);
-      }
-
-      router.push('/employee/wellness?tab=assessments&success=true');
+      setViewState('completed');
     } catch (err) {
       console.error('Error submitting assessment:', err);
+    } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium animate-pulse">Initializing Assessment Engine...</p>
-      </div>
-    );
-  }
+  // --- VIEWS --- //
 
-  // Calculate visible categories based on conditional logic
-  const visibleCategories = categories.filter(cat => {
-    // If it has a metadata condition
-    if (cat.name === 'Driving Risk Assessment') {
-      // Find the 'Do you use a vehicle for work?' question
-      let vehicleQId = '';
-      let vehicleYesOptId = '';
-      
-      categories.forEach(c => {
-        c.questions.forEach(q => {
-          if (q.text === 'Do you use a vehicle for work?') {
-            vehicleQId = q.id;
-            const yesOpt = q.options.find(o => o.text === 'Yes');
-            if (yesOpt) vehicleYesOptId = yesOpt.id;
-          }
-        });
-      });
-      
-      return answers[vehicleQId] === vehicleYesOptId;
-    }
-    return true;
-  });
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+      <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+      <p className="text-slate-500 font-medium animate-pulse">Building Assessment Experience...</p>
+    </div>
+  );
 
-  // Calculate actual step limits based on visible categories
-  const isLastCategory = currentStep === categories.length - 1; // Simplification, need to account for hidden ones
-  // Better approach: map currentStep index to visibleCategories index
-  // For now, let's keep it simple and skip steps if they aren't in visibleCategories
-  const handleNextSmart = () => {
-    let next = currentStep + 1;
-    while (next < categories.length && !visibleCategories.find(c => c.id === categories[next].id)) {
-      next++;
-    }
-    setCurrentStep(next);
-    window.scrollTo(0, 0);
-  };
-
-  const handleBackSmart = () => {
-    let prev = currentStep - 1;
-    while (prev >= 0 && !visibleCategories.find(c => c.id === categories[prev].id)) {
-      prev--;
-    }
-    setCurrentStep(prev);
-    window.scrollTo(0, 0);
-  };
-
-  // --- RENDERING VIEWS --- //
-
-  if (currentStep === -1) {
-    return (
-      <div className="max-w-3xl mx-auto py-12 animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-white rounded-[2.5rem] border border-slate-200 p-12 shadow-sm text-center">
-          <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-sm">
-            <CheckCircle2 className="w-10 h-10" />
+  if (viewState === 'intro') return (
+    <div className="max-w-4xl mx-auto py-8 px-4 animate-in fade-in zoom-in-95 duration-500">
+      <div className="bg-white rounded-[3rem] border border-slate-200 p-12 shadow-sm">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 bg-blue-600 text-white rounded-3xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <Shield className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Workstation Assessment</h1>
-          <p className="text-slate-500 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
-            This assessment helps ensure your workstation setup supports your wellbeing, comfort, and safe working practices.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
-              <Clock className="w-6 h-6 text-slate-400 mb-3 mx-auto" />
-              <h3 className="font-bold text-slate-900 text-[13px]">10-15 Minutes</h3>
-              <p className="text-[11px] text-slate-500 mt-1">Estimated duration</p>
-            </div>
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
-              <AlertCircle className="w-6 h-6 text-slate-400 mb-3 mx-auto" />
-              <h3 className="font-bold text-slate-900 text-[13px]">Identify Risks</h3>
-              <p className="text-[11px] text-slate-500 mt-1">Get immediate guidance</p>
-            </div>
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
-              <CheckCircle2 className="w-6 h-6 text-slate-400 mb-3 mx-auto" />
-              <h3 className="font-bold text-slate-900 text-[13px]">Stay Compliant</h3>
-              <p className="text-[11px] text-slate-500 mt-1">Meet HR requirements</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Hybrid DSE Assessment</h1>
+            <p className="text-blue-600 font-bold text-sm mt-1 uppercase tracking-wider">Health, Safety & Wellbeing Workflow</p>
           </div>
+        </div>
 
+        <div className="prose prose-slate max-w-none mb-12">
+          <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 text-slate-600 leading-relaxed text-sm space-y-4">
+            <p className="font-bold text-slate-900 text-lg">Introduction</p>
+            <p>The law requires your employer to protect your health, safety, and wellbeing while you are at work. This responsibility includes employees who work at locations other than the main business address.</p>
+            <p>While there are no specific rules only for remote work, general health and safety laws still apply when you work away from the office.</p>
+            <p>This risk assessment is a formal part of the office and remote working policy. You must review it regularly to stay compliant. You should also complete a new assessment if your work routine changes significantly.</p>
+            <p className="font-medium text-slate-900">To begin, we need to gather some details about your current working environment.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {[
+            { icon: Clock, title: '15-20 Mins', desc: 'Step-by-step guidance' },
+            { icon: Heart, title: 'Wellbeing First', desc: 'Ergonomic best practices' },
+            { icon: CheckCircle2, title: 'Compliant', desc: 'UK Health & Safety standards' }
+          ].map((item, i) => (
+            <div key={i} className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-blue-200 transition-all group">
+              <item.icon className="w-6 h-6 text-slate-400 mb-3 group-hover:text-blue-600 transition-colors" />
+              <h3 className="font-bold text-slate-900 text-[14px]">{item.title}</h3>
+              <p className="text-[11px] text-slate-500 mt-1">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-slate-100">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Info className="w-4 h-4" />
+            <span className="text-[11px] font-medium uppercase tracking-wider">British English standards applied</span>
+          </div>
           <button 
-            onClick={handleNextSmart}
-            className="inline-flex items-center gap-2 px-10 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95"
+            onClick={() => setViewState('guided')}
+            className="w-full sm:w-auto inline-flex items-center gap-2 px-12 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95"
           >
-            Start Assessment <ChevronRight className="w-4 h-4" />
+            Enter Guided Workflow <ChevronRight className="w-4 h-4" />
           </button>
-          
-          <p className="text-[11px] text-slate-400 font-medium mt-6">
-            Your responses are confidential and will be securely reviewed by the HR & Compliance team.
+        </div>
+      </div>
+    </div>
+  );
+
+  if (viewState === 'completed') return (
+    <div className="max-w-3xl mx-auto py-12 px-4 animate-in fade-in zoom-in-95 duration-500">
+      <div className="bg-white rounded-[3rem] border border-slate-200 p-12 shadow-sm text-center">
+        <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-sm">
+          <CheckCircle2 className="w-12 h-12" />
+        </div>
+        <h1 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Assessment Submitted</h1>
+        <p className="text-slate-500 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
+          Your assessment is complete. Click &apos;Finish&apos; to submit your assessment and return to the dashboard.
+        </p>
+
+        <div className="bg-slate-50 rounded-[2rem] border border-slate-100 p-8 text-left mb-12">
+          <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <Info className="w-5 h-5 text-blue-600" />
+            What happens next?
+          </h3>
+          <ul className="space-y-4">
+            {[
+              'A professional PDF report has been generated and emailed to you.',
+              'Your HR team will review your responses and risk score.',
+              'Any "High" or "Critical" flags will trigger a follow-up action from a compliance officer.',
+              'You can download your report anytime from your dashboard.'
+            ].map((text, i) => (
+              <li key={i} className="flex gap-3 text-sm text-slate-600 leading-relaxed">
+                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">
+                  {i + 1}
+                </div>
+                {text}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button 
+            onClick={() => router.push('/employee')}
+            className="w-full sm:w-auto px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:scale-[1.02] transition-all active:scale-95"
+          >
+            Return to Dashboard
+          </button>
+          <button 
+            onClick={() => router.push('/employee/wellness?tab=assessments')}
+            className="w-full sm:w-auto px-10 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all"
+          >
+            View History
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (viewState === 'review') return (
+    <div className="max-w-4xl mx-auto py-12 px-4 animate-in fade-in zoom-in-95 duration-500">
+      <div className="bg-white rounded-[3rem] border border-slate-200 p-12 shadow-sm">
+        <div className="text-center mb-12">
+          <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-sm">
+            <FileText className="w-10 h-10" />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Submission Review</h1>
+          <p className="text-slate-500 text-lg max-w-xl mx-auto leading-relaxed">
+            Please check your sections before final submission. Once submitted, your risk profile will be generated.
           </p>
         </div>
-      </div>
-    );
-  }
 
-  if (currentStep >= categories.length) {
-    const answeredCount = Object.keys(answers).length;
-    const totalQuestions = visibleCategories.reduce((acc, cat) => acc + cat.questions.length, 0);
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+          {visibleCategories.map((cat, idx) => {
+            const catAnswered = cat.questions.filter(q => answers[q.id]).length;
+            const isComplete = catAnswered === cat.questions.length;
+            return (
+              <div key={cat.id} className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <div>
+                  <h4 className="text-[13px] font-bold text-slate-900">Section {idx + 1}: {cat.name}</h4>
+                  <p className="text-[11px] text-slate-400 font-medium mt-1">{catAnswered} of {cat.questions.length} answered</p>
+                </div>
+                {isComplete ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <AlertCircle className="w-5 h-5 text-amber-500" />}
+              </div>
+            );
+          })}
+        </div>
 
-    return (
-      <div className="max-w-4xl mx-auto py-12 animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-white rounded-[2.5rem] border border-slate-200 p-12 shadow-sm">
-          <div className="text-center mb-12">
-            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-sm">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Assessment Review</h1>
-            <p className="text-slate-500 text-lg max-w-xl mx-auto leading-relaxed">
-              Please review your responses before final submission. Your assessment will be securely processed by the HR & Compliance team.
-            </p>
-          </div>
-
-          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 mb-12">
-            <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200">
-              <h3 className="font-bold text-slate-900">Completion Summary</h3>
-              <span className="text-[12px] font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
-                {answeredCount} / {totalQuestions} Answered
-              </span>
-            </div>
-            <div className="space-y-3">
-              {visibleCategories.map((cat, idx) => {
-                const catAnswered = cat.questions.filter(q => answers[q.id]).length;
-                const isComplete = catAnswered === cat.questions.length;
-                return (
-                  <div key={cat.id} className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-slate-600">Section {idx + 1}: {cat.name}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-bold text-slate-400">{catAnswered}/{cat.questions.length}</span>
-                      {isComplete ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-amber-500" />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button 
-              onClick={handleBackSmart}
-              className="w-full sm:w-auto px-8 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all"
-            >
-              Review Answers
-            </button>
-            <button 
-              onClick={submitAssessment}
-              disabled={submitting || answeredCount < totalQuestions}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/20 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              {submitting ? 'Submitting...' : 'Submit Assessment'}
-            </button>
-          </div>
-          
-          {answeredCount < totalQuestions && (
-            <p className="text-center text-rose-500 text-[12px] font-bold mt-4">
-              Please complete all mandatory questions before submitting.
-            </p>
-          )}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-slate-100">
+          <button 
+            onClick={() => setViewState('guided')}
+            className="text-[13px] font-bold text-slate-500 hover:text-slate-900 transition-all flex items-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" /> Go Back to Questions
+          </button>
+          <button 
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full sm:w-auto inline-flex items-center gap-2 px-12 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
+          >
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            {submitting ? 'Processing Submission...' : 'Confirm and Submit Assessment'}
+          </button>
         </div>
       </div>
-    );
-  }
-
-  const currentCategory = categories[currentStep];
+    </div>
+  );
 
   return (
-    <div className="max-w-3xl mx-auto py-8 relative">
-      {/* Progress */}
-      <div className="sticky top-[72px] z-30 bg-[#F8FAFC]/90 backdrop-blur-md pb-6 pt-4 mb-6 border-b border-slate-200/50">
+    <div className="max-w-4xl mx-auto py-8 px-4 relative">
+      {/* Progress Bar Sticky */}
+      <div className="sticky top-[72px] z-[40] bg-[#F8FAFC]/90 backdrop-blur-md pb-6 pt-4 mb-8 border-b border-slate-200/50">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-            Section {currentStep + 1} of {categories.length}
-          </span>
-          <span className="text-[11px] font-bold text-blue-600">
-            {Math.round(((currentStep) / categories.length) * 100)}% Complete
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest">
+              Section {currentCatIndex + 1}
+            </div>
+            <h2 className="text-[14px] font-bold text-slate-900">{currentCategory?.name}</h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-[11px] font-bold text-slate-400">
+              {Math.round(((currentCatIndex) / visibleCategories.length) * 100)}% Complete
+            </span>
+          </div>
         </div>
-        <div className="w-full h-2 bg-slate-200/50 rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${((currentStep) / categories.length) * 100}%` }}
+            className="h-full bg-blue-600 rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(37,99,235,0.4)]"
+            style={{ width: `${((currentCatIndex) / visibleCategories.length) * 100}%` }}
           />
         </div>
       </div>
 
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{currentCategory.name}</h2>
-        {currentCategory.description && (
-          <p className="text-sm text-slate-500 mt-2">{currentCategory.description}</p>
+      {/* Section Header & Guidance */}
+      <div className="mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-4">{currentCategory?.name}</h1>
+        {currentCategory?.description && (
+          <div className="p-8 bg-blue-50/50 border border-blue-100 rounded-[2.5rem] relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 text-blue-600/10 group-hover:text-blue-600/20 transition-all">
+              <Info className="w-16 h-16 rotate-12" />
+            </div>
+            <div className="relative z-10">
+              <h4 className="text-[13px] font-bold text-blue-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <Info className="w-4 h-4" /> Guidance & Instructions
+              </h4>
+              <div className="text-[14px] text-blue-800/80 leading-relaxed space-y-3 font-medium">
+                {currentCategory.description.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {currentCategory.questions.map((q, idx) => (
-          <div key={q.id} className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 text-[12px] font-bold text-slate-400">
-                {idx + 1}
+      {/* Questions */}
+      <div className="space-y-10 mb-16">
+        {currentCategory?.questions.map((q, qIdx) => (
+          <div key={q.id} className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm transition-all hover:shadow-md group">
+            <div className="flex items-start gap-6 mb-8">
+              <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 text-[14px] font-bold text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all duration-300">
+                {q.metadata?.question_number || (currentCatIndex * 10 + qIdx + 1)}
               </div>
-              <div className="pt-1.5">
-                <h3 className="text-[15px] font-bold text-slate-900 leading-snug">{q.text}</h3>
-                {q.metadata?.description && (
-                  <p className="text-[13px] text-slate-500 mt-1">{q.metadata.description}</p>
-                )}
+              <div className="pt-2">
+                <h3 className="text-[17px] font-bold text-slate-900 leading-snug tracking-tight">{q.text}</h3>
               </div>
             </div>
 
-            <div className="pl-12 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="pl-16 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {q.options.map(opt => {
                 const isSelected = answers[q.id] === opt.id;
                 return (
@@ -543,74 +602,84 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
                     key={opt.id}
                     onClick={() => handleAnswer(q.id, opt.id)}
                     className={cn(
-                      "flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left",
+                      "flex items-center justify-between p-5 rounded-2xl border-2 transition-all text-left",
                       isSelected 
-                        ? "border-blue-600 bg-blue-50/50 shadow-sm" 
-                        : "border-slate-100 hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-blue-600 bg-blue-50/50 shadow-[0_8px_30px_rgb(37,99,235,0.1)]" 
+                        : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
                     )}
                   >
                     <span className={cn(
-                      "text-[14px] font-semibold",
-                      isSelected ? "text-blue-900" : "text-slate-700"
+                      "text-[15px] font-bold",
+                      isSelected ? "text-blue-900" : "text-slate-600"
                     )}>
                       {opt.text}
                     </span>
                     <div className={cn(
-                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
                       isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
                     )}>
-                      {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                      {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white shadow-sm" />}
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {/* Conditional Textarea */}
-            {q.metadata?.requires_details_if && answers[q.id] && q.options.find(o => o.id === answers[q.id])?.text === q.metadata.requires_details_if && (
-              <div className="ml-12 mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                <label className="block text-[12px] font-bold text-slate-700 mb-2">Please provide further details</label>
+            {/* Text Response Area */}
+            {q.type === 'text_response' && (
+              <div className="pl-16 mt-6">
                 <textarea
-                  value={textDetails[q.id] || ''}
-                  onChange={(e) => handleTextDetail(q.id, e.target.value)}
-                  className="w-full h-24 p-4 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-500 transition-all resize-none"
-                  placeholder="Enter details here..."
+                  value={textResponses[q.id] || ''}
+                  onChange={(e) => handleTextResponse(q.id, e.target.value)}
+                  placeholder="Type your response here..."
+                  className="w-full h-32 p-5 bg-slate-50 border border-slate-100 rounded-2xl text-[14px] text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-500 transition-all resize-none font-medium"
                 />
-              </div>
-            )}
-            
-            {/* Contextual Warning if needed (Mock logic based on answer) */}
-            {answers[q.id] && q.options.find(o => o.id === answers[q.id])?.hr_flag && (
-              <div className="ml-12 mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-[13px] font-bold text-amber-900">Flagged for Review</p>
-                  <p className="text-[12px] text-amber-700 mt-0.5">This response will be reviewed by your HR team to provide additional support.</p>
-                </div>
               </div>
             )}
           </div>
         ))}
       </div>
 
-      <div className="mt-10 flex items-center justify-between pt-6 border-t border-slate-200">
+      {/* Sticky Bottom Navigation */}
+      <div className="sticky bottom-8 z-50 flex items-center justify-between p-6 bg-slate-900/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/10 mx-auto max-w-2xl">
         <button 
-          onClick={handleBackSmart}
-          className="px-6 py-3 text-[13px] font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"
+          onClick={handleBack}
+          className="flex items-center gap-2 px-6 py-3 text-[13px] font-bold text-slate-400 hover:text-white transition-all"
         >
-          Previous Section
+          <ChevronLeft className="w-4 h-4" /> Previous Section
         </button>
+        
+        <div className="hidden sm:flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Progress Saved</span>
+        </div>
+
         <button 
-          onClick={handleNextSmart}
-          disabled={!isStepComplete()}
-          className="inline-flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-[13px] shadow-xl shadow-slate-900/10 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+          onClick={handleNext}
+          disabled={!isCategoryComplete()}
+          className={cn(
+            "inline-flex items-center gap-2 px-10 py-3 rounded-xl font-bold text-[13px] transition-all active:scale-95",
+            isCategoryComplete() 
+              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 hover:scale-[1.02]" 
+              : "bg-slate-800 text-slate-500 cursor-not-allowed"
+          )}
         >
-          Continue <ChevronRight className="w-4 h-4" />
+          {currentCatIndex === visibleCategories.length - 1 ? 'Review & Submit' : 'Continue Workflow'}
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Modal Overlay */}
+      {guidanceModal && (
+        <GuidanceModal 
+          isOpen={guidanceModal.isOpen}
+          onClose={() => setGuidanceModal(null)}
+          title={guidanceModal.title}
+          content={guidanceModal.content}
+          riskLevel={guidanceModal.riskLevel}
+        />
+      )}
     </div>
   );
 }
 
-// Temporary icon imports
-import { Clock } from 'lucide-react';

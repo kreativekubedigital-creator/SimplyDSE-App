@@ -100,7 +100,9 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">Create Assessment</h2>
-              <p className="text-[11px] text-slate-400 font-medium">Step {step} of 3</p>
+              <p className="text-[11px] text-slate-400 font-medium">
+                {step <= 3 ? `Step ${step} of 3` : 'Task Complete'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">

@@ -60,18 +60,23 @@ export async function addEmployee(data: EmployeeData) {
     if (authError) throw authError;
     const userId = authData.user.id;
 
-    // 2. Update Profile with enterprise details
+    // 2. Create or Update Profile with enterprise details
+    const employeeRole = (data.role || 'employee').toLowerCase().trim();
+    const finalRole = employeeRole === 'super_admin' ? 'employee' : employeeRole;
+
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .update({
+      .upsert({
+        id: userId,
+        email: data.email,
         full_name: `${data.firstName} ${data.lastName}`.trim(),
-        role: data.role || 'employee',
+        role: finalRole,
         organization_id: organizationId,
         designation: data.jobTitle,
         department: data.department,
-        status: 'active'
-      })
-      .eq('id', userId);
+        status: 'active',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
 
     if (profileError) throw profileError;
 

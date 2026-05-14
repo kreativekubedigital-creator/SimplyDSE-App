@@ -97,18 +97,20 @@ export async function middleware(req: NextRequest) {
 
       // If authenticated user goes to /login, redirect them to appropriate dashboard
       if (path === '/login') {
-        // Fetch their role to decide where to send them
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
 
+        const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
+
         if (profile?.role === 'super_admin') {
           return NextResponse.redirect(new URL('/admin', req.url));
-        } else if (profile?.role === 'organization_admin' || profile?.role === 'org_admin') {
+        } else if (profile?.role && hrRoles.includes(profile.role)) {
           return NextResponse.redirect(new URL('/dashboard', req.url));
         } else {
+          // Default for 'employee', 'user', or missing profile (safe fallback)
           return NextResponse.redirect(new URL('/employee', req.url));
         }
       }
@@ -138,6 +140,12 @@ export async function middleware(req: NextRequest) {
         .select('role, organization_id, organizations!profiles_organization_id_fkey(subdomain)')
         .eq('id', user.id)
         .single();
+
+      // If no profile exists, this is a critical state for a logged-in user
+      if (!profile) {
+        console.error('Critical: Authenticated user has no profile record', user.id);
+        // Fallback to employee hub with minimal access
+      }
 
       const role = profile?.role || 'employee';
       // @ts-ignore
