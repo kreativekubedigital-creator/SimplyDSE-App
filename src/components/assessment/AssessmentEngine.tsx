@@ -114,6 +114,8 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   const [currentCatIndex, setCurrentCatIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [textResponses, setTextResponses] = useState<Record<string, string>>({});
+  const [conditionalDetails, setConditionalDetails] = useState<Record<string, string>>({});
+  const [isDetailSaved, setIsDetailSaved] = useState<Record<string, boolean>>({});
   const [acknowledgements, setAcknowledgements] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [guidanceModal, setGuidanceModal] = useState<{ isOpen: boolean; title: string; content: string; riskLevel: string } | null>(null);
@@ -177,12 +179,22 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
           if (!rErr && resp) {
             const ansMap: Record<string, string> = {};
             const textMap: Record<string, string> = {};
+            const condMap: Record<string, string> = {};
+            const savedMap: Record<string, boolean> = {};
+            
             resp.forEach(r => {
               if (r.option_id) ansMap[r.question_id] = r.option_id;
               if (r.text_response) textMap[r.question_id] = r.text_response;
+              if (r.conditional_detail) {
+                condMap[r.question_id] = r.conditional_detail;
+                savedMap[r.question_id] = true;
+              }
             });
+            
             setAnswers(ansMap);
             setTextResponses(textMap);
+            setConditionalDetails(condMap);
+            setIsDetailSaved(savedMap);
             setViewState('guided'); // Jump to assessment if resuming
           }
         }
@@ -223,6 +235,20 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
     
     setAnswers(prev => ({ ...prev, [questionId]: optionId }));
 
+    // If "No" is selected for a conditional question, clear details
+    if (option?.text.toLowerCase() === 'no') {
+      setConditionalDetails(prev => {
+        const next = { ...prev };
+        delete next[questionId];
+        return next;
+      });
+      setIsDetailSaved(prev => {
+        const next = { ...prev };
+        delete next[questionId];
+        return next;
+      });
+    }
+
     // Trigger Guidance Modal for High/Critical Risk
     if (option?.risk_level === 'high' || option?.risk_level === 'critical') {
       setGuidanceModal({
@@ -235,15 +261,27 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
     }
 
     // Autosave
-    saveProgress(questionId, optionId, textResponses[questionId]);
+    saveProgress(questionId, optionId, textResponses[questionId], conditionalDetails[questionId]);
+  };
+
+  const handleConditionalDetailChange = (questionId: string, text: string) => {
+    setConditionalDetails(prev => ({ ...prev, [questionId]: text }));
+    setIsDetailSaved(prev => ({ ...prev, [questionId]: false })); // Reset saved state when editing
+  };
+
+  const saveConditionalDetail = (questionId: string) => {
+    if (!conditionalDetails[questionId]?.trim()) return;
+    setIsDetailSaved(prev => ({ ...prev, [questionId]: true }));
+    saveProgress(questionId, answers[questionId], textResponses[questionId], conditionalDetails[questionId]);
   };
 
   const handleTextResponse = (questionId: string, text: string) => {
     setTextResponses(prev => ({ ...prev, [questionId]: text }));
-    saveProgress(questionId, answers[questionId], text);
+    // For text-only questions, we don't have an optionId, so we pass undefined
+    saveProgress(questionId, undefined, text);
   };
 
-  const saveProgress = async (qId: string, optId?: string, text?: string) => {
+  const saveProgress = async (qId: string, optId?: string, text?: string, detail?: string) => {
     if (!preAssignedId || !organizationId) return;
     
     await supabase.from('assessment_responses').upsert({
@@ -252,6 +290,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
       question_id: qId,
       option_id: optId,
       text_response: text,
+      conditional_detail: detail,
       acknowledgement_at: acknowledgements[qId],
       updated_at: new Date().toISOString()
     }, { onConflict: 'assessment_id,question_id' });
@@ -281,7 +320,23 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
     if (!currentCategory) return false;
     return currentCategory.questions.every(q => {
       if (!q.is_mandatory) return true;
-      return !!answers[q.id];
+      
+      // Basic Mandatory Check
+      const isTextOnly = q.type === 'text_response' || (q.options.length === 1 && q.options[0].text.toLowerCase().includes('text response'));
+      const hasAnswer = isTextOnly ? !!textResponses[q.id]?.trim() : !!answers[q.id];
+      
+      if (!hasAnswer) return false;
+
+      // Conditional Detail Check
+      const detailOption = q.options.find(o => o.text.toLowerCase().includes('provide details'));
+      const selectedOption = q.options.find(o => o.id === answers[q.id]);
+      
+      if (detailOption && selectedOption?.text.toLowerCase() === 'yes') {
+        const detail = conditionalDetails[q.id];
+        return !!detail?.trim() && isDetailSaved[q.id];
+      }
+
+      return true;
     });
   };
 
@@ -595,35 +650,94 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
             </div>
 
             <div className="md:pl-12 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {q.options.map(opt => {
-                const isSelected = answers[q.id] === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => handleAnswer(q.id, opt.id)}
-                    className={cn(
-                      "flex items-center justify-between p-3.5 px-5 rounded-xl border-2 transition-all text-left",
-                      isSelected 
-                        ? "border-blue-600 bg-blue-50/50 shadow-[0_4px_20px_rgb(37,99,235,0.08)]" 
-                        : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
-                    )}
-                  >
-                    <span className={cn(
-                      "text-[14px] font-bold",
-                      isSelected ? "text-blue-900" : "text-slate-600"
-                    )}>
-                      {opt.text}
-                    </span>
-                    <div className={cn(
-                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-                      isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
-                    )}>
-                      {isSelected && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
-                    </div>
-                  </button>
-                );
-              })}
+              {q.options
+                .filter(opt => !opt.text.toLowerCase().includes('provide details'))
+                .map(opt => {
+                  const isSelected = answers[q.id] === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => handleAnswer(q.id, opt.id)}
+                      className={cn(
+                        "flex items-center justify-between p-3.5 px-5 rounded-xl border-2 transition-all text-left",
+                        isSelected 
+                          ? "border-blue-600 bg-blue-50/50 shadow-[0_4px_20px_rgb(37,99,235,0.08)]" 
+                          : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
+                      )}
+                    >
+                      <span className={cn(
+                        "text-[14px] font-bold",
+                        isSelected ? "text-blue-900" : "text-slate-600"
+                      )}>
+                        {opt.text}
+                      </span>
+                      <div className={cn(
+                        "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                        isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
+                      )}>
+                        {isSelected && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
+                      </div>
+                    </button>
+                  );
+                })}
             </div>
+
+            {/* Conditional Detail View */}
+            {(() => {
+              const detailOption = q.options.find(o => o.text.toLowerCase().includes('provide details'));
+              const selectedOption = q.options.find(o => o.id === answers[q.id]);
+              const showDetail = detailOption && selectedOption?.text.toLowerCase() === 'yes';
+
+              if (!showDetail) return null;
+
+              return (
+                <div className="md:pl-12 mt-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-500" /> Please provide details
+                      </label>
+                      {isDetailSaved[q.id] && (
+                        <span className="text-[11px] font-bold text-emerald-500 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Details Saved
+                        </span>
+                      )}
+                    </div>
+                    
+                    <textarea
+                      value={conditionalDetails[q.id] || ''}
+                      onChange={(e) => handleConditionalDetailChange(q.id, e.target.value)}
+                      placeholder={q.metadata?.placeholder || "Tell us more about your requirements or setup..."}
+                      className={cn(
+                        "w-full h-24 p-4 bg-white border rounded-xl text-[14px] text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-600/5 transition-all resize-none font-medium",
+                        isDetailSaved[q.id] ? "border-emerald-100 bg-emerald-50/20" : "border-slate-200 focus:border-blue-500"
+                      )}
+                    />
+
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => saveConditionalDetail(q.id)}
+                        disabled={!conditionalDetails[q.id]?.trim()}
+                        className={cn(
+                          "flex items-center gap-2 px-5 py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-widest transition-all",
+                          isDetailSaved[q.id]
+                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                            : "bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95 disabled:opacity-50"
+                        )}
+                      >
+                        {isDetailSaved[q.id] ? (
+                          <>Update Details</>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" /> Save Details
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Text Response Area */}
             {q.type === 'text_response' && (
@@ -653,6 +767,14 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Progress Saved</span>
         </div>
+
+        {!isCategoryComplete() && (
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-full max-w-md px-4 py-2 bg-amber-50 border border-amber-100 rounded-lg shadow-lg animate-in slide-in-from-bottom-2 duration-300">
+            <p className="text-[11px] font-bold text-amber-700 text-center flex items-center justify-center gap-2">
+              <AlertCircle className="w-3.5 h-3.5" /> Please answer all required questions and save any requested details.
+            </p>
+          </div>
+        )}
 
         <button 
           onClick={handleNext}
