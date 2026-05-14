@@ -259,6 +259,9 @@ export default function OrganizationsPage() {
                   <td className="px-8 py-5 text-right">
                     <div className="relative inline-block">
                       <div className="flex items-center gap-1">
+                        <a href={`https://${org.slug}.simplydse.online/login`} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/5 rounded-lg transition-all" title="Enter Workspace">
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
                         <button onClick={() => setViewOrg(org)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="View">
                           <Eye className="w-4 h-4" />
                         </button>
@@ -331,11 +334,22 @@ export default function OrganizationsPage() {
                   <p className="text-sm font-bold text-slate-900">{viewOrg.admin_email}</p>
                 </div>
               )}
-              <div className="flex gap-3 pt-4">
-                <button onClick={() => { openEdit(viewOrg); setViewOrg(null); }} className="flex-1 py-3 bg-brand-primary text-white text-[12px] font-bold rounded-xl hover:scale-[1.02] transition-all">Edit Organisation</button>
-                <button onClick={() => { handleSuspendToggle(viewOrg); setViewOrg(null); }} className={cn("flex-1 py-3 text-[12px] font-bold rounded-xl border transition-all", viewOrg.status === 'active' ? "border-orange-200 text-orange-600 hover:bg-orange-50" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50")}>
-                  {viewOrg.status === 'active' ? 'Suspend' : 'Activate'}
-                </button>
+              <div className="space-y-3 pt-4">
+                <a
+                  href={`https://${viewOrg.slug}.simplydse.online/login`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white text-[12px] font-bold rounded-xl hover:scale-[1.02] transition-all active:scale-95 shadow-lg shadow-slate-900/10"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Manage Organisation
+                </a>
+                <div className="flex gap-3">
+                  <button onClick={() => { openEdit(viewOrg); setViewOrg(null); }} className="flex-1 py-3 bg-brand-primary text-white text-[12px] font-bold rounded-xl hover:scale-[1.02] transition-all">Edit Organisation</button>
+                  <button onClick={() => { handleSuspendToggle(viewOrg); setViewOrg(null); }} className={cn("flex-1 py-3 text-[12px] font-bold rounded-xl border transition-all", viewOrg.status === 'active' ? "border-orange-200 text-orange-600 hover:bg-orange-50" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50")}>
+                    {viewOrg.status === 'active' ? 'Suspend' : 'Activate'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
