@@ -76,18 +76,12 @@ export function HRDashboardSidebar() {
 
   return (
     <aside className="w-[260px] bg-[#0F172A] text-slate-300 h-screen flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
-      {/* Brand Section - More compact */}
+      {/* Brand Section - SimplyDSE Platform Logo */}
       <div className="p-5">
         <div className="flex items-center gap-2.5">
-          {organizationLogoUrl ? (
-            <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-white/5 border border-slate-800">
-              <img src={organizationLogoUrl} alt={orgName} className="w-full h-full object-contain p-1" />
-            </div>
-          ) : (
-            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
-              <ShieldCheck className="w-5.5 h-5.5" />
-            </div>
-          )}
+          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-white/5 border border-slate-800">
+            <img src="/simplydselogo.webp" alt="SimplyDSE" className="w-full h-full object-contain p-0.5" />
+          </div>
           <div>
             <h1 className="text-[14px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
             <p className="text-[10px] text-slate-200 font-medium mt-1">Workplace Compliance</p>
@@ -95,13 +89,19 @@ export function HRDashboardSidebar() {
         </div>
       </div>
 
-      {/* Organisation Selector - Condensed */}
+      {/* Organisation Selector - Shows org logo */}
       <div className="px-4 mb-4">
         <button className="w-full flex items-center justify-between p-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 rounded-lg transition-all group">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-md bg-slate-700 flex items-center justify-center text-slate-200 group-hover:text-white transition-colors">
-              <Building2 className="w-3.5 h-3.5" />
-            </div>
+            {organizationLogoUrl ? (
+              <div className="w-7 h-7 rounded-md bg-white flex items-center justify-center overflow-hidden border border-slate-600">
+                <img src={organizationLogoUrl} alt={orgName} className="w-full h-full object-contain p-0.5" />
+              </div>
+            ) : (
+              <div className="w-7 h-7 rounded-md bg-slate-700 flex items-center justify-center text-slate-200 group-hover:text-white transition-colors">
+                <Building2 className="w-3.5 h-3.5" />
+              </div>
+            )}
             <span className="text-[12px] font-semibold text-white group-hover:text-white transition-colors">{orgName}</span>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-200 group-hover:text-white transition-all" />
