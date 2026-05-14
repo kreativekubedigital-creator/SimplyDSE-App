@@ -95,7 +95,7 @@ function ComplianceContent() {
     return matchesSearch && matchesStatus && matchesDept;
   });
 
-  const departments = Array.from(new Set(data.assessments.map((a: any) => a.department))).filter(Boolean);
+  const departments = Array.from(new Set(data.assessments.map((a: any) => a.department))).filter(Boolean) as string[];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">

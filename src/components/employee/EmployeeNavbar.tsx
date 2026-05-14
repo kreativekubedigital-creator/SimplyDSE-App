@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bell, 
   HelpCircle, 
@@ -22,11 +22,11 @@ interface Notification {
 }
 
 export function EmployeeNavbar() {
-  const { fullName, initials, roleLabel, loading, organizationId, userId } = useProfile();
+  const { fullName, initials, roleLabel, loading, organizationId, id: userId } = useProfile();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
-  const notifRef = React.useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!userId || !organizationId) return;
