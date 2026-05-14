@@ -562,18 +562,18 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
       </div>
 
       {/* Section Header & Guidance */}
-      <div className="mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-4">{currentCategory?.name}</h1>
+      <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-4">{currentCategory?.name}</h1>
         {currentCategory?.description && (
-          <div className="p-8 bg-blue-50/50 border border-blue-100 rounded-[2.5rem] relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 text-blue-600/10 group-hover:text-blue-600/20 transition-all">
-              <Info className="w-16 h-16 rotate-12" />
+          <div className="p-6 bg-blue-50/50 border border-blue-100 rounded-3xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 text-blue-600/10 group-hover:text-blue-600/20 transition-all">
+              <Info className="w-12 h-12 rotate-12" />
             </div>
             <div className="relative z-10">
-              <h4 className="text-[13px] font-bold text-blue-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-                <Info className="w-4 h-4" /> Guidance & Instructions
+              <h4 className="text-[12px] font-bold text-blue-900 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <Info className="w-3.5 h-3.5" /> Guidance & Instructions
               </h4>
-              <div className="text-[14px] text-blue-800/80 leading-relaxed space-y-3 font-medium">
+              <div className="text-[13px] text-blue-800/80 leading-relaxed space-y-2 font-medium">
                 {currentCategory.description.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}
               </div>
             </div>
@@ -582,19 +582,19 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
       </div>
 
       {/* Questions */}
-      <div className="space-y-10 mb-16">
+      <div className="space-y-6 mb-16">
         {currentCategory?.questions.map((q, qIdx) => (
-          <div key={q.id} className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm transition-all hover:shadow-md group">
-            <div className="flex items-start gap-6 mb-8">
-              <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 text-[14px] font-bold text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all duration-300">
+          <div key={q.id} className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm transition-all hover:shadow-md group">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 text-[13px] font-bold text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all duration-300">
                 {q.metadata?.question_number || (currentCatIndex * 10 + qIdx + 1)}
               </div>
-              <div className="pt-2">
-                <h3 className="text-[17px] font-bold text-slate-900 leading-snug tracking-tight">{q.text}</h3>
+              <div className="pt-1.5">
+                <h3 className="text-[16px] font-bold text-slate-900 leading-snug tracking-tight">{q.text}</h3>
               </div>
             </div>
 
-            <div className="pl-16 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="md:pl-12 grid grid-cols-1 sm:grid-cols-2 gap-3">
               {q.options.map(opt => {
                 const isSelected = answers[q.id] === opt.id;
                 return (
@@ -602,23 +602,23 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
                     key={opt.id}
                     onClick={() => handleAnswer(q.id, opt.id)}
                     className={cn(
-                      "flex items-center justify-between p-5 rounded-2xl border-2 transition-all text-left",
+                      "flex items-center justify-between p-3.5 px-5 rounded-xl border-2 transition-all text-left",
                       isSelected 
-                        ? "border-blue-600 bg-blue-50/50 shadow-[0_8px_30px_rgb(37,99,235,0.1)]" 
+                        ? "border-blue-600 bg-blue-50/50 shadow-[0_4px_20px_rgb(37,99,235,0.08)]" 
                         : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
                     )}
                   >
                     <span className={cn(
-                      "text-[15px] font-bold",
+                      "text-[14px] font-bold",
                       isSelected ? "text-blue-900" : "text-slate-600"
                     )}>
                       {opt.text}
                     </span>
                     <div className={cn(
-                      "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
                       isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
                     )}>
-                      {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white shadow-sm" />}
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
                     </div>
                   </button>
                 );
@@ -627,12 +627,12 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
             {/* Text Response Area */}
             {q.type === 'text_response' && (
-              <div className="pl-16 mt-6">
+              <div className="md:pl-12 mt-4">
                 <textarea
                   value={textResponses[q.id] || ''}
                   onChange={(e) => handleTextResponse(q.id, e.target.value)}
                   placeholder="Type your response here..."
-                  className="w-full h-32 p-5 bg-slate-50 border border-slate-100 rounded-2xl text-[14px] text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-500 transition-all resize-none font-medium"
+                  className="w-full h-24 p-4 bg-slate-50 border border-slate-100 rounded-xl text-[13px] text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-500 transition-all resize-none font-medium"
                 />
               </div>
             )}
