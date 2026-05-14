@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { ArrowRight, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { fetchLoginProfile } from '@/app/actions/fetch-login-profile';
 
 interface LoginFormProps {
   tenantSlug: string;
@@ -39,18 +40,15 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
         throw new Error('Authentication failed. No user returned.');
       }
 
-      // 2. Fetch user profile and role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, organization_id, organizations(subdomain)')
-        .eq('id', data.user.id)
-        .single();
+      // 2. Fetch user profile via server action (bypasses RLS)
+      const result = await fetchLoginProfile(data.user.id);
 
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
+      if (!result.success || !result.profile) {
+        console.error('Profile fetch error:', result.error);
         throw new Error('Unable to load your user profile. Please contact your administrator.');
       }
 
+      const profile = result.profile;
       const role = profile?.role;
 
       // 3. Workspace validation: If on a tenant subdomain, verify user belongs to it
@@ -66,16 +64,12 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
 
       // 4. Role-based redirect
       if (role === 'super_admin') {
-        // On the admin subdomain, go to root (middleware rewrites to /admin).
-        // On www/localhost, go to /admin directly.
         if (tenantSlug === 'admin') {
           router.push('/');
         } else {
           router.push('/admin');
         }
       } else if (role === 'organization_admin' || role === 'org_admin') {
-        // On a tenant subdomain, go to root (middleware rewrites to /dashboard).
-        // On www, go to /dashboard directly.
         if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
           router.push(nextUrl || '/');
         } else {
