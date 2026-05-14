@@ -13,11 +13,12 @@ interface CreateAssessmentInput {
   templateId: string;
   userIds: string[]; // employees to assign
   type?: string;
+  frequency?: string;
 }
 
 export async function createAssessments(input: CreateAssessmentInput) {
   try {
-    const { organizationId, templateId, userIds, type } = input;
+    const { organizationId, templateId, userIds, type, frequency } = input;
 
     if (!organizationId || !templateId || userIds.length === 0) {
       return { success: false, error: 'Missing required fields' };
@@ -61,6 +62,7 @@ export async function createAssessments(input: CreateAssessmentInput) {
       template_id: templateId,
       type: type || 'DSE_2024',
       status: 'pending',
+      frequency: frequency || 'Annual',
     }));
 
     const { data: created, error: insertErr } = await supabaseAdmin

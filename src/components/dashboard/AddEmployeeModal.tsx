@@ -26,8 +26,7 @@ interface AddEmployeeModalProps {
 const STEPS = [
   { id: 1, title: 'Basic Information', icon: User },
   { id: 2, title: 'Organisation Details', icon: Building2 },
-  { id: 3, title: 'Assessment Settings', icon: ClipboardList },
-  { id: 4, title: 'Access & Review', icon: ShieldCheck },
+  { id: 3, title: 'Access & Review', icon: ShieldCheck },
 ];
 
 export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModalProps) {
@@ -45,9 +44,6 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
     manager: '',
     officeLocation: '',
     employmentType: 'Full-time',
-    assessmentType: 'DSE Standard',
-    assessmentFrequency: 'Annual',
-    accessibilityNeeds: 'None',
     role: 'employee',
     password: ''
   });
@@ -56,7 +52,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
   const [customDept, setCustomDept] = useState('');
 
   const { organizationId } = useProfile();
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const handleSubmit = async () => {
@@ -125,7 +121,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
                 )}>
                   {step.title}
                 </span>
-                {step.id < 4 && <div className="w-4 h-[1px] bg-slate-200 ml-2 hidden md:block" />}
+                {step.id < 3 && <div className="w-4 h-[1px] bg-slate-200 ml-2 hidden md:block" />}
               </div>
             ))}
           </div>
@@ -283,46 +279,9 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
                 </div>
               )}
 
-              {currentStep === 3 && (
-                <div className="space-y-6">
-                  <div className="p-6 bg-blue-50 border border-blue-100 rounded-2xl flex gap-4">
-                    <ClipboardList className="w-6 h-6 text-blue-600 shrink-0" />
-                    <div>
-                      <p className="text-[13px] font-bold text-blue-900">Assessment Automation</p>
-                      <p className="text-[11px] text-blue-700/70 mt-1 leading-relaxed">SimplyDSE will automatically schedule and notify the employee based on these settings.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Assessment Type</label>
-                      <select 
-                        value={formData.assessmentType}
-                        onChange={(e) => setFormData({...formData, assessmentType: e.target.value})}
-                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
-                      >
-                        <option value="DSE Standard">DSE Standard 2024</option>
-                        <option value="Remote Work">Remote Work Safety</option>
-                        <option value="Mental Health">Mental Health Wellbeing</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Frequency</label>
-                      <select 
-                        value={formData.assessmentFrequency}
-                        onChange={(e) => setFormData({...formData, assessmentFrequency: e.target.value})}
-                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
-                      >
-                        <option value="Annual">Every 12 Months</option>
-                        <option value="Bi-Annual">Every 6 Months</option>
-                        <option value="One-time">One-time Activation</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {currentStep === 4 && (
+
+              {currentStep === 3 && (
                 <div className="space-y-6">
                   <div className="bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden">
                     <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between">
@@ -389,7 +348,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
             Previous Step
           </button>
           
-          {currentStep < 4 ? (
+          {currentStep < 3 ? (
             <button 
               onClick={nextStep}
               className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white text-[12px] font-bold rounded-xl hover:bg-slate-800 transition-all"

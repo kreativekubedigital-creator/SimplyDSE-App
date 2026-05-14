@@ -18,6 +18,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
+  const [frequency, setFrequency] = useState('Annual');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -66,14 +67,15 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
       organizationId,
       templateId: selectedTemplate,
       userIds: Array.from(selectedEmployees),
+      frequency: frequency,
     });
 
     if (res.success) {
       setResult({ created: res.created, skipped: res.skipped });
-      setStep(3);
+      setStep(4);
     } else {
       setResult({ error: res.error });
-      setStep(3);
+      setStep(4);
     }
     setSubmitting(false);
   };
@@ -109,7 +111,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
         {/* Step Progress */}
         <div className="px-8 py-4 bg-slate-50/50">
           <div className="flex items-center gap-2">
-            {[1, 2, 3].map(s => (
+            {[1, 2, 3, 4].map(s => (
               <div key={s} className="flex items-center gap-2 flex-1">
                 <div className={cn(
                   "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all",
@@ -118,10 +120,10 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
                 )}>
                   {s < step ? <CheckCircle2 className="w-4 h-4" /> : s}
                 </div>
-                <span className={cn("text-[11px] font-semibold", s === step ? "text-slate-900" : "text-slate-400")}>
-                  {s === 1 ? 'Template' : s === 2 ? 'Assign' : 'Confirm'}
+                <span className={cn("text-[11px] font-semibold hidden md:block", s === step ? "text-slate-900" : "text-slate-400")}>
+                  {s === 1 ? 'Template' : s === 2 ? 'Settings' : s === 3 ? 'Assign' : 'Confirm'}
                 </span>
-                {s < 3 && <div className="flex-1 h-px bg-slate-200" />}
+                {s < 4 && <div className="flex-1 h-px bg-slate-200" />}
               </div>
             ))}
           </div>
@@ -164,7 +166,33 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
               )}
             </div>
           ) : step === 2 ? (
-            /* Step 2: Select Employees */
+            /* Step 2: Settings */
+            <div className="space-y-6">
+              <div className="p-6 bg-blue-50 border border-blue-100 rounded-2xl flex gap-4">
+                <ClipboardList className="w-6 h-6 text-blue-600 shrink-0" />
+                <div>
+                  <p className="text-[13px] font-bold text-blue-900">Assessment Automation</p>
+                  <p className="text-[11px] text-blue-700/70 mt-1 leading-relaxed">SimplyDSE will automatically schedule and notify the assigned employees based on these settings.</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Frequency</label>
+                  <select 
+                    value={frequency}
+                    onChange={(e) => setFrequency(e.target.value)}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
+                  >
+                    <option value="Annual">Every 12 Months</option>
+                    <option value="Bi-Annual">Every 6 Months</option>
+                    <option value="One-time">One-time Activation</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          ) : step === 3 ? (
+            /* Step 3: Select Employees */
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-[13px] text-slate-600 font-medium">
@@ -220,7 +248,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
               </div>
             </div>
           ) : (
-            /* Step 3: Confirmation */
+            /* Step 4: Confirmation */
             <div className="flex flex-col items-center justify-center py-8">
               {result?.error ? (
                 <>
@@ -264,13 +292,24 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 )}
               >
-                Next: Assign Employees →
+                Next: Settings →
               </button>
             </>
           )}
           {step === 2 && (
             <>
               <button onClick={() => setStep(1)} className="px-5 py-2.5 text-[12px] font-semibold text-slate-500 hover:text-slate-700 transition-colors">← Back</button>
+              <button
+                onClick={() => setStep(3)}
+                className="px-6 py-2.5 text-[12px] font-bold rounded-xl transition-all bg-blue-600 text-white hover:scale-[1.02] shadow-lg shadow-blue-600/20"
+              >
+                Next: Assign Employees →
+              </button>
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <button onClick={() => setStep(2)} className="px-5 py-2.5 text-[12px] font-semibold text-slate-500 hover:text-slate-700 transition-colors">← Back</button>
               <button
                 onClick={handleSubmit}
                 disabled={selectedEmployees.size === 0 || submitting}
@@ -286,7 +325,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
               </button>
             </>
           )}
-          {step === 3 && (
+          {step === 4 && (
             <div className="w-full flex justify-end">
               <button
                 onClick={() => { onSuccess(); onClose(); }}
