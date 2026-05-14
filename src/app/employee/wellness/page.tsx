@@ -24,6 +24,7 @@ import {
   ArrowRight,
   Loader2
 } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { 
@@ -66,10 +67,10 @@ function WellnessContent() {
             <Download className="w-4 h-4" />
             Export My Data
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
+          <Link href="/employee/assessment" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
             <ClipboardList className="w-4 h-4" />
             Start New Assessment
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -176,12 +177,20 @@ function WellnessContent() {
                         <p className="text-[14px] font-bold text-slate-900 mt-1">{item.date}</p>
                       </div>
                       <div className="flex items-center gap-2 pl-6 border-l border-slate-100">
-                        <button className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-blue-600 hover:border-blue-600 transition-all">
-                          <Download className="w-5 h-5" />
-                        </button>
-                        <button className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95">
-                          View Report
-                        </button>
+                        {item.pdfUrl && (
+                          <a href={item.pdfUrl} target="_blank" rel="noreferrer" className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-blue-600 hover:border-blue-600 transition-all">
+                            <Download className="w-5 h-5" />
+                          </a>
+                        )}
+                        {item.pdfUrl ? (
+                          <a href={item.pdfUrl} target="_blank" rel="noreferrer" className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 inline-block">
+                            View Report
+                          </a>
+                        ) : (
+                          <button disabled className="px-6 py-3 bg-slate-100 text-slate-400 rounded-xl text-[12px] font-bold cursor-not-allowed">
+                            Report Pending
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -62,6 +62,7 @@ export default function NewOrganisationPage() {
     plan: 'Enterprise',
     seats: 500,
     selectedModules: ['dse', 'audit'],
+    logoUrl: '',
   });
 
   const nextStep = () => setStep((s) => (s + 1) as Step);
@@ -75,6 +76,17 @@ export default function NewOrganisationPage() {
         ? prev.selectedModules.filter(m => m !== id)
         : [...prev.selectedModules, id]
     }));
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, logoUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const runProvisioning = async () => {
@@ -214,6 +226,27 @@ export default function NewOrganisationPage() {
                             <option>Education</option>
                             <option>Healthcare</option>
                           </select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Organisation Logo</label>
+                        <div className="flex items-center gap-4">
+                          {formData.logoUrl ? (
+                            <img src={formData.logoUrl} alt="Logo Preview" className="w-16 h-16 rounded-xl border border-slate-200 object-contain bg-white" />
+                          ) : (
+                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400">
+                              <Building2 className="w-6 h-6" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <input 
+                              type="file" 
+                              accept="image/*"
+                              onChange={handleLogoUpload}
+                              className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-[12px] file:font-bold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 transition-all cursor-pointer"
+                            />
+                            <p className="text-[11px] text-slate-500 mt-1">Recommended: Square PNG or JPG, max 1MB</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -504,8 +537,12 @@ export default function NewOrganisationPage() {
               <h3 className="text-[13px] font-bold text-slate-500 uppercase tracking-widest mb-6">Provisioning Summary</h3>
               <div className="space-y-6">
                 <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                    <Building2 className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 overflow-hidden">
+                    {formData.logoUrl ? (
+                      <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-5 h-5" />
+                    )}
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Organisation</p>

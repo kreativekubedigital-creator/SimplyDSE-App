@@ -15,6 +15,7 @@ interface ProvisionRequest {
   adminEmail: string;
   adminPassword?: string;
   plan: string;
+  logoUrl?: string;
 }
 
 export async function provisionTenant(data: ProvisionRequest) {
@@ -44,7 +45,8 @@ export async function provisionTenant(data: ProvisionRequest) {
         status: 'active',
         plan: data.plan.toLowerCase(),
         region: data.region,
-        industry: data.industry
+        industry: data.industry,
+        logo_url: data.logoUrl || null
       })
       .select('id')
       .single();

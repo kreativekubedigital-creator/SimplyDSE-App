@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   ArrowRight
 } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
 import { cn } from '@/lib/utils';
 import { 
   ResponsiveContainer, 
@@ -32,7 +33,10 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import Link from 'next/link';
 
 export default function EmployeeDashboardPage() {
-  const { loading, assessments, stats, progressData, activities, upcomingTasks } = useEmployeeData();
+  const { loading: employeeLoading, assessments, stats, progressData, activities, upcomingTasks } = useEmployeeData();
+  const { fullName, loading: profileLoading } = useProfile();
+  const loading = employeeLoading || profileLoading;
+  const firstName = fullName?.split(' ')[0] || 'User';
 
   if (loading) {
     return (
@@ -53,7 +57,7 @@ export default function EmployeeDashboardPage() {
           <span className="px-3 py-1 bg-blue-600/10 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 inline-block">
             Health & Wellness Status
           </span>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Welcome back, Olivia</h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Welcome back, {firstName}</h1>
           <p className="text-[13px] text-slate-500 mt-2 font-medium">Your workplace ergonomics and wellness overview is ready.</p>
         </div>
         

@@ -21,16 +21,21 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { useProfile } from '@/hooks/useProfile';
+
 const auditLogs = [
-  { id: 'LOG-8842', user: 'Sarah Johnson', action: 'Modified Workflow', details: 'Updated "Annual Re-assessment" trigger from 12m to 6m.', target: 'WF-001', time: '10 mins ago', category: 'Configuration', ip: '192.168.1.42' },
+  { id: 'LOG-8842', user: 'HR_MANAGER_NAME', action: 'Modified Workflow', details: 'Updated "Annual Re-assessment" trigger from 12m to 6m.', target: 'WF-001', time: '10 mins ago', category: 'Configuration', ip: '192.168.1.42' },
   { id: 'LOG-8841', user: 'System (Auto)', action: 'Status Update', details: 'Automated escalation triggered for Alice Thompson.', target: 'EMP-001', time: '25 mins ago', category: 'Compliance', ip: 'N/A' },
   { id: 'LOG-8840', user: 'David Chen', action: 'Export Data', details: 'Downloaded "Departmental Risk Analysis" (XLSX).', target: 'REP-102', time: '1 hour ago', category: 'Security', ip: '192.168.1.15' },
   { id: 'LOG-8839', user: 'Alice Thompson', action: 'Assessment Sync', details: 'Self-assessment "Annual DSE" submitted successfully.', target: 'AS-2024-001', time: '3 hours ago', category: 'User Activity', ip: '10.0.0.124' },
-  { id: 'LOG-8838', user: 'Sarah Johnson', action: 'Policy Upload', details: 'Added new document "Workplace Safety Policy 2024".', target: 'DOC-001', time: '5 hours ago', category: 'Documents', ip: '192.168.1.42' },
+  { id: 'LOG-8838', user: 'HR_MANAGER_NAME', action: 'Policy Upload', details: 'Added new document "Workplace Safety Policy 2024".', target: 'DOC-001', time: '5 hours ago', category: 'Documents', ip: '192.168.1.42' },
   { id: 'LOG-8837', user: 'Admin System', action: 'Permission Change', details: 'Revoked "Write" access for user Mark Spencer.', target: 'USR-992', time: '1 day ago', category: 'Security', ip: 'N/A' },
 ];
 
 export default function AuditLogsPage() {
+  const { fullName } = useProfile();
+  const hrName = fullName || 'HR Manager';
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -160,7 +165,7 @@ export default function AuditLogsPage() {
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-bold text-slate-700">{log.user}</span>
+                      <span className="text-[13px] font-bold text-slate-700">{log.user === 'HR_MANAGER_NAME' ? hrName : log.user}</span>
                       <span className="text-[10px] text-slate-300 font-medium">• {log.ip}</span>
                     </div>
                   </td>

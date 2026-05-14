@@ -18,6 +18,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useProfile } from '@/hooks/useProfile';
 
 const navigation = [
   { name: 'Dashboard', href: '/employee', icon: LayoutDashboard },
@@ -28,6 +29,7 @@ const navigation = [
 
 export function EmployeeSidebar() {
   const pathname = usePathname();
+  const { fullName, initials, roleLabel, loading, organizationName, organizationLogoUrl } = useProfile();
 
   return (
     <aside className="w-64 bg-[#0F172A] text-slate-300 flex flex-col h-screen fixed left-0 top-0 z-50 border-r border-slate-800">
@@ -94,16 +96,18 @@ export function EmployeeSidebar() {
         <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop" 
-                alt="" 
-                className="w-9 h-9 rounded-full object-cover border-2 border-slate-800 group-hover:border-blue-600 transition-colors"
-              />
+              <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700 text-white text-[10px] font-bold group-hover:border-blue-600 transition-colors">
+                {loading ? '...' : initials}
+              </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0F172A] rounded-full" />
             </div>
             <div className="text-left min-w-0">
-              <p className="text-[12px] font-semibold text-white leading-none truncate">Olivia Bennett</p>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">Marketing Specialist</p>
+              <p className="text-[12px] font-semibold text-white leading-none truncate">
+                {loading ? 'Loading...' : fullName}
+              </p>
+              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">
+                {loading ? '...' : roleLabel}
+              </p>
             </div>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
@@ -112,12 +116,18 @@ export function EmployeeSidebar() {
         {/* Organisation */}
         <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 group-hover:bg-slate-700 transition-colors">
-              <Building2 className="w-4 h-4 text-slate-400 group-hover:text-slate-200" />
+            <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 group-hover:bg-slate-700 transition-colors overflow-hidden">
+              {organizationLogoUrl ? (
+                <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1" />
+              ) : (
+                <Building2 className="w-4 h-4 text-slate-400 group-hover:text-slate-200" />
+              )}
             </div>
             <div className="text-left min-w-0">
-              <p className="text-[12px] font-semibold text-white leading-none truncate">Acme Corporation</p>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">acme.simplydse.com</p>
+              <p className="text-[12px] font-semibold text-white leading-none truncate">
+                {loading ? '...' : organizationName}
+              </p>
+              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">SimplyDSE Member</p>
             </div>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />

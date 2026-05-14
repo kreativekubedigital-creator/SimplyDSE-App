@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import { 
   BarChart3, 
   FileText, 
@@ -16,19 +17,42 @@ import {
   ArrowRight,
   TrendingUp,
   Calendar,
-  Share2
+  Share2,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const recentReports = [
-  { id: 'REP-101', name: 'Quarterly Compliance Audit', type: 'PDF', date: 'May 10, 2024', size: '2.4 MB', author: 'Sarah Johnson' },
-  { id: 'REP-102', name: 'Departmental Risk Analysis', type: 'Excel', date: 'May 08, 2024', size: '1.1 MB', author: 'David Chen' },
-  { id: 'REP-103', name: 'Employee Assessment History', type: 'CSV', date: 'May 05, 2024', size: '840 KB', author: 'Sarah Johnson' },
-  { id: 'REP-104', name: 'Ergonomic Equipment Budget', type: 'PDF', date: 'Apr 28, 2024', size: '4.2 MB', author: 'Finance Team' },
-  { id: 'REP-105', name: 'Annual Safety Overview', type: 'PDF', date: 'Jan 15, 2024', size: '12.8 MB', author: 'System Auto-Gen' },
-];
+import { useProfile } from '@/hooks/useProfile';
 
 export default function ReportsPage() {
+  const { fullName, organizationId } = useProfile();
+  const hrName = fullName || 'HR Manager';
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadReports() {
+      if (!organizationId) return;
+      try {
+        const { data, error } = await supabase
+          .from('assessments')
+          .select('id, created_at, metadata, profiles(full_name)')
+          .eq('organization_id', organizationId)
+          .not('metadata->pdf_report_url', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (error) throw error;
+        
+        setReports(data || []);
+      } catch (err) {
+        console.error('Error fetching reports:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadReports();
+  }, [organizationId]);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -76,7 +100,7 @@ export default function ReportsPage() {
         {/* Recent Reports List */}
         <div className="xl:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-slate-900">Recently Generated</h3>
+            <h3 className="text-lg font-bold text-slate-900">Recent Assessment Reports</h3>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -92,46 +116,47 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
-            <div className="divide-y divide-slate-50">
-              {recentReports.map((report) => (
-                <div key={report.id} className="p-6 hover:bg-slate-50/50 transition-all group flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                      report.type === 'PDF' ? "bg-rose-50 text-rose-600" :
-                      report.type === 'Excel' ? "bg-emerald-50 text-emerald-600" :
-                      "bg-blue-50 text-blue-600"
-                    )}>
-                      {report.type === 'PDF' ? <FileText className="w-6 h-6" /> : 
-                       report.type === 'Excel' ? <FileSpreadsheet className="w-6 h-6" /> : 
-                       <FileJson className="w-6 h-6" />}
-                    </div>
-                    <div>
-                      <h4 className="text-[14px] font-bold text-slate-900 leading-none group-hover:text-blue-600 transition-colors">{report.name}</h4>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{report.id}</span>
-                        <span className="text-[11px] text-slate-300 font-medium">•</span>
-                        <span className="text-[11px] text-slate-400 font-bold">{report.date}</span>
-                        <span className="text-[11px] text-slate-300 font-medium">•</span>
-                        <span className="text-[11px] text-slate-400 font-bold">{report.size}</span>
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm min-h-[300px]">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-[300px] text-slate-400">
+                <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
+                <p>Loading reports...</p>
+              </div>
+            ) : reports.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[300px] text-slate-400 text-center px-6">
+                <FileText className="w-12 h-12 mb-4 text-slate-300" />
+                <p className="font-bold text-slate-600">No Assessment Reports Found</p>
+                <p className="text-[13px] mt-2">When employees complete their assessments, their compliance PDF reports will automatically appear here.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-50">
+                {reports.map((report) => (
+                  <div key={report.id} className="p-6 hover:bg-slate-50/50 transition-all group flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm bg-rose-50 text-rose-600">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-[14px] font-bold text-slate-900 leading-none group-hover:text-blue-600 transition-colors">
+                          DSE Assessment: {(report.profiles as any)?.full_name || 'Employee'}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-1">System Auto-Generated</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{report.id.split('-')[0]}</span>
+                          <span className="text-[11px] text-slate-300 font-medium">•</span>
+                          <span className="text-[11px] text-slate-400 font-bold">{new Date(report.created_at).toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-3">
+                      <a href={report.metadata?.pdf_report_url} target="_blank" rel="noreferrer" className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100 block">
+                        <Download className="w-4.5 h-4.5" />
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100">
-                      <Download className="w-4.5 h-4.5" />
-                    </button>
-                    <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100">
-                      <Share2 className="w-4.5 h-4.5" />
-                    </button>
-                    <button className="p-2.5 text-slate-300 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-all">
-                      <MoreHorizontal className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
               <button className="text-[13px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-2 group">
                 View Report Archive

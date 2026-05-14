@@ -20,6 +20,7 @@ import {
   LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useProfile } from '@/hooks/useProfile';
 
 const navSections = [
   {
@@ -69,24 +70,24 @@ const quickActions = [
 
 export function HRDashboardSidebar() {
   const pathname = usePathname();
-  const [orgName, setOrgName] = React.useState('Loading...');
+  const { organizationName, organizationLogoUrl, loading } = useProfile();
 
-  React.useEffect(() => {
-    async function resolveOrg() {
-      const { organizationName } = await import('@/lib/tenant-context').then(m => m.getTenantContext());
-      setOrgName(organizationName || 'Your Organisation');
-    }
-    resolveOrg();
-  }, []);
+  const orgName = loading ? 'Loading...' : (organizationName || 'Your Organisation');
 
   return (
     <aside className="w-[260px] bg-[#0F172A] text-slate-300 h-screen flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
       {/* Brand Section - More compact */}
       <div className="p-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
-            <ShieldCheck className="w-5.5 h-5.5" />
-          </div>
+          {organizationLogoUrl ? (
+            <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-white/5 border border-slate-800">
+              <img src={organizationLogoUrl} alt={orgName} className="w-full h-full object-contain p-1" />
+            </div>
+          ) : (
+            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+              <ShieldCheck className="w-5.5 h-5.5" />
+            </div>
+          )}
           <div>
             <h1 className="text-[14px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
             <p className="text-[10px] text-slate-200 font-medium mt-1">Workplace Compliance</p>

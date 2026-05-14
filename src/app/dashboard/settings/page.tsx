@@ -19,14 +19,38 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTenantContext } from '@/lib/tenant-context';
+import { LogoUpload } from '@/components/dashboard/LogoUpload';
+import { supabase } from '@/lib/supabase';
 
 export default function SettingsPage() {
   const [orgName, setOrgName] = React.useState('Loading...');
+  const [orgId, setOrgId] = React.useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function resolveOrg() {
-      const { organizationName } = await getTenantContext();
-      setOrgName(organizationName || 'Your Organisation');
+      try {
+        const { organizationId, organizationName } = await getTenantContext();
+        setOrgName(organizationName || 'Your Organisation');
+        setOrgId(organizationId);
+
+        if (organizationId) {
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('logo_url')
+            .eq('id', organizationId)
+            .single();
+          
+          if (orgData) {
+            setLogoUrl(orgData.logo_url);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching settings context:', err);
+      } finally {
+        setLoading(false);
+      }
     }
     resolveOrg();
   }, []);
@@ -62,8 +86,16 @@ export default function SettingsPage() {
           {/* General Section */}
           <section className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900 mb-6">General Information</h3>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-8">
+              {orgId && (
+                <LogoUpload 
+                  organizationId={orgId} 
+                  initialLogoUrl={logoUrl}
+                  onUploadComplete={(newUrl) => setLogoUrl(newUrl)}
+                />
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-50">
                 <InputGroup label="Organisation Name" placeholder={orgName} />
                 <InputGroup label="Industry" placeholder="Technology / SaaS" />
               </div>

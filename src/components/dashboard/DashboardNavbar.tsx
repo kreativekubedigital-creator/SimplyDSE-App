@@ -7,8 +7,10 @@ import {
   HelpCircle, 
   ChevronDown
 } from 'lucide-react';
-
+import { useProfile } from '@/hooks/useProfile';
 export function DashboardNavbar() {
+  const { fullName, initials, roleLabel, loading } = useProfile();
+
   return (
     <header className="h-[72px] bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
       {/* Search */}
@@ -45,11 +47,15 @@ export function DashboardNavbar() {
 
         <button className="flex items-center gap-3 pl-2 group">
           <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform">
-            SJ
+            {loading ? '...' : initials}
           </div>
           <div className="text-left hidden lg:block">
-            <p className="text-[13px] font-bold text-slate-900 leading-none">Sarah Johnson</p>
-            <p className="text-[11px] text-slate-500 font-medium mt-1">HR Manager</p>
+            <p className="text-[13px] font-bold text-slate-900 leading-none">
+              {loading ? 'Loading...' : fullName}
+            </p>
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
+              {loading ? '...' : roleLabel}
+            </p>
           </div>
           <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors ml-1" />
         </button>

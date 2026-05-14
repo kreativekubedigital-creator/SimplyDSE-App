@@ -8,14 +8,18 @@ import {
   Search,
   Zap
 } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
 
 export function EmployeeNavbar() {
+  const { fullName, initials, roleLabel, loading } = useProfile();
+  const firstName = fullName?.split(' ')[0] || 'User';
+
   return (
     <header className="h-[80px] bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-10 sticky top-0 z-40">
       {/* Welcome Message */}
       <div className="flex flex-col">
         <h2 className="text-[20px] font-bold text-slate-900 tracking-tight flex items-center gap-2">
-          Welcome back, Olivia 👋
+          Welcome back, {loading ? '...' : firstName} 👋
         </h2>
         <p className="text-[13px] text-slate-500 font-medium">Here's an overview of your assessments and workplace health.</p>
       </div>
@@ -44,16 +48,18 @@ export function EmployeeNavbar() {
 
         <button className="flex items-center gap-3 group">
           <div className="relative">
-            <img 
-              src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop" 
-              alt="Profile" 
-              className="w-9 h-9 rounded-full object-cover border-2 border-transparent group-hover:border-blue-600 transition-all"
-            />
+            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+              {loading ? '...' : initials}
+            </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
           </div>
           <div className="text-left hidden lg:block">
-            <p className="text-[13px] font-bold text-slate-900 leading-none">Olivia Bennett</p>
-            <p className="text-[11px] text-slate-500 font-medium mt-1">Marketing Specialist</p>
+            <p className="text-[13px] font-bold text-slate-900 leading-none">
+              {loading ? 'Loading...' : fullName}
+            </p>
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
+              {loading ? '...' : roleLabel}
+            </p>
           </div>
           <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors ml-1" />
         </button>

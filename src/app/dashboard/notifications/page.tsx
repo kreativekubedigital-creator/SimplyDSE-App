@@ -20,16 +20,21 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { useProfile } from '@/hooks/useProfile';
+
 const notifications = [
   { id: 1, title: 'Overdue Assessment Escalation', message: 'The assessment for Alice Thompson has been escalated to HR due to 48h non-response.', type: 'critical', time: '2 mins ago', read: false, sender: 'System' },
   { id: 2, title: 'New Risk Report Submitted', message: 'A high-priority risk report was submitted by the Engineering department regarding lumbar support.', type: 'high', time: '45 mins ago', read: false, sender: 'Bob Smith' },
   { id: 3, title: 'Scheduled Report Ready', message: 'Your Quarterly Compliance Audit report for Q1 2024 is now available for download.', type: 'info', time: '2 hours ago', read: true, sender: 'Reports Engine' },
   { id: 4, title: 'Training Milestone Reached', message: '85% of the Operations team has completed the annual Ergonomic Awareness module.', type: 'success', time: '5 hours ago', read: true, sender: 'Training Bot' },
-  { id: 5, title: 'Bulk Reminder Sent', message: 'Compliance reminders have been sent to 14 employees with upcoming assessment deadlines.', type: 'info', time: '1 day ago', read: true, sender: 'Sarah Johnson' },
+  { id: 5, title: 'Bulk Reminder Sent', message: 'Compliance reminders have been sent to 14 employees with upcoming assessment deadlines.', type: 'info', time: '1 day ago', read: true, sender: 'HR_MANAGER_NAME' },
   { id: 6, title: 'System Maintenance', message: 'The SimplyDSE portal will be offline for scheduled maintenance on Sunday from 02:00 to 04:00 UTC.', type: 'warning', time: '2 days ago', read: true, sender: 'DevOps' },
 ];
 
 export default function NotificationsPage() {
+  const { fullName } = useProfile();
+  const hrName = fullName || 'HR Manager';
+
   return (
     <div className="max-w-[1200px] mx-auto space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -106,7 +111,7 @@ export default function NotificationsPage() {
                 <div className="flex items-center gap-4 mt-4">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                     <User className="w-3.5 h-3.5" />
-                    {notif.sender}
+                    {notif.sender === 'HR_MANAGER_NAME' ? hrName : notif.sender}
                   </div>
                   <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button className="text-[11px] font-bold text-blue-600 hover:underline">Mark as read</button>

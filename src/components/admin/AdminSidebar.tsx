@@ -25,7 +25,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { supabase } from '../../lib/supabase';
+import { useProfile } from '@/hooks/useProfile';
 
 const navigation = [
   { name: 'Dashboard', icon: LayoutDashboard, href: '/admin', section: 'Platform' },
@@ -52,31 +52,7 @@ const shortcuts = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const [user, setUser] = useState<{ email: string; full_name: string } | null>(null);
-
-  useEffect(() => {
-    async function getProfile() {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('email, full_name')
-            .eq('id', authUser.id)
-            .single();
-          
-          if (profile) {
-            setUser(profile);
-          } else {
-            setUser({ email: authUser.email || '', full_name: 'Platform Admin' });
-          }
-        }
-      } catch (err) {
-        console.error('Error in AdminSidebar profile fetch:', err);
-      }
-    }
-    getProfile();
-  }, []);
+  const { fullName, email, loading, initials } = useProfile();
 
   return (
     <aside className="w-64 h-screen bg-[#0F172A] border-r border-slate-800 flex flex-col sticky top-0 text-slate-400">
@@ -152,16 +128,12 @@ export function AdminSidebar() {
 
       <div className="p-3 border-t border-slate-800 bg-[#0F172A]">
         <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 transition-all text-left">
-          <div className="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-white overflow-hidden">
-            <img 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Super Admin')}&background=1E40AF&color=fff`} 
-              alt={user?.full_name || "Super Admin"} 
-              className="w-full h-full object-cover" 
-            />
+          <div className="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-white overflow-hidden text-[10px] font-bold">
+            {loading ? '...' : initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-white truncate">{user?.full_name || 'Super Admin'}</p>
-            <p className="text-[9px] text-slate-400 truncate">{user?.email || 'superadmin@simplydse.com'}</p>
+            <p className="text-[11px] font-semibold text-white truncate">{loading ? 'Loading...' : fullName}</p>
+            <p className="text-[9px] text-slate-400 truncate">{loading ? '...' : email}</p>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
         </button>
