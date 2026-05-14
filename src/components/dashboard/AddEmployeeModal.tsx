@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { addEmployee } from '@/app/actions/add-employee';
+import { useProfile } from '@/hooks/useProfile';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -54,13 +55,17 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
   const [isAddingCustomDept, setIsAddingCustomDept] = useState(false);
   const [customDept, setCustomDept] = useState('');
 
+  const { organizationId } = useProfile();
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const result = await addEmployee(formData);
+      const result = await addEmployee({
+        ...formData,
+        organizationId: organizationId as string,
+      });
       if (result.success) {
         onSuccess();
         onClose();

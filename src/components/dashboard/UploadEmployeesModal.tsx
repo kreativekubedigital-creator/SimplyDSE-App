@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { importEmployees } from '@/app/actions/import-employees';
+import { useProfile } from '@/hooks/useProfile';
 
 interface UploadEmployeesModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ interface UploadEmployeesModalProps {
 }
 
 export function UploadEmployeesModal({ isOpen, onClose, onSuccess }: UploadEmployeesModalProps) {
+  const { organizationId } = useProfile();
   const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'summary'>('upload');
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<any[]>([]);
@@ -68,6 +70,7 @@ export function UploadEmployeesModal({ isOpen, onClose, onSuccess }: UploadEmplo
   const startImport = async () => {
     setStep('importing');
     const validEmployees = previewData.filter(e => e.status === 'valid').map(e => ({
+      organizationId: organizationId as string,
       firstName: e.firstName,
       lastName: e.lastName,
       email: e.email,

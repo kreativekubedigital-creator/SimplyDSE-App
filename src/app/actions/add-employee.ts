@@ -5,6 +5,7 @@ import { getTenantContext } from '@/lib/tenant-context';
 import { Resend } from 'resend';
 
 interface EmployeeData {
+  organizationId: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -36,7 +37,7 @@ export async function addEmployee(data: EmployeeData) {
   );
 
   try {
-    const { organizationId } = await getTenantContext();
+    const { organizationId } = data;
     if (!organizationId) throw new Error('No active organization context found.');
 
     // 1. Create the Auth User (Pre-verified)
@@ -89,7 +90,19 @@ export async function addEmployee(data: EmployeeData) {
       });
 
     // 4. Send Welcome Email
-    const { organizationName, organizationSlug } = await getTenantContext();
+    let organizationName = 'Your Organisation';
+    let organizationSlug = 'workspace';
+    
+    const { data: orgData } = await supabaseAdmin
+      .from('organizations')
+      .select('name, slug')
+      .eq('id', organizationId)
+      .single();
+      
+    if (orgData) {
+      organizationName = orgData.name;
+      organizationSlug = orgData.slug;
+    }
     const resend = new Resend(process.env.RESEND_API_KEY);
     const loginLink = `https://${organizationSlug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online'}/login`;
 

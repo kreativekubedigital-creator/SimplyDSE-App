@@ -5,6 +5,7 @@ import { getTenantContext } from '@/lib/tenant-context';
 import { Resend } from 'resend';
 
 interface ImportEmployee {
+  organizationId: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -25,8 +26,24 @@ export async function importEmployees(employees: ImportEmployee[]) {
   );
 
   try {
-    const { organizationId, organizationName, organizationSlug } = await getTenantContext();
+    if (employees.length === 0) return { success: true, count: 0, failed: 0, errors: [] };
+    
+    const organizationId = employees[0].organizationId;
     if (!organizationId) throw new Error('No active organization context found.');
+
+    let organizationName = 'Your Organisation';
+    let organizationSlug = 'workspace';
+    
+    const { data: orgData } = await supabaseAdmin
+      .from('organizations')
+      .select('name, slug')
+      .eq('id', organizationId)
+      .single();
+      
+    if (orgData) {
+      organizationName = orgData.name;
+      organizationSlug = orgData.slug;
+    }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const loginLink = `https://${organizationSlug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online'}/login`;
