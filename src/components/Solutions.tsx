@@ -15,14 +15,6 @@ const Solutions = () => {
       reverse: false
     },
     {
-      badge: "Clinical Intelligence",
-      title: "Science-backed assessments for true risk mitigation.",
-      description: "Our proprietary scoring algorithms are developed in collaboration with clinical ergonomic experts. We don't just track checkboxes; we identify real physiological risks before they escalate into claims.",
-      image: "/solution-2.png",
-      icon: BarChart2,
-      reverse: true
-    },
-    {
       badge: "Operational Efficiency",
       title: "Automation that respects your team's time.",
       description: "Eliminate the administrative burden of manual follow-ups. SimplyDSE automates assessment distribution, tracking, and reporting, allowing your health and safety leads to focus on strategic initiatives.",
