@@ -14,13 +14,13 @@ const CTA = () => {
           </Reveal>
           <Reveal delay={0.2}>
             <h2 className="text-6xl md:text-8xl font-bold text-text-primary tracking-tighter leading-[0.9] text-balance">
-              Secure your workforce. <br />
-              <span className="text-text-muted">Automate compliance.</span>
+              Lower Absenteeism. <br />
+              <span className="text-text-muted">Increase Productivity.</span>
             </h2>
           </Reveal>
           <Reveal delay={0.3}>
             <p className="text-xl md:text-2xl text-text-secondary max-w-2xl mx-auto leading-relaxed font-medium">
-              Join the world's most sophisticated organizations in redefining workplace health and safety.
+              Join leading organisations redefining how workplace ergonomics is managed.
             </p>
           </Reveal>
           <Reveal delay={0.4}>

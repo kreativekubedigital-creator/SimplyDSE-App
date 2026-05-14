@@ -1,7 +1,15 @@
 import { Mail, Phone, MapPin, Globe, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+
+  const platformLinks = [
+    { name: 'Features', href: '/#features' },
+    { name: 'Operational Workflow', href: '/#workflow' },
+    { name: 'Risk Intelligence', href: '/#solutions' },
+    { name: 'Enterprise Security', href: '/#security' },
+  ];
 
   return (
     <footer className="bg-white border-t border-border-subtle pt-24 pb-12">
@@ -34,11 +42,11 @@ const Footer = () => {
           <div className="space-y-8">
             <h4 className="label-secondary">Platform</h4>
             <ul className="space-y-4">
-              {['Features', 'Operational Workflow', 'Risk Intelligence', 'Enterprise Security'].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300 font-medium">
-                    {link}
-                  </a>
+              {platformLinks.map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href} className="text-sm text-text-secondary hover:text-brand-primary transition-colors duration-300 font-medium">
+                    {link.name}
+                  </Link>
                 </li>
               ))}
             </ul>

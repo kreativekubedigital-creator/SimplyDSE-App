@@ -24,6 +24,8 @@ const Navbar = ({ onLoginClick }: NavbarProps) => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
+    { name: 'Features', href: '/#features' },
+    { name: 'Solutions', href: '/#solutions' },
     { name: 'Blog', href: '/blog' },
     { name: 'Contact', href: '/contact' },
   ];
@@ -70,12 +72,6 @@ const Navbar = ({ onLoginClick }: NavbarProps) => {
                 </Link>
               );
             })}
-            {isHome && (
-              <>
-                <a href="#features" className="text-[13px] font-bold text-text-secondary hover:text-brand-primary transition-colors tracking-tight">Features</a>
-                <a href="#solutions" className="text-[13px] font-bold text-text-secondary hover:text-brand-primary transition-colors tracking-tight">Solutions</a>
-              </>
-            )}
           </div>
 
           {/* Actions */}

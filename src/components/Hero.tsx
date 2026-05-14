@@ -107,12 +107,12 @@ const Hero = ({ data }: HeroProps) => {
                   {primaryCta}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
-                <button className="flex items-center gap-4 text-text-primary font-bold hover:text-brand-primary transition-all group px-4 py-3">
+                <Link href="#features" className="flex items-center gap-4 text-text-primary font-bold hover:text-brand-primary transition-all group px-4 py-3">
                   <div className="w-12 h-12 rounded-full border border-border-strong flex items-center justify-center group-hover:border-brand-primary transition-colors bg-white/50 backdrop-blur-sm shadow-sm">
                     <Play className="w-4 h-4 fill-current ml-1" />
                   </div>
                   <span className="text-lg">{secondaryCta}</span>
-                </button>
+                </Link>
               </div>
             </Reveal>
           </div>

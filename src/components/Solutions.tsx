@@ -3,6 +3,7 @@
 import Reveal from './ui/Reveal';
 import { ArrowRight, Globe, BarChart2, Briefcase } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const Solutions = () => {
   const solutions = [
@@ -16,8 +17,8 @@ const Solutions = () => {
     },
     {
       badge: "Operational Efficiency",
-      title: "Automation that respects your team's time.",
-      description: "Eliminate the administrative burden of manual follow-ups. SimplyDSE automates assessment distribution, tracking, and reporting, allowing your health and safety leads to focus on strategic initiatives.",
+      title: "Automation That Respects Your Team’s Time",
+      description: "SimplyDSE removes the burden of manual follow ups and repetitive admin tasks. Assessments are distributed automatically, responses are tracked in real time, and reporting is generated instantly. Your team spends less time on paperwork and more time on meaningful action that improves workplace wellbeing and compliance.",
       image: "/solution-3.png",
       icon: Briefcase,
       reverse: false
@@ -51,10 +52,10 @@ const Solutions = () => {
               </Reveal>
 
               <Reveal delay={0.5} width="100%">
-                <button className="flex items-center gap-2 text-brand-primary font-bold hover:gap-3 transition-all group pt-2">
+                <Link href="#solutions" className="flex items-center gap-2 text-brand-primary font-bold hover:gap-3 transition-all group pt-2">
                   Explore Enterprise Solution
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </Link>
               </Reveal>
             </div>
 
