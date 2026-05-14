@@ -24,39 +24,14 @@ import { useProfile } from '@/hooks/useProfile';
 
 const navSections = [
   {
-    title: 'Platform',
+    title: 'Organization Platform',
     items: [
       { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    ]
-  },
-  {
-    title: 'Management',
-    items: [
-      { name: 'Workforce Hub', href: '/dashboard/employees', icon: Users },
-    ]
-  },
-  {
-    title: 'Intelligence',
-    items: [
+      { name: 'Employee Management', href: '/dashboard/employees', icon: Users },
       { name: 'Risk & Compliance', href: '/dashboard/compliance', icon: ShieldCheck },
-    ]
-  },
-  {
-    title: 'Operations',
-    items: [
       { name: 'Operations Center', href: '/dashboard/workflows', icon: GitBranch },
-    ]
-  },
-  {
-    title: 'Engagement',
-    items: [
       { name: 'Communications', href: '/dashboard/communications', icon: Bell },
-    ]
-  },
-  {
-    title: 'Configuration',
-    items: [
-      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+      { name: 'Platform Settings', href: '/dashboard/settings', icon: Settings },
     ]
   }
 ];
