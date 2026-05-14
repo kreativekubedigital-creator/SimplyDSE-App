@@ -41,7 +41,11 @@ interface Category {
   questions: Question[];
 }
 
-export function AssessmentEngine() {
+interface AssessmentEngineProps {
+  assessmentId?: string; // If provided, update this existing assessment instead of creating a new one
+}
+
+export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngineProps = {}) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(-1);
@@ -225,26 +229,50 @@ export function AssessmentEngine() {
       });
 
       // Insert Assessment Record
-      const { data: assessment, error: aErr } = await supabase
-        .from('assessments')
-        .insert({
-          organization_id: organizationId,
-          user_id: userId,
-          type: 'dse_workstation',
-          status: 'completed',
-          score: totalScore,
-          risk_level: maxRisk,
-          template_id: (categories[0] as any)?.template_id
-        })
-        .select()
-        .single();
+      // Insert or Update Assessment Record
+      let assessmentRecordId: string;
 
-      if (aErr) throw aErr;
+      if (preAssignedId) {
+        // Update the pre-assigned assessment
+        const { error: uErr } = await supabase
+          .from('assessments')
+          .update({
+            status: 'completed',
+            score: totalScore,
+            risk_level: maxRisk,
+            completed_at: new Date().toISOString(),
+            results_summary: JSON.stringify({ categories: reportCategories, strengths, improvements, recommendations }),
+          })
+          .eq('id', preAssignedId);
+
+        if (uErr) throw uErr;
+        assessmentRecordId = preAssignedId;
+      } else {
+        // Create a brand new assessment (self-service mode)
+        const { data: assessment, error: aErr } = await supabase
+          .from('assessments')
+          .insert({
+            organization_id: organizationId,
+            user_id: userId,
+            type: 'dse_workstation',
+            status: 'completed',
+            score: totalScore,
+            risk_level: maxRisk,
+            template_id: (categories[0] as any)?.template_id,
+            completed_at: new Date().toISOString(),
+            results_summary: JSON.stringify({ categories: reportCategories, strengths, improvements, recommendations }),
+          })
+          .select()
+          .single();
+
+        if (aErr) throw aErr;
+        assessmentRecordId = assessment.id;
+      }
 
       // Insert Responses
       const mappedResponses = responsesToInsert.map(r => ({
         ...r,
-        assessment_id: assessment.id,
+        assessment_id: assessmentRecordId,
         organization_id: organizationId
       }));
 
@@ -260,7 +288,7 @@ export function AssessmentEngine() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            assessmentId: assessment.id,
+            assessmentId: assessmentRecordId,
             organizationId,
             userId,
             employeeName: profile.fullName || 'Employee',

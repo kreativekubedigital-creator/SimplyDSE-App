@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useProfile } from '@/hooks/useProfile';
+import { CreateAssessmentModal } from '@/components/dashboard/CreateAssessmentModal';
 import { useComplianceData } from '@/hooks/useComplianceData';
 import { 
   BarChart, 
@@ -70,7 +72,9 @@ function ComplianceContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'analytics' | 'risks' | 'tracking'>('analytics');
   const [searchTerm, setSearchTerm] = useState('');
-  const { assessments, risks, stats, loading } = useComplianceData();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const { assessments, risks, stats, loading, refetch } = useComplianceData();
+  const profile = useProfile();
 
   React.useEffect(() => {
     const tab = searchParams.get('tab') as any;
@@ -100,7 +104,10 @@ function ComplianceContent() {
             <Download className="w-4 h-4" />
             Generate Compliance Audit
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95"
+          >
             <Plus className="w-4 h-4" />
             New Assessment
           </button>
@@ -383,6 +390,16 @@ function ComplianceContent() {
               </tbody>
            </table>
         </div>
+      )}
+
+      {/* Create Assessment Modal */}
+      {profile.organizationId && (
+        <CreateAssessmentModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          organizationId={profile.organizationId}
+          onSuccess={refetch}
+        />
       )}
     </div>
   );

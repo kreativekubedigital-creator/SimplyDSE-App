@@ -138,7 +138,11 @@ export default function EmployeeDashboardPage() {
                 </div>
               ) : (
                 assessments.slice(0, 3).map((assessment) => (
-                  <div key={assessment.id} className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer">
+                  <Link 
+                    href={assessment.status === 'Completed' ? `/employee/wellness?tab=assessments` : `/employee/assessment?id=${assessment.id}`}
+                    key={assessment.id} 
+                    className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer block"
+                  >
                     <div className="flex items-center gap-6">
                       <div className={cn(
                         "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
@@ -168,7 +172,7 @@ export default function EmployeeDashboardPage() {
                       </div>
                       <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors ml-4" />
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>

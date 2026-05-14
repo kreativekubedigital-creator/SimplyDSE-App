@@ -33,6 +33,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { getTenantContext } from '@/lib/tenant-context';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { CreateAssessmentModal } from '@/components/dashboard/CreateAssessmentModal';
 import Link from 'next/link';
 
 export default function ComplianceOverviewPage() {
@@ -50,6 +51,7 @@ export default function ComplianceOverviewPage() {
   });
 
   const [employees, setEmployees] = useState<any[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     async function fetchWorkspaceData() {
@@ -177,43 +179,7 @@ export default function ComplianceOverviewPage() {
         
         <div className="flex items-center gap-3">
           <button 
-            onClick={async () => {
-              try {
-                setLoading(true);
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return;
-
-                const { data: template } = await supabase
-                  .from('assessment_templates')
-                  .select('id')
-                  .eq('is_active', true)
-                  .order('created_at', { ascending: false })
-                  .limit(1)
-                  .single();
-
-                if (!template) throw new Error('No active assessment templates found.');
-
-                const { data: assessment, error } = await supabase
-                  .from('assessments')
-                  .insert({
-                    organization_id: orgId,
-                    user_id: user.id,
-                    template_id: template.id,
-                    type: 'DSE_2024',
-                    status: 'pending'
-                  })
-                  .select()
-                  .single();
-
-                if (error) throw error;
-                window.location.href = `/dashboard/assessments/${assessment.id}/take`;
-              } catch (err) {
-                console.error('Failed to start assessment:', err);
-                alert('Could not start assessment. Please contact support.');
-              } finally {
-                setLoading(false);
-              }
-            }}
+            onClick={() => setShowCreateModal(true)}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-600/20"
           >
             <ClipboardList className="w-4 h-4" />
@@ -388,6 +354,15 @@ export default function ComplianceOverviewPage() {
           </div>
         </div>
       </div>
+      {/* Create Assessment Modal */}
+      {orgId && (
+        <CreateAssessmentModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          organizationId={orgId}
+          onSuccess={() => window.location.reload()}
+        />
+      )}
     </div>
   );
 }
