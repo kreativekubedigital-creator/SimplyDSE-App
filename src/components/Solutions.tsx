@@ -8,8 +8,8 @@ const Solutions = () => {
   const solutions = [
     {
       badge: "Empowering Teams",
-      title: "Built for the modern, distributed workforce.",
-      description: "Whether your team is in a central HQ or spread across continents, SimplyDSE provides a unified platform for risk management. Our collaboration tools allow global teams to stay synchronized on compliance standards and action plans.",
+      title: "Built for Office and Remote Teams",
+      description: "Whether your workforce is based in a central office or operating from multiple locations, SimplyDSE provides a single platform for managing DSE risk across the organisation. It supports consistency in assessments, compliance standards, and corrective actions so every employee is covered regardless of where they work.",
       image: "/solution-1.png",
       icon: Globe,
       reverse: false
