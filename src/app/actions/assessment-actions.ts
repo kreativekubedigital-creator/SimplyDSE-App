@@ -48,8 +48,8 @@ export async function createAssessments(input: CreateAssessmentInput) {
 
     if (newUserIds.length === 0) {
       return { 
-        success: false, 
-        error: 'All selected employees already have a pending assessment for this template',
+        success: true, 
+        created: 0,
         skipped: userIds.length
       };
     }

@@ -73,6 +73,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
       setStep(3);
     } else {
       setResult({ error: res.error });
+      setStep(3);
     }
     setSubmitting(false);
   };
