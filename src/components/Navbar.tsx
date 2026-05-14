@@ -39,7 +39,7 @@ const Navbar = ({ onLoginClick }: NavbarProps) => {
       }`}
     >
       <div 
-        className={`max-w-[1600px] mx-auto transition-all duration-500 ${
+        className={`max-w-[1800px] mx-auto transition-all duration-500 ${
           isScrolled 
             ? 'bg-white/80 backdrop-blur-xl border border-border-strong/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-full py-3 px-8' 
             : 'bg-transparent py-4 px-4'

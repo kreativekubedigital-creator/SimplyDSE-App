@@ -50,18 +50,18 @@ const Hero = ({ data }: HeroProps) => {
           preload="metadata"
           poster="/hero-poster.png"
           onCanPlayThrough={() => setIsVideoLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-40' : 'opacity-0'}`}
+          className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-50' : 'opacity-0'}`}
         >
           <source src={videoUrl} type="video/mp4" />
         </video>
-        {/* Optimized overlay to ensure text legibility */}
-        <div className="absolute inset-0 bg-white/20" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white" />
+        {/* Optimized overlay to ensure text legibility - reduced intensity */}
+        <div className="absolute inset-0 bg-white/10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white/70" />
       </div>
 
-      <div className="relative z-10 section-container w-full flex flex-col items-center justify-center text-center">
-        {/* Bold Brand Anchor - Hollowed & Bold */}
-        <div className="relative w-full px-4 text-center select-none pointer-events-none mb-12">
+      <div className="relative z-10 w-full flex flex-col items-center justify-center text-center">
+        {/* Bold Brand Anchor - Hollowed & Bold - Full Viewport Width */}
+        <div className="w-screen max-w-full overflow-hidden select-none pointer-events-none mb-8 md:mb-20 px-4">
           <div className="flex justify-center items-center flex-nowrap whitespace-nowrap overflow-hidden">
             {"SIMPLYDSE".split("").map((char, index) => (
               <motion.span
@@ -76,7 +76,7 @@ const Hero = ({ data }: HeroProps) => {
                     ease: [0.16, 1, 0.3, 1]
                   }
                 }}
-                className="text-[12vw] md:text-[clamp(2rem,13vw,160px)] font-black text-transparent uppercase tracking-tighter leading-[0.8] inline-block will-change-transform"
+                className="text-[10.5vw] font-black text-transparent uppercase tracking-[-0.04em] leading-[0.8] inline-block will-change-transform"
                 style={{ WebkitTextStroke: 'clamp(1px, 0.15vw, 3px) #0F172A' }}
               >
                 {char}
@@ -86,7 +86,7 @@ const Hero = ({ data }: HeroProps) => {
         </div>
 
         {/* Content Grid: Aligning elements below the brand anchor */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mt-8 text-left max-w-[1400px] w-full mx-auto">
+        <div className="section-container !py-0 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mt-4 text-left max-w-[1400px] w-full mx-auto">
           
           {/* Left Column: Context + CTAs + Trust */}
           <div className="space-y-8 max-w-xl">
