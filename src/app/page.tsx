@@ -24,13 +24,13 @@ export default function HomePage() {
           <Hero />
           <Trust />
           <FeaturesGrid />
+          <div className="bg-slate-50 border-y border-border-subtle">
+            <DashboardPreview />
+          </div>
           <Workflow />
           <Challenges />
           <Solutions />
           <HumanImpact />
-          <div className="bg-slate-50 border-y border-border-subtle">
-            <DashboardPreview />
-          </div>
           <div className="bg-bg-light border-y border-border-subtle">
             <Security />
           </div>
