@@ -759,8 +759,8 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         ))}
       </div>
 
-      {/* Sticky Bottom Navigation */}
-      <div className="sticky bottom-8 z-50 flex items-center justify-between p-6 bg-slate-900/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/10 mx-auto max-w-2xl">
+      {/* Bottom Navigation */}
+      <div className="mt-16 mb-12 flex items-center justify-between p-6 bg-slate-900 rounded-[2rem] shadow-xl border border-white/10 mx-auto max-w-2xl">
         <button 
           onClick={handleBack}
           className="flex items-center gap-2 px-6 py-3 text-[13px] font-bold text-slate-400 hover:text-white transition-all"
