@@ -3,7 +3,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
-export async function inviteUserAction(email: string, role: string, fullName: string) {
+export async function inviteUserAction(email: string, role: string, fullName: string, tempPassword?: string) {
   try {
     // 1. Verify current user is a super_admin
     const supabase = await createSupabaseServerClient();
@@ -21,22 +21,39 @@ export async function inviteUserAction(email: string, role: string, fullName: st
       throw new Error('Forbidden: Only Super Admins can invite users');
     }
 
-    // 2. Invite the user via Supabase Auth Admin
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-      data: { 
-        full_name: fullName,
-        role: role 
-      }
-    });
+    let userId: string | undefined;
 
-    if (inviteError) throw inviteError;
+    if (tempPassword) {
+      // Create user directly with a temporary password
+      const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          role: role,
+        }
+      });
+      if (createError) throw createError;
+      userId = createData?.user?.id;
+    } else {
+      // Invite via email (sends magic link)
+      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        data: { 
+          full_name: fullName,
+          role: role 
+        }
+      });
+      if (inviteError) throw inviteError;
+      userId = inviteData?.user?.id;
+    }
 
     // 3. Create/Update the profile
-    if (inviteData?.user) {
+    if (userId) {
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .upsert({
-          id: inviteData.user.id,
+          id: userId,
           email: email,
           full_name: fullName,
           role: role,
@@ -52,3 +69,4 @@ export async function inviteUserAction(email: string, role: string, fullName: st
     return { success: false, error: error.message };
   }
 }
+
