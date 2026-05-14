@@ -40,15 +40,35 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
         throw new Error('Authentication failed. No user returned.');
       }
 
-      // 2. Fetch user profile via server action (bypasses RLS)
-      const result = await fetchLoginProfile(data.user.id);
+      // 2. Fetch user profile — try server action first, fallback to direct query
+      let profile: any = null;
 
-      if (!result.success || !result.profile) {
-        console.error('Profile fetch error:', result.error);
-        throw new Error('Unable to load your user profile. Please contact your administrator.');
+      try {
+        const result = await fetchLoginProfile(data.user.id);
+        if (result.success && result.profile) {
+          profile = result.profile;
+        } else {
+          console.warn('Server action profile fetch failed:', result.error, '— trying direct query...');
+        }
+      } catch (serverErr) {
+        console.warn('Server action unavailable:', serverErr, '— trying direct query...');
       }
 
-      const profile = result.profile;
+      // Fallback: direct client query (works for own profile via RLS)
+      if (!profile) {
+        const { data: directProfile, error: directError } = await supabase
+          .from('profiles')
+          .select('role, organization_id, organizations!profiles_organization_id_fkey(subdomain, name)')
+          .eq('id', data.user.id)
+          .single();
+
+        if (directError || !directProfile) {
+          console.error('Both profile fetch methods failed. Direct error:', directError);
+          throw new Error('Unable to load your user profile. Please contact your administrator.');
+        }
+        profile = directProfile;
+      }
+
       const role = profile?.role;
 
       // 3. Workspace validation: If on a tenant subdomain, verify user belongs to it

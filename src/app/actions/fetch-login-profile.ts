@@ -12,7 +12,7 @@ export async function fetchLoginProfile(userId: string) {
   try {
     const { data: profile, error } = await supabaseAdmin
       .from('profiles')
-      .select('role, organization_id, full_name, organizations(subdomain, name)')
+      .select('role, organization_id, full_name, organizations!profiles_organization_id_fkey(subdomain, name)')
       .eq('id', userId)
       .single();
 
