@@ -61,8 +61,8 @@ const Hero = ({ data }: HeroProps) => {
 
       <div className="relative z-10 w-full flex flex-col items-center justify-center text-center">
         {/* Bold Brand Anchor - Hollowed & Bold - Full Viewport Width */}
-        <div className="w-screen max-w-full overflow-hidden select-none pointer-events-none mb-8 md:mb-20 mt-12 md:mt-24 px-4">
-          <div className="flex justify-center items-center flex-nowrap whitespace-nowrap overflow-hidden">
+        <div className="w-screen max-w-full overflow-hidden select-none pointer-events-none mb-8 md:mb-20 mt-12 md:mt-24">
+          <div className="flex justify-center items-center flex-nowrap whitespace-nowrap">
             {"SIMPLYDSE".split("").map((char, index) => (
               <motion.span
                 key={index}
@@ -76,7 +76,7 @@ const Hero = ({ data }: HeroProps) => {
                     ease: [0.16, 1, 0.3, 1]
                   }
                 }}
-                className="text-[11vw] font-black text-transparent uppercase tracking-[-0.04em] leading-[0.8] inline-block will-change-transform"
+                className="text-[14vw] md:text-[13.5vw] font-black text-transparent uppercase tracking-[-0.06em] leading-[0.8] inline-block will-change-transform"
                 style={{ WebkitTextStroke: 'clamp(1px, 0.15vw, 3px) #0F172A' }}
               >
                 {char}
