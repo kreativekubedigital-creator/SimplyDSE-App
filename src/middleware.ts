@@ -2,17 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-// Define the root domain fallback
-const FALLBACK_DOMAIN = 'simplydse.com';
-
 export async function middleware(req: NextRequest) {
   const hostname = req.headers.get('host') || '';
-  
-  // Dynamically resolve ROOT_DOMAIN if not in env
-  // e.g. "admin.simplydse.online" -> "simplydse.online"
-  // e.g. "localhost:3000" -> "localhost:3000"
-  const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 
+
+  // Resolve ROOT_DOMAIN
+  const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ||
     (hostname.includes('localhost') ? 'localhost:3000' : hostname.split('.').slice(-2).join('.'));
+
   let res = NextResponse.next({
     request: {
       headers: req.headers,
@@ -43,16 +39,13 @@ export async function middleware(req: NextRequest) {
 
   // 2. Multi-Workspace Subdomain Resolution
   const url = req.nextUrl;
+  const path = url.pathname;
 
-  // Calculate subdomain:
-  // e.g. "acme.simplydse.online" -> "acme"
-  // e.g. "admin.simplydse.online" -> "admin"
-  // e.g. "localhost:3000" -> "www"
-  
+  // Calculate subdomain
   let currentHost = hostname
     .replace(`localhost:3000`, '')
     .replace(`${ROOT_DOMAIN}`, '')
-    .replace(/\.$/, ''); // Remove trailing dot if it exists
+    .replace(/\.$/, '');
 
   if (!currentHost || currentHost === 'www') {
     currentHost = 'www';
@@ -61,16 +54,15 @@ export async function middleware(req: NextRequest) {
   // Inject the resolved Workspace slug into headers for server components
   res.headers.set('x-tenant-slug', currentHost);
 
-  const path = url.pathname;
+  // ──────────────────────────────────────────────────
+  // 3. Routing & Access Control
+  // ──────────────────────────────────────────────────
 
-  // 3. Routing & Access Control (Rewrites)
-  // ----------------------------------------------------
-  
-  // Super Admin Zone (admin.simplydse.com)
+  // Super Admin Zone (admin.simplydse.online)
   if (currentHost === 'admin') {
-    // Auth Check: Super Admins only
-    if (!user && path !== '/login') {
-       return NextResponse.redirect(new URL('/login', req.url));
+    // Auth Check: Must be logged in for everything except /login and /auth
+    if (!user && path !== '/login' && !path.startsWith('/auth')) {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
 
     // Clean up URLs: If they access admin.domain.com/admin/something, redirect to admin.domain.com/something
@@ -79,35 +71,71 @@ export async function middleware(req: NextRequest) {
     }
 
     // Rewrite admin.domain.com/some-path to /admin/some-path
-    // EXEMPT /auth paths so callback works!
+    // EXEMPT /auth and /login paths
     if (path !== '/login' && !path.startsWith('/auth')) {
       return NextResponse.rewrite(new URL(`/admin${path === '/' ? '' : path}`, req.url));
     }
-  } 
-  
-  // Public Marketing Site (www.simplydse.online)
+  }
+
+  // Public Marketing Site (www.simplydse.online or localhost:3000)
   else if (currentHost === 'www') {
-    if (path.startsWith('/admin') || path.startsWith('/dashboard')) {
-      return NextResponse.redirect(new URL('/login', req.url));
+    // If an authenticated user tries to access /admin or /dashboard or /employee,
+    // we need to allow rewrites to those Next.js routes rather than blocking them.
+    
+    if (user) {
+      // Authenticated user on www — if they're trying to reach a protected route, allow it via rewrite.
+      if (path.startsWith('/admin')) {
+        // Let Next.js serve the /admin route tree directly (no rewrite needed, it already maps correctly)
+        return res;
+      }
+      if (path.startsWith('/dashboard')) {
+        return res;
+      }
+      if (path.startsWith('/employee')) {
+        return res;
+      }
+
+      // If authenticated user goes to /login, redirect them to appropriate dashboard
+      if (path === '/login') {
+        // Fetch their role to decide where to send them
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.role === 'super_admin') {
+          return NextResponse.redirect(new URL('/admin', req.url));
+        } else if (profile?.role === 'organization_admin' || profile?.role === 'org_admin') {
+          return NextResponse.redirect(new URL('/dashboard', req.url));
+        } else {
+          return NextResponse.redirect(new URL('/employee', req.url));
+        }
+      }
+    } else {
+      // Unauthenticated user on www trying to access protected routes
+      if (path.startsWith('/admin') || path.startsWith('/dashboard') || path.startsWith('/employee')) {
+        return NextResponse.redirect(new URL('/login', req.url));
+      }
     }
-  } 
-  
+  }
+
   // Workspace Zone (acme.simplydse.online)
   else {
     // Auth Check
     if (!user && path !== '/login' && !path.startsWith('/auth')) {
-       const loginUrl = new URL('/login', req.url);
-       if (path !== '/') loginUrl.searchParams.set('next', path);
-       return NextResponse.redirect(loginUrl);
+      const loginUrl = new URL('/login', req.url);
+      if (path !== '/') loginUrl.searchParams.set('next', path);
+      return NextResponse.redirect(loginUrl);
     }
 
     // Clean up URLs: If they access acme.domain.com/dashboard/something, redirect to acme.domain.com/something
     if (path.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL(path.replace(/^\/dashboard/, '') || '/', req.url));
     }
-    
+
     // Rewrite acme.domain.com/some-path to /dashboard/some-path
-    // EXEMPT /auth paths
+    // EXEMPT /auth and /login paths
     if (path !== '/login' && !path.startsWith('/auth')) {
       return NextResponse.rewrite(new URL(`/dashboard${path === '/' ? '' : path}`, req.url));
     }

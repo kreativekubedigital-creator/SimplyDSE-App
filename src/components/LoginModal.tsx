@@ -50,18 +50,30 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
       if (data.user) {
         // Fetch user role to determine redirection
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
 
-        // Successful login - Redirect based on role
-        if (profile?.role === 'super_admin') {
-          router.push('/admin');
-        } else {
-          router.push('/dashboard');
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          // If we can't fetch profile, something is wrong with RLS or the profile doesn't exist
+          throw new Error('Unable to load your user profile. Please contact your administrator.');
         }
+
+        const role = profile?.role;
+
+        // Role-based redirect
+        if (role === 'super_admin') {
+          router.push('/admin');
+        } else if (role === 'organization_admin' || role === 'org_admin') {
+          router.push('/dashboard');
+        } else {
+          // Default: employee
+          router.push('/employee');
+        }
+        
         onClose();
       }
     } catch (err: any) {

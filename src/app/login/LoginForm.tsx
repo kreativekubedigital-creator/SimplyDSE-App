@@ -25,74 +25,79 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
     setError('');
 
     try {
-      console.log('--- LOGIN START ---');
-      console.log('Email:', email);
-      console.log('Tenant:', tenantSlug);
-
-      // EMERGENCY BYPASS FOR THE USER - MUST BE AT TOP
-      if (password === 'MASTER_ADMIN') {
-        console.warn('!!! BYPASS MODE ACTIVATED !!!');
-        setIsSubmitting(true);
-        router.push('/admin');
-        return;
-      }
-      
+      // 1. Authenticate with Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) {
-        console.error('Auth Error:', authError);
         throw authError;
       }
 
-      console.log('Auth Success, User ID:', data.user?.id);
+      if (!data.user) {
+        throw new Error('Authentication failed. No user returned.');
+      }
 
-      // Ensure the user actually belongs to this Workspace if we are not on www or admin
+      // 2. Fetch user profile and role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, organization_id, organizations(subdomain)')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        throw new Error('Unable to load your user profile. Please contact your administrator.');
+      }
+
+      const role = profile?.role;
+
+      // 3. Workspace validation: If on a tenant subdomain, verify user belongs to it
       if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
-        console.log('Checking workspace access for:', tenantSlug);
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('organization_id, organizations(subdomain)')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Profile Check Error:', profileError);
-        }
-
         // @ts-ignore
         const userSubdomain = profile?.organizations?.subdomain;
-        console.log('User Subdomain:', userSubdomain);
 
         if (userSubdomain !== tenantSlug) {
-          console.error('Workspace Mismatch: User belongs to', userSubdomain, 'but trying to access', tenantSlug);
           await supabase.auth.signOut();
           throw new Error(`Access Denied: This account belongs to ${userSubdomain || 'another workspace'}.`);
         }
       }
 
-      console.log('Redirection check: isSuperAdmin =', isSuperAdmin);
-      
-      // Route based on role/Workspace
-      if (isSuperAdmin || password === 'MASTER_ADMIN') {
-        console.log('Navigating to /...');
-        router.push('/');
+      // 4. Role-based redirect
+      if (role === 'super_admin') {
+        // On the admin subdomain, go to root (middleware rewrites to /admin).
+        // On www/localhost, go to /admin directly.
+        if (tenantSlug === 'admin') {
+          router.push('/');
+        } else {
+          router.push('/admin');
+        }
+      } else if (role === 'organization_admin' || role === 'org_admin') {
+        // On a tenant subdomain, go to root (middleware rewrites to /dashboard).
+        // On www, go to /dashboard directly.
+        if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
+          router.push(nextUrl || '/');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
-        const target = nextUrl || '/';
-        console.log('Navigating to', target);
-        router.push(target);
+        // Employee
+        if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
+          router.push(nextUrl || '/');
+        } else {
+          router.push('/employee');
+        }
       }
-      
+
     } catch (err: any) {
-      console.error('--- LOGIN FAILED ---');
-      console.error(err);
+      console.error('Login failed:', err);
       setError(err.message || 'Authentication failed. Please verify your credentials.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
   const handleOAuthLogin = async (provider: 'google' | 'azure') => {
     try {
       setIsSubmitting(true);
