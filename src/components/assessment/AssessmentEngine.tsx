@@ -116,6 +116,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   const [textResponses, setTextResponses] = useState<Record<string, string>>({});
   const [conditionalDetails, setConditionalDetails] = useState<Record<string, string>>({});
   const [isDetailSaved, setIsDetailSaved] = useState<Record<string, boolean>>({});
+  const [isValidationDismissed, setIsValidationDismissed] = useState(false);
   const [acknowledgements, setAcknowledgements] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [guidanceModal, setGuidanceModal] = useState<{ isOpen: boolean; title: string; content: string; riskLevel: string } | null>(null);
@@ -305,6 +306,10 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
       window.scrollTo(0, 0);
     }
   };
+
+  useEffect(() => {
+    setIsValidationDismissed(false);
+  }, [currentCatIndex]);
 
   const handleBack = () => {
     if (currentCatIndex > 0) {
@@ -768,11 +773,22 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Progress Saved</span>
         </div>
 
-        {!isCategoryComplete() && (
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-full max-w-md px-4 py-2 bg-amber-50 border border-amber-100 rounded-lg shadow-lg animate-in slide-in-from-bottom-2 duration-300">
-            <p className="text-[11px] font-bold text-amber-700 text-center flex items-center justify-center gap-2">
-              <AlertCircle className="w-3.5 h-3.5" /> Please answer all required questions and save any requested details.
-            </p>
+        {!isCategoryComplete() && !isValidationDismissed && (
+          <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 py-3 bg-amber-50 border border-amber-200 rounded-2xl shadow-xl animate-in slide-in-from-bottom-2 duration-300 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+              </div>
+              <p className="text-[12px] font-bold text-amber-900 leading-tight">
+                Please answer all required questions and save any requested details before continuing.
+              </p>
+            </div>
+            <button 
+              onClick={() => setIsValidationDismissed(true)}
+              className="px-4 py-1.5 bg-amber-600 text-white text-[11px] font-black uppercase tracking-widest rounded-lg hover:bg-amber-700 transition-colors shadow-sm"
+            >
+              OK
+            </button>
           </div>
         )}
 
