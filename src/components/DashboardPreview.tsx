@@ -15,14 +15,16 @@ const DashboardPreview = () => {
             </Reveal>
             <Reveal delay={0.2}>
               <h2 className="text-5xl md:text-6xl font-bold text-text-primary tracking-tight leading-[1.05] text-balance">
-                Your entire risk landscape, <br className="hidden md:block" />
-                <span className="text-text-muted">in one view.</span>
+                Your Entire Risk Landscape <br className="hidden md:block" />
+                <span className="text-text-muted">in One View</span>
               </h2>
             </Reveal>
             <Reveal delay={0.3}>
               <p className="text-xl text-text-secondary leading-relaxed font-medium">
-                A unified command center for health and safety leads. Monitor compliance rates, 
-                track intervention progress, and generate board-level reports.
+                SimplyDSE brings all your DSE risk information into a single, clear dashboard. 
+                You can monitor compliance levels, track progress on required actions, and produce 
+                reports that are ready for senior leadership. Everything you need to stay in control 
+                is in one place, with full visibility across your organisation.
               </p>
             </Reveal>
             
