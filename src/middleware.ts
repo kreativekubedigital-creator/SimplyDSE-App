@@ -162,22 +162,30 @@ export async function middleware(req: NextRequest) {
       // 4. Resolve Dashboard Prefix
       let dashboardPrefix = '/employee'; // Default
       
-      const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
+      const hrRoles = [
+        'organisation_admin', 
+        'organization_admin', 
+        'org_admin', 
+        'hr_admin',
+        'admin',
+        'hr_manager', 
+        'compliance_manager',
+        'compliance_admin',
+        'org_manager'
+      ];
+      
       if (hrRoles.includes(role)) {
         dashboardPrefix = '/dashboard';
       } else if (role === 'manager') {
         dashboardPrefix = '/manager';
       } else if (role === 'super_admin') {
-        // Super admins can access everything, but usually go to /admin
-        // If they are on a workspace, they might be acting as an admin
         dashboardPrefix = '/dashboard';
       }
 
       // 5. Path Cleanup & Access Control
-      // Prevent users from manually typing the prefix in the URL
-      if (path.startsWith('/dashboard') || path.startsWith('/employee') || path.startsWith('/manager')) {
-        return NextResponse.redirect(new URL(path.replace(/^\/(dashboard|employee|manager)/, '') || '/', req.url));
-      }
+      // [REMOVED REDIRECT LOGIC TO PREVENT LOOPS AND 404s]
+      // We allow both clean and explicit paths for now to ensure stability.
+
 
       // 6. Rewrite to correct internal route
       if (path !== '/login' && !path.startsWith('/auth')) {
