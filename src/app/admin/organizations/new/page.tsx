@@ -33,6 +33,21 @@ import { provisionTenant } from '@/app/actions/provision-tenant';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
+interface PlanOption {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price_monthly: number;
+  price_yearly: number;
+  currency: string;
+  max_seats: number | null;
+  features: string[];
+  is_recommended: boolean;
+}
+
+const currencySymbols: Record<string, string> = { GBP: '£', USD: '$', EUR: '€' };
+
 const regions = [
   { id: 'us-east-1', name: 'US East (N. Virginia)', icon: '🇺🇸' },
   { id: 'eu-west-1', name: 'EU West (Ireland)', icon: '🇮🇪' },
@@ -50,6 +65,7 @@ export default function NewOrganisationPage() {
   const [step, setStep] = useState<Step>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [provisioningLogs, setProvisioningLogs] = useState<string[]>([]);
+  const [availablePlans, setAvailablePlans] = useState<PlanOption[]>([]);
   const [formData, setFormData] = useState({
     orgName: '',
     domain: '',
@@ -59,11 +75,29 @@ export default function NewOrganisationPage() {
     adminLastName: '',
     adminEmail: '',
     adminPassword: '',
-    plan: 'Enterprise',
-    seats: 500,
+    plan: 'enterprise',
+    seats: 100,
     selectedModules: ['dse', 'audit'],
     logoUrl: '',
   });
+
+  // Fetch plans from DB
+  useEffect(() => {
+    async function loadPlans() {
+      const { data } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+      if (data && data.length > 0) {
+        setAvailablePlans(data);
+        // Default to recommended or first plan
+        const recommended = data.find((p: any) => p.is_recommended);
+        if (recommended) setFormData(prev => ({ ...prev, plan: recommended.slug }));
+      }
+    }
+    loadPlans();
+  }, []);
 
   const nextStep = () => setStep((s) => (s + 1) as Step);
   const prevStep = () => setStep((s) => (s - 1) as Step);
@@ -317,54 +351,67 @@ export default function NewOrganisationPage() {
                 {step === 3 && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {['Starter', 'Professional', 'Enterprise'].map((p) => (
-                          <button
-                            key={p}
-                            onClick={() => setFormData({...formData, plan: p})}
-                            className={cn(
-                              "p-8 rounded-[2rem] border text-left transition-all relative overflow-hidden group",
-                              formData.plan === p 
-                                ? "bg-slate-900 text-white border-slate-900 shadow-2xl scale-[1.05] z-10" 
-                                : "bg-white text-slate-900 border-slate-200 hover:border-brand-primary"
-                            )}
-                          >
-                            {p === 'Enterprise' && (
-                              <div className="absolute top-4 right-4 px-2 py-1 bg-brand-primary text-white text-[8px] font-bold rounded uppercase tracking-widest">Recommended</div>
-                            )}
-                            <p className={cn("text-[10px] font-bold uppercase tracking-[0.2em] mb-4", formData.plan === p ? "text-slate-400" : "text-slate-500")}>Plan Type</p>
-                            <p className="text-xl font-bold mb-2">{p}</p>
-                            <div className="space-y-3 mt-6">
-                              {[1,2,3].map(i => (
-                                <div key={i} className="flex items-center gap-2">
-                                  <CheckCircle2 className={cn("w-3.5 h-3.5", formData.plan === p ? "text-brand-primary" : "text-emerald-500")} />
-                                  <span className={cn("text-[11px] font-medium", formData.plan === p ? "text-slate-300" : "text-slate-600")}>Premium Feature {i}</span>
+                      {availablePlans.length > 0 ? (
+                        <div className={cn("grid gap-4", availablePlans.length <= 3 ? `grid-cols-1 md:grid-cols-${availablePlans.length}` : 'grid-cols-1 md:grid-cols-3')}>
+                          {availablePlans.map((p) => {
+                            const isSelected = formData.plan === p.slug;
+                            const sym = currencySymbols[p.currency] || p.currency;
+                            return (
+                              <button
+                                key={p.id}
+                                onClick={() => setFormData({...formData, plan: p.slug})}
+                                className={cn(
+                                  "p-8 rounded-[2rem] border text-left transition-all relative overflow-hidden group",
+                                  isSelected
+                                    ? "bg-slate-900 text-white border-slate-900 shadow-2xl scale-[1.03] z-10" 
+                                    : "bg-white text-slate-900 border-slate-200 hover:border-brand-primary"
+                                )}
+                              >
+                                {p.is_recommended && (
+                                  <div className="absolute top-4 right-4 px-2 py-1 bg-brand-primary text-white text-[8px] font-bold rounded uppercase tracking-widest">Recommended</div>
+                                )}
+                                <p className={cn("text-[10px] font-bold uppercase tracking-[0.2em] mb-2", isSelected ? "text-slate-400" : "text-slate-500")}>Plan Type</p>
+                                <p className="text-xl font-bold mb-1">{p.name}</p>
+                                <div className="flex items-baseline gap-1 mt-3">
+                                  <span className="text-2xl font-bold">{sym}{p.price_monthly}</span>
+                                  <span className={cn("text-xs font-medium", isSelected ? "text-slate-400" : "text-slate-500")}>/mo</span>
                                 </div>
-                              ))}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
+                                <p className={cn("text-[11px] mt-1", isSelected ? "text-slate-400" : "text-slate-500")}>
+                                  {p.max_seats ? `Up to ${p.max_seats.toLocaleString()} seats` : 'Unlimited seats'}
+                                </p>
+                                <div className="space-y-2 mt-5">
+                                  {p.features.slice(0, 4).map((feat, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                      <CheckCircle2 className={cn("w-3.5 h-3.5", isSelected ? "text-brand-primary" : "text-emerald-500")} />
+                                      <span className={cn("text-[11px] font-medium", isSelected ? "text-slate-300" : "text-slate-600")}>{feat}</span>
+                                    </div>
+                                  ))}
+                                  {p.features.length > 4 && (
+                                    <p className={cn("text-[10px] font-bold", isSelected ? "text-brand-primary" : "text-slate-400")}>+{p.features.length - 4} more</p>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 text-slate-400">
+                          <p className="text-sm font-bold">No plans configured</p>
+                          <p className="text-xs mt-1">Go to Price Management to create plans first.</p>
+                        </div>
+                      )}
 
-                      <div className="space-y-6 pt-6 border-t border-slate-100">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Employee License Seats</label>
-                          <span className="text-xl font-bold text-brand-primary">{formData.seats.toLocaleString()}</span>
-                        </div>
+                      <div className="space-y-4 pt-6 border-t border-slate-100">
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Employee License Seats</label>
                         <input 
-                          type="range" 
-                          min="100" 
-                          max="50000" 
-                          step="100"
-                          className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-brand-primary"
+                          type="number" 
+                          min="1"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-lg font-bold text-brand-primary focus:ring-2 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all outline-none"
                           value={formData.seats}
-                          onChange={(e) => setFormData({...formData, seats: parseInt(e.target.value)})}
+                          onChange={(e) => setFormData({...formData, seats: parseInt(e.target.value) || 1})}
+                          placeholder="Enter number of seats"
                         />
-                        <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
-                          <span>100 seats</span>
-                          <span>25,000 seats</span>
-                          <span>50,000 seats</span>
-                        </div>
+                        <p className="text-[11px] text-slate-400 pl-1">Type any number. This defines how many employees can be onboarded.</p>
                       </div>
                     </div>
                   </div>
@@ -568,7 +615,7 @@ export default function NewOrganisationPage() {
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Licensing</p>
-                    <p className="text-[13px] font-bold text-slate-900 mt-1">{formData.plan} Plan</p>
+                    <p className="text-[13px] font-bold text-slate-900 mt-1">{availablePlans.find(p => p.slug === formData.plan)?.name || formData.plan} Plan</p>
                     <p className="text-[11px] text-slate-500 font-medium mt-1">{formData.seats.toLocaleString()} Seats Allocated</p>
                   </div>
                 </div>

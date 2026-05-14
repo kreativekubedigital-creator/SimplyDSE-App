@@ -22,7 +22,8 @@ import {
   Megaphone,
   Ticket,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Tag
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useProfile } from '@/hooks/useProfile';
@@ -41,6 +42,7 @@ const navigation = [
   { name: 'Operations Center', icon: Workflow, href: '/admin/workflows', section: 'Operations' },
   
   { name: 'Billing', icon: CreditCard, href: '/admin/billing', section: 'Configuration' },
+  { name: 'Price Management', icon: Tag, href: '/admin/pricing', section: 'Configuration' },
   { name: 'Settings', icon: Settings, href: '/admin/settings', section: 'Configuration' },
 ];
 
