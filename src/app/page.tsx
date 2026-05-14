@@ -15,6 +15,7 @@ const Security = dynamic(() => import('../components/Security'));
 const Testimonials = dynamic(() => import('../components/Testimonials'));
 const CTA = dynamic(() => import('../components/CTA'));
 const HumanImpact = dynamic(() => import('../components/HumanImpact'));
+const FAQ = dynamic(() => import('../components/FAQ'));
 
 export default function HomePage() {
   return (
@@ -35,6 +36,7 @@ export default function HomePage() {
             <Security />
           </div>
           <Testimonials />
+          <FAQ />
           <CTA />
         </main>
       </ClientLayoutWrapper>

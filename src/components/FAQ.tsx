@@ -1,20 +1,22 @@
+'use client';
+
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Reveal from './ui/Reveal';
+import { Plus, Minus } from 'lucide-react';
 
-const FAQItem = ({ question, answer, isOpen, onClick }: any) => {
+const FAQItem = ({ title, content, isOpen, onClick }: { title: string, content: string, isOpen: boolean, onClick: () => void }) => {
   return (
-    <div className="border-b border-border-subtle overflow-hidden">
+    <div className="border-b border-slate-800 last:border-0">
       <button 
         onClick={onClick}
-        className="w-full py-8 flex items-center justify-between text-left group"
+        className="w-full flex items-center justify-between py-8 text-left group transition-all"
       >
-        <span className="text-xl font-bold text-text-primary tracking-tight group-hover:text-brand-primary transition-colors">
-          {question}
+        <span className={`text-xl md:text-2xl font-bold transition-colors ${isOpen ? 'text-brand-primary' : 'text-white group-hover:text-white/80'}`}>
+          {title}
         </span>
-        <div className={`w-8 h-8 rounded-full border border-border-strong flex items-center justify-center transition-transform duration-500 ${isOpen ? 'rotate-45 bg-text-primary border-text-primary text-white' : 'rotate-0'}`}>
-          <Plus className="w-4 h-4" />
+        <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${isOpen ? 'bg-brand-primary border-brand-primary text-white rotate-180' : 'border-slate-700 text-slate-400 group-hover:border-slate-500'}`}>
+          {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
         </div>
       </button>
       <AnimatePresence>
@@ -23,11 +25,14 @@ const FAQItem = ({ question, answer, isOpen, onClick }: any) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
           >
-            <p className="pb-8 text-text-secondary leading-relaxed max-w-3xl">
-              {answer}
-            </p>
+            <div className="pb-8 pr-12">
+              <p className="text-lg text-slate-400 leading-relaxed max-w-4xl">
+                {content}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -36,52 +41,64 @@ const FAQItem = ({ question, answer, isOpen, onClick }: any) => {
 };
 
 const FAQ = () => {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const faqs = [
+  const faqData = [
     {
-      question: "How does SimplyDSE integrate with our existing HR software?",
-      answer: "We offer native integrations with Workday, BambooHR, and Microsoft 365. For custom stacks, our REST API allows for seamless data synchronization and automated user onboarding."
+      title: "What is a DSE Assessment?",
+      content: "A Display Screen Equipment (DSE) assessment evaluates how employees interact with their workstations, identifying risks related to posture, equipment, and environment. It helps prevent issues such as musculoskeletal disorders and ensures compliance with workplace health and safety regulations."
     },
     {
-      question: "Is clinical oversight included in the platform?",
-      answer: "Yes. SimplyDSE provides built-in clinical review workflows. High-risk assessments can be automatically routed to our network of clinical experts or your own internal specialists for immediate review."
+      title: "Who is SimplyDSE for?",
+      content: "SimplyDSE is built for organisations of all sizes, including HR teams, compliance managers, and business owners who need a structured way to manage employee assessments across multiple teams or locations."
     },
     {
-      question: "How do you handle multi-jurisdictional compliance?",
-      answer: "Our engine is pre-configured with local regulatory frameworks for over 40 countries. The platform automatically adjusts assessment parameters based on the employee's legal work location."
+      title: "How does SimplyDSE ensure data security?",
+      content: "The platform uses a secure multi-Workspace architecture where each company's data is isolated. Access is role-based, ensuring only authorised users can view or manage relevant information within their organisation."
     },
     {
-      question: "What is your typical implementation timeline?",
-      answer: "Enterprise organizations typically go live within 2-4 weeks. This includes HR sync, custom parameter configuration, and administrator training."
+      title: "Can SimplyDSE support remote and hybrid teams?",
+      content: "Yes. SimplyDSE is designed to support office-based, remote, and hybrid work environments. Employees can complete assessments from anywhere, ensuring consistent compliance regardless of location."
     }
   ];
 
   return (
-    <section id="faq" className="bg-bg-light">
+    <section id="faq" className="bg-black py-32 md:py-48 border-t border-slate-900">
       <div className="section-container">
-        <div className="flex flex-col lg:flex-row gap-20">
-          <div className="lg:w-1/3">
+        <div className="grid lg:grid-cols-12 gap-20">
+          {/* Header Side */}
+          <div className="lg:col-span-5">
             <Reveal delay={0.1}>
-              <span className="badge-enterprise">Knowledge Base</span>
+              <span className="badge-enterprise">Questions & Answers</span>
             </Reveal>
             <Reveal delay={0.2}>
-              <h2 className="text-4xl md:text-5xl font-bold text-text-primary mt-6 tracking-tight leading-[1.1]">
-                Critical queries, <br /><span className="text-brand-primary">answered.</span>
+              <h2 className="text-5xl md:text-7xl font-bold text-white mt-8 tracking-tighter leading-[0.95]">
+                Common <br />
+                <span className="text-slate-500">Inquiries.</span>
               </h2>
+            </Reveal>
+            <Reveal delay={0.3}>
+              <p className="text-xl text-slate-400 mt-12 leading-relaxed max-w-md">
+                Everything you need to know about our platform, security standards, and deployment process.
+              </p>
             </Reveal>
           </div>
 
-          <div className="lg:w-2/3 border-t border-border-subtle">
-            {faqs.map((faq, i) => (
-              <Reveal key={i} delay={0.3 + i * 0.1} width="100%">
-                <FAQItem 
-                  {...faq} 
-                  isOpen={openIndex === i} 
-                  onClick={() => setOpenIndex(openIndex === i ? -1 : i)} 
-                />
-              </Reveal>
-            ))}
+          {/* FAQ Side */}
+          <div className="lg:col-span-7">
+            <Reveal delay={0.4} direction="up">
+              <div className="border-t border-slate-800">
+                {faqData.map((item, index) => (
+                  <FAQItem 
+                    key={index}
+                    title={item.title}
+                    content={item.content}
+                    isOpen={openIndex === index}
+                    onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                  />
+                ))}
+              </div>
+            </Reveal>
           </div>
         </div>
       </div>
