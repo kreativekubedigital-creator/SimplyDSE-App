@@ -30,7 +30,7 @@ export function useComplianceData() {
         .from('assessments')
         .select(`
           *,
-          profiles(full_name, email)
+          profiles(full_name, email, department)
         `)
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false });
@@ -40,7 +40,7 @@ export function useComplianceData() {
       const processedAssessments = assessments.map((rec: any) => ({
         id: rec.id.substring(0, 12).toUpperCase(),
         employee: rec.profiles?.full_name || rec.profiles?.email || 'Unnamed',
-        department: 'General',
+        department: rec.profiles?.department || 'General',
         status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Pending',
         dueDate: rec.completed_at ? new Date(rec.completed_at).toLocaleDateString() : 'Pending',
         riskLevel: rec.risk_level === 'high' ? 'High' : rec.risk_level === 'medium' ? 'Medium' : 'Low',

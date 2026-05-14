@@ -45,7 +45,8 @@ export async function importEmployees(employees: ImportEmployee[]) {
       organizationSlug = orgData.slug;
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const resend = resendApiKey ? new Resend(resendApiKey) : null;
     const loginLink = `https://${organizationSlug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online'}/login`;
 
     const results = {
@@ -67,7 +68,9 @@ export async function importEmployees(employees: ImportEmployee[]) {
           user_metadata: {
             first_name: emp.firstName,
             last_name: emp.lastName,
-            organization_id: organizationId
+            full_name: `${emp.firstName} ${emp.lastName}`.trim(),
+            organization_id: organizationId,
+            role: 'employee'
           }
         });
 
@@ -85,6 +88,8 @@ export async function importEmployees(employees: ImportEmployee[]) {
             full_name: `${emp.firstName} ${emp.lastName}`.trim(),
             role: 'employee',
             organization_id: organizationId,
+            designation: emp.jobTitle,
+            department: emp.department,
             status: 'active'
           })
           .eq('id', userId);
@@ -96,38 +101,40 @@ export async function importEmployees(employees: ImportEmployee[]) {
         }
 
         // Send Email
-        try {
-          await resend.emails.send({
-            from: 'SimplyDSE <onboarding@simplydse.online>',
-            to: emp.email,
-            subject: `Welcome to SimplyDSE - Your Employee Account is Ready`,
-            html: `
-              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px;">
-                <h1 style="color: #1e293b; font-size: 24px; margin-bottom: 24px;">Welcome to the Team!</h1>
-                <p style="color: #64748b; font-size: 16px; line-height: 24px;">
-                  Hello ${emp.firstName}, your employee account for <strong>${organizationName}</strong> has been created. 
-                  You can now access your workplace compliance dashboard to complete your DSE assessments.
-                </p>
-                
-                <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin: 32px 0;">
-                  <p style="margin: 0 0 12px 0;"><strong>Access Link:</strong> <a href="${loginLink}" style="color: #2563eb;">${loginLink}</a></p>
-                  <p style="margin: 0 0 12px 0;"><strong>Email:</strong> ${emp.email}</p>
-                  <p style="margin: 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+        if (resend) {
+          try {
+            await resend.emails.send({
+              from: 'SimplyDSE <onboarding@simplydse.online>',
+              to: emp.email,
+              subject: `Welcome to SimplyDSE - Your Employee Account is Ready`,
+              html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px;">
+                  <h1 style="color: #1e293b; font-size: 24px; margin-bottom: 24px;">Welcome to the Team!</h1>
+                  <p style="color: #64748b; font-size: 16px; line-height: 24px;">
+                    Hello ${emp.firstName}, your employee account for <strong>${organizationName}</strong> has been created. 
+                    You can now access your workplace compliance dashboard to complete your DSE assessments.
+                  </p>
+                  
+                  <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin: 32px 0;">
+                    <p style="margin: 0 0 12px 0;"><strong>Access Link:</strong> <a href="${loginLink}" style="color: #2563eb;">${loginLink}</a></p>
+                    <p style="margin: 0 0 12px 0;"><strong>Email:</strong> ${emp.email}</p>
+                    <p style="margin: 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+                  </div>
+
+                  <p style="color: #64748b; font-size: 14px; line-height: 20px;">
+                    Please log in and complete your initial health and safety assessment as soon as possible.
+                  </p>
+
+                  <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
+                  <p style="color: #94a3b8; font-size: 12px;">
+                    This is an automated message from SimplyDSE for ${organizationName}.
+                  </p>
                 </div>
-
-                <p style="color: #64748b; font-size: 14px; line-height: 20px;">
-                  Please log in and complete your initial health and safety assessment as soon as possible.
-                </p>
-
-                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
-                <p style="color: #94a3b8; font-size: 12px;">
-                  This is an automated message from SimplyDSE for ${organizationName}.
-                </p>
-              </div>
-            `
-          });
-        } catch (emailErr) {
-          console.error(`Failed to send email to ${emp.email}:`, emailErr);
+              `
+            });
+          } catch (emailErr) {
+            console.error(`Failed to send email to ${emp.email}:`, emailErr);
+          }
         }
 
         results.count++;

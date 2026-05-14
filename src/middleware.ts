@@ -122,22 +122,59 @@ export async function middleware(req: NextRequest) {
 
   // Workspace Zone (acme.simplydse.online)
   else {
-    // Auth Check
+    // 1. Auth Check
     if (!user && path !== '/login' && !path.startsWith('/auth')) {
       const loginUrl = new URL('/login', req.url);
       if (path !== '/') loginUrl.searchParams.set('next', path);
       return NextResponse.redirect(loginUrl);
     }
 
-    // Clean up URLs: If they access acme.domain.com/dashboard/something, redirect to acme.domain.com/something
-    if (path.startsWith('/dashboard')) {
-      return NextResponse.redirect(new URL(path.replace(/^\/dashboard/, '') || '/', req.url));
-    }
+    if (user) {
+      // 2. Fetch Profile & Resolve Role
+      // We use the service role client for middleware to ensure we can always fetch the profile 
+      // even if RLS is strict (though RLS should allow self-read).
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, organization_id, organizations!profiles_organization_id_fkey(subdomain)')
+        .eq('id', user.id)
+        .single();
 
-    // Rewrite acme.domain.com/some-path to /dashboard/some-path
-    // EXEMPT /auth and /login paths
-    if (path !== '/login' && !path.startsWith('/auth')) {
-      return NextResponse.rewrite(new URL(`/dashboard${path === '/' ? '' : path}`, req.url));
+      const role = profile?.role || 'employee';
+      // @ts-ignore
+      const userSubdomain = profile?.organizations?.subdomain;
+
+      // 3. Tenant Isolation Check
+      // Ensure the user belongs to the organization associated with this subdomain
+      if (userSubdomain && userSubdomain !== currentHost) {
+        // Log out or redirect to their correct subdomain
+        const { error: signOutError } = await supabase.auth.signOut();
+        return NextResponse.redirect(new URL(`/login?error=Access Denied: Your account belongs to ${userSubdomain}`, req.url));
+      }
+
+      // 4. Resolve Dashboard Prefix
+      let dashboardPrefix = '/employee'; // Default
+      
+      const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
+      if (hrRoles.includes(role)) {
+        dashboardPrefix = '/dashboard';
+      } else if (role === 'manager') {
+        dashboardPrefix = '/manager';
+      } else if (role === 'super_admin') {
+        // Super admins can access everything, but usually go to /admin
+        // If they are on a workspace, they might be acting as an admin
+        dashboardPrefix = '/dashboard';
+      }
+
+      // 5. Path Cleanup & Access Control
+      // Prevent users from manually typing the prefix in the URL
+      if (path.startsWith('/dashboard') || path.startsWith('/employee') || path.startsWith('/manager')) {
+        return NextResponse.redirect(new URL(path.replace(/^\/(dashboard|employee|manager)/, '') || '/', req.url));
+      }
+
+      // 6. Rewrite to correct internal route
+      if (path !== '/login' && !path.startsWith('/auth')) {
+        return NextResponse.rewrite(new URL(`${dashboardPrefix}${path === '/' ? '' : path}`, req.url));
+      }
     }
   }
 

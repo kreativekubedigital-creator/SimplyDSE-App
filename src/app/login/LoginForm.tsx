@@ -83,17 +83,25 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       }
 
       // 4. Role-based redirect
+      const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
+      
       if (role === 'super_admin') {
         if (tenantSlug === 'admin') {
           router.push('/');
         } else {
           router.push('/admin');
         }
-      } else if (role === 'organization_admin' || role === 'org_admin') {
+      } else if (hrRoles.includes(role)) {
         if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
           router.push(nextUrl || '/');
         } else {
           router.push('/dashboard');
+        }
+      } else if (role === 'manager') {
+        if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
+          router.push(nextUrl || '/');
+        } else {
+          router.push('/manager');
         }
       } else {
         // Employee

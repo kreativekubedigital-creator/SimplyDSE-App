@@ -317,7 +317,10 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
                         className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
                       >
                         <option value="employee">Standard Employee</option>
-                        <option value="organization_admin">HR Administrator</option>
+                        <option value="manager">Manager</option>
+                        <option value="hr_manager">HR Manager</option>
+                        <option value="compliance_manager">Compliance Manager</option>
+                        <option value="organisation_admin">Organisation Admin</option>
                       </select>
                     </div>
                     <div className="space-y-2">

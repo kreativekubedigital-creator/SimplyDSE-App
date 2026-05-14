@@ -72,6 +72,8 @@ function ComplianceContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'analytics' | 'risks' | 'tracking'>('analytics');
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [deptFilter, setDeptFilter] = useState('All');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { assessments, risks, stats, loading, refetch } = useComplianceData();
   const profile = useProfile();
@@ -85,10 +87,15 @@ function ComplianceContent() {
 
   const data = { assessments, risks, stats };
 
-  const filteredItems = (activeTab === 'risks' ? data.risks : data.assessments).filter((item: any) => 
-    item.employee.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = (activeTab === 'risks' ? data.risks : data.assessments).filter((item: any) => {
+    const matchesSearch = item.employee.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
+    const matchesDept = deptFilter === 'All' || item.department === deptFilter;
+    return matchesSearch && matchesStatus && matchesDept;
+  });
+
+  const departments = Array.from(new Set(data.assessments.map((a: any) => a.department))).filter(Boolean);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -115,7 +122,7 @@ function ComplianceContent() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-8 border-b border-slate-100">
+      <div className="flex items-center gap-8 border-b border-slate-100 mb-6">
         {[
           { id: 'analytics', label: 'Compliance Analytics', icon: TrendingUp },
           { id: 'risks', label: 'Risks & Escalations', icon: AlertTriangle },
@@ -136,6 +143,55 @@ function ComplianceContent() {
             )}
           </button>
         ))}
+      </div>
+
+      {/* Filters Bar */}
+      <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/60">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder="Search by employee name or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+          />
+        </div>
+        
+        <select 
+          value={deptFilter}
+          onChange={(e) => setDeptFilter(e.target.value)}
+          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        >
+          <option value="All">All Departments</option>
+          {departments.map(dept => (
+            <option key={dept} value={dept}>{dept}</option>
+          ))}
+        </select>
+
+        <select 
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        >
+          <option value="All">All Statuses</option>
+          <option value="Completed">Completed</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Pending">Pending</option>
+        </select>
+
+        <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block" />
+
+        <button 
+          onClick={() => {
+            setSearchTerm('');
+            setStatusFilter('All');
+            setDeptFilter('All');
+          }}
+          className="text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          Reset Filters
+        </button>
       </div>
 
       {activeTab === 'analytics' && (
