@@ -10,6 +10,7 @@ export function useProfile() {
     fullName: string | null;
     role: string | null;
     avatarUrl: string | null;
+    designation: string | null;
     organizationId: string | null;
     organizationName: string | null;
     organizationLogoUrl: string | null;
@@ -20,6 +21,7 @@ export function useProfile() {
     fullName: null,
     role: null,
     avatarUrl: null,
+    designation: null,
     organizationId: null,
     organizationName: null,
     organizationLogoUrl: null,
@@ -36,6 +38,7 @@ export function useProfile() {
           fullName: context.fullName || 'User',
           role: context.role,
           avatarUrl: context.avatarUrl,
+          designation: context.designation || null,
           organizationId: context.organizationId,
           organizationName: context.organizationName,
           organizationLogoUrl: context.organizationLogoUrl,
