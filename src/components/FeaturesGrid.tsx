@@ -29,7 +29,7 @@ const AccordionItem = ({ title, content, isOpen, onClick }: { title: string, con
               <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0 mt-1">
                 <ArrowRight className="w-4 h-4 text-white" />
               </div>
-              <p className="text-[14px] text-slate-600 leading-relaxed font-medium">
+              <p className="text-[14px] text-text-secondary leading-relaxed font-medium">
                 {content}
               </p>
             </div>
@@ -106,7 +106,7 @@ const FeaturesGrid = () => {
             {/* Automated Notifications */}
             <div className="bg-[#F1F5F9] rounded-[2.5rem] p-8 text-slate-900 shadow-xl">
               <h3 className="text-2xl font-bold mb-4">Automated Notifications</h3>
-              <p className="text-slate-600 text-[15px] leading-relaxed">
+              <p className="text-text-secondary text-[15px] leading-relaxed">
                 Send assessment invitations, reminders, and follow-ups automatically, 
                 reducing manual effort and ensuring higher completion rates across organisations.
               </p>
@@ -148,7 +148,7 @@ const FeaturesGrid = () => {
             {/* Dashboard & Reporting */}
             <div className="bg-[#F1F5F9] rounded-[2.5rem] p-8 text-slate-900 shadow-xl">
               <h3 className="text-2xl font-bold mb-4">Dashboard & Reporting</h3>
-              <p className="text-slate-600 text-[15px] leading-relaxed">
+              <p className="text-text-secondary text-[15px] leading-relaxed">
                 Monitor assessment progress, track completion rates, and view risk insights in 
                 real time with easy-to-export reports for compliance and decision-making.
               </p>

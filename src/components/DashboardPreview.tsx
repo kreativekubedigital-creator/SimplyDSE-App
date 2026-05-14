@@ -16,7 +16,7 @@ const DashboardPreview = () => {
             <Reveal delay={0.2}>
               <h2 className="text-5xl md:text-6xl font-bold text-text-primary tracking-tight leading-[1.05] text-balance">
                 Your entire risk landscape, <br className="hidden md:block" />
-                <span className="text-slate-300">in one view.</span>
+                <span className="text-text-muted">in one view.</span>
               </h2>
             </Reveal>
             <Reveal delay={0.3}>

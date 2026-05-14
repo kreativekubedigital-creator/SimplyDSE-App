@@ -97,7 +97,7 @@ export function EmployeeNavbar() {
         <h2 className="text-[20px] font-bold text-slate-900 tracking-tight flex items-center gap-2">
           Welcome back, {loading ? '...' : firstName} 👋
         </h2>
-        <p className="text-[13px] text-slate-500 font-medium">Here's an overview of your assessments and workplace health.</p>
+        <p className="text-[13px] text-text-muted font-medium">Here's an overview of your assessments and workplace health.</p>
       </div>
 
       {/* Right Side Actions */}
@@ -109,14 +109,14 @@ export function EmployeeNavbar() {
         </button>
 
         <div className="flex items-center gap-2">
-          <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+          <button className="p-2.5 text-text-muted hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
             <HelpCircle className="w-5 h-5" />
           </button>
           
           <div className="relative" ref={notifRef}>
             <button 
               onClick={() => setShowNotifPanel(!showNotifPanel)}
-              className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all relative group"
+              className="p-2.5 text-text-muted hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all relative group"
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
@@ -135,7 +135,7 @@ export function EmployeeNavbar() {
                 <div className="max-h-[300px] overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="py-10 text-center">
-                      <p className="text-[12px] text-slate-400">No notifications yet</p>
+                      <p className="text-[12px] text-text-muted">No notifications yet</p>
                     </div>
                   ) : (
                     notifications.map((notif) => (
@@ -151,7 +151,7 @@ export function EmployeeNavbar() {
                           {notif.title}
                         </p>
                         <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                        <span className="text-[9px] text-slate-400 mt-1 block font-medium">{timeAgo(notif.created_at)}</span>
+                        <span className="text-[9px] text-text-muted mt-1 block font-medium">{timeAgo(notif.created_at)}</span>
                       </div>
                     ))
                   )}
@@ -178,7 +178,7 @@ export function EmployeeNavbar() {
               {loading ? '...' : roleLabel}
             </p>
           </div>
-          <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors ml-1" />
+          <ChevronDown className="w-4 h-4 text-text-muted group-hover:text-slate-600 transition-colors ml-1" />
         </button>
       </div>
     </header>

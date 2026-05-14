@@ -36,7 +36,7 @@ const Features = () => {
                     <h3 className="text-3xl md:text-5xl font-bold tracking-tighter leading-tight">
                       Autonomous <br /> Compliance Ops.
                     </h3>
-                    <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
+                    <p className="text-text-muted text-lg leading-relaxed max-w-sm">
                       Our intelligence engine handles the heavy lifting—from auto-enrollment to 
                       risk-based clinical escalations.
                     </p>
@@ -49,7 +49,7 @@ const Features = () => {
                         </div>
                       ))}
                     </div>
-                    <p className="label-secondary !text-slate-500">3-Step Orchestration</p>
+                    <p className="label-secondary !text-text-muted">3-Step Orchestration</p>
                   </div>
                 </div>
                 

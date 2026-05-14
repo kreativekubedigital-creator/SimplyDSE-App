@@ -137,7 +137,7 @@ const Workflow = () => {
                   <h3 className="text-xl font-bold text-white leading-tight">
                     {step.title}
                   </h3>
-                  <p className="text-[15px] text-slate-400 leading-relaxed opacity-80">
+                  <p className="text-[15px] text-text-muted leading-relaxed opacity-80">
                     {step.description}
                   </p>
                 </div>

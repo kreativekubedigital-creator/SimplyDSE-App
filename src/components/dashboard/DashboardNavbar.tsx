@@ -107,11 +107,11 @@ export function DashboardNavbar() {
       {/* Search */}
       <div className="flex-1 max-w-2xl">
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-muted group-focus-within:text-blue-600 transition-colors" />
           <input 
             type="text" 
             placeholder="Search employees, assessments, departments..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-5 py-3 text-[13px] font-medium placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-200 transition-all outline-none"
+            className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-5 py-3 text-[13px] font-medium placeholder:text-text-muted focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-200 transition-all outline-none"
           />
         </div>
       </div>
@@ -148,7 +148,7 @@ export function DashboardNavbar() {
                 {notifications.length === 0 ? (
                   <div className="py-12 text-center">
                     <Bell className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <p className="text-[13px] text-slate-400 font-medium">No notifications yet</p>
+                    <p className="text-[13px] text-text-muted font-medium">No notifications yet</p>
                   </div>
                 ) : (
                   notifications.map((notif) => (
@@ -195,7 +195,7 @@ export function DashboardNavbar() {
               {loading ? '...' : subtitle}
             </p>
           </div>
-          <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors ml-1" />
+          <ChevronDown className="w-4 h-4 text-text-muted group-hover:text-slate-600 transition-colors ml-1" />
         </button>
       </div>
     </header>

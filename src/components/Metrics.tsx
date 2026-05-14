@@ -69,7 +69,7 @@ const Metrics = () => {
           </Reveal>
           <Reveal delay={0.2}>
             <h2 className="text-4xl md:text-5xl font-bold text-text-primary mt-6 tracking-tight">
-              Real-time compliance <span className="text-slate-300">metrics.</span>
+              Real-time compliance <span className="text-text-muted">metrics.</span>
             </h2>
           </Reveal>
         </div>

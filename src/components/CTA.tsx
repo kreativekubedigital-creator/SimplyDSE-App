@@ -15,7 +15,7 @@ const CTA = () => {
           <Reveal delay={0.2}>
             <h2 className="text-6xl md:text-8xl font-bold text-text-primary tracking-tighter leading-[0.9] text-balance">
               Secure your workforce. <br />
-              <span className="text-slate-300">Automate compliance.</span>
+              <span className="text-text-muted">Automate compliance.</span>
             </h2>
           </Reveal>
           <Reveal delay={0.3}>
