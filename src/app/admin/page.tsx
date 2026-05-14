@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { supabase } from '@/lib/supabase';
+import { useProfile } from '@/hooks/useProfile';
 import { 
   Building2, 
   User, 
@@ -63,6 +64,7 @@ interface InfraMetric {
 }
 
 export default function AdminOverviewPage() {
+  const { fullName, loading: profileLoading } = useProfile();
   const [organizations, setorganizations] = useState<Organisation[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [infraMetrics, setInfraMetrics] = useState<InfraMetric[]>([]);
@@ -76,24 +78,34 @@ export default function AdminOverviewPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statsRes, logsRes, infraRes, orgsRes, analyticsRes, notificationsRes] = await Promise.all([
-          supabase.from('global_dashboard_stats').select('*').maybeSingle(),
+        const [usersRes, logsRes, infraRes, orgsRes, analyticsRes, notificationsRes, ticketsRes, assessmentsRes] = await Promise.all([
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('audit_logs').select(`
             *,
             profiles ( full_name ),
             organizations ( name )
           `).order('created_at', { ascending: false }).limit(5),
-          supabase.from('System_metrics').select('*').order('name', { ascending: true }),
+          supabase.from('infrastructure_metrics').select('*').order('name', { ascending: true }),
           supabase.from('organizations').select('*').order('created_at', { ascending: false }),
           supabase.from('analytics_snapshots').select('*').order('timestamp', { ascending: true }).limit(5),
-          supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(3)
+          supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(3),
+          supabase.from('tickets').select('id, status', { count: 'exact' }).eq('status', 'open'),
+          supabase.from('assessments').select('id, status', { count: 'exact' })
         ]);
 
-        if (statsRes.data) {
-          setStats(statsRes.data);
-          setComplianceRate(statsRes.data.latest_compliance_rate || 0);
-          setTicketCount(statsRes.data.open_tickets || 0);
-        }
+        const totalUsers = usersRes.count || 0;
+        const openTickets = ticketsRes.count || 0;
+        const totalAssessments = assessmentsRes.count || 0;
+        const completedAssessments = assessmentsRes.data?.filter((a: any) => a.status === 'completed').length || 0;
+
+        setStats({
+          total_users: totalUsers,
+          new_users_30d: 0,
+          open_tickets: openTickets,
+          total_assessments: totalAssessments,
+          completed_assessments: completedAssessments,
+        });
+        setTicketCount(openTickets);
         
         if (orgsRes.data) setorganizations(orgsRes.data);
         if (logsRes.data) setAuditLogs(logsRes.data);
@@ -148,7 +160,7 @@ export default function AdminOverviewPage() {
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-200 pb-8">
         <div className="space-y-1.5">
-          <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Welcome back, Super Admin 👋</h2>
+          <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Welcome back, {profileLoading ? '...' : (fullName || 'Admin')} 👋</h2>
           <p className="text-[14px] text-slate-700 font-medium">Global operations and Workspace health monitoring dashboard.</p>
         </div>
         <div className="flex items-center gap-4">

@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from './AdminSidebar';
-import { Search, Bell, HelpCircle, ChevronDown, Menu, X } from 'lucide-react';
+import { Search, Bell, HelpCircle, ChevronDown, Menu, X, Settings, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useProfile } from '@/hooks/useProfile';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -13,6 +16,20 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
     const { fullName, initials, roleLabel, loading } = useProfile();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+      async function fetchUnread() {
+        const { count } = await supabase
+          .from('notifications')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_read', false);
+        setUnreadCount(count || 0);
+      }
+      fetchUnread();
+    }, []);
 
     return (
       <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -73,12 +90,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </div>
 
               <div className="flex items-center gap-1 md:gap-3">
-                <button className="p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-all relative group">
+                <Link href="/admin/notifications" className="p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-all relative group">
                   <Bell className="w-5 h-5" />
-                  <span className="absolute top-2.5 right-2.5 w-4 h-4 bg-danger text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white group-hover:scale-110 transition-transform">
-                    12
-                  </span>
-                </button>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2.5 right-2.5 w-4 h-4 bg-danger text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white group-hover:scale-110 transition-transform">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
                 <button className="hidden sm:flex p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-all">
                   <HelpCircle className="w-5 h-5" />
                 </button>
@@ -86,19 +105,50 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
               <div className="h-8 w-[1px] bg-slate-200 hidden sm:block" />
 
-              <button className="flex items-center gap-3 md:gap-4 pl-3 pr-1.5 py-1.5 rounded-2xl hover:bg-slate-50 transition-all group">
-                <div className="text-right hidden sm:block">
-                  <p className="text-[13px] font-bold text-slate-900 leading-none">
-                    {loading ? 'Loading...' : fullName}
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-1.5 uppercase tracking-widest font-bold">
-                    {loading ? '...' : roleLabel}
-                  </p>
-                </div>
-                <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shadow-sm group-hover:shadow-md transition-all flex items-center justify-center font-bold text-slate-600">
-                  {loading ? '...' : initials}
-                </div>
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center gap-3 md:gap-4 pl-3 pr-1.5 py-1.5 rounded-2xl hover:bg-slate-50 transition-all group"
+                >
+                  <div className="text-right hidden sm:block">
+                    <p className="text-[13px] font-bold text-slate-900 leading-none">
+                      {loading ? 'Loading...' : fullName}
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-1.5 uppercase tracking-widest font-bold">
+                      {loading ? '...' : roleLabel}
+                    </p>
+                  </div>
+                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shadow-sm group-hover:shadow-md transition-all flex items-center justify-center font-bold text-slate-600">
+                    {loading ? '...' : initials}
+                  </div>
+                </button>
+
+                {showProfileMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                      <div className="px-4 py-3 border-b border-slate-100">
+                        <p className="text-sm font-bold text-slate-900">{fullName}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{roleLabel}</p>
+                      </div>
+                      <Link href="/admin/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setShowProfileMenu(false)}>
+                        <Settings className="w-4 h-4 text-slate-400" />
+                        Settings
+                      </Link>
+                      <button 
+                        onClick={async () => {
+                          await supabase.auth.signOut();
+                          router.push('/');
+                        }}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </header>
 
