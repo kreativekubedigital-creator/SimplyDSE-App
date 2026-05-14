@@ -64,10 +64,25 @@ export async function provisionTenant(data: ProvisionRequest) {
     if (roleError) throw new Error(`Role Fetch Failed: ${roleError.message}`);
 
     // 3. Create User via Supabase Auth with Password
-    // This allows the user to log in immediately without waiting for an email
+    // First check if a user with this email already exists (orphan from deleted org)
+    let userId: string;
+    
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(
+      (u: any) => u.email?.toLowerCase() === data.adminEmail.toLowerCase()
+    );
+
+    if (existingUser) {
+      // Clean up the orphaned user: remove profile, roles, then auth user
+      await supabaseAdmin.from('user_roles').delete().eq('user_id', existingUser.id);
+      await supabaseAdmin.from('profiles').delete().eq('id', existingUser.id);
+      await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
+    }
+
+    // Now create the fresh user
     const { data: userData, error: userCreateError } = await supabaseAdmin.auth.admin.createUser({
       email: data.adminEmail,
-      password: data.adminPassword || 'SimplyDSE2024!', // Fallback if none provided
+      password: data.adminPassword || 'SimplyDSE2024!',
       email_confirm: true,
       user_metadata: {
         first_name: data.adminFirstName,
@@ -77,7 +92,7 @@ export async function provisionTenant(data: ProvisionRequest) {
     });
 
     if (userCreateError) throw new Error(`User Creation Failed: ${userCreateError.message}`);
-    const userId = userData.user.id;
+    userId = userData.user.id;
 
     // 4. Create Profile (if not created by a trigger automatically, though often it is. We will explicitly update or insert to ensure organization_id is set)
     const { error: profileError } = await supabaseAdmin
