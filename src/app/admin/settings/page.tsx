@@ -8,6 +8,7 @@ import {
 import { cn } from '../../../lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/hooks/useProfile';
+import { updateProfileAction } from '@/app/actions/update-profile';
 
 interface PlatformSettings {
   platformName: string;
@@ -56,16 +57,13 @@ export default function AdminSettingsPage() {
   async function handleSaveProfile() {
     if (!profile.id) return;
     setProfileSaving(true);
-    const { error } = await supabase.from('profiles').update({
-      full_name: fullName,
-      avatar_url: avatarUrl || null,
-    }).eq('id', profile.id);
+    const result = await updateProfileAction(fullName);
     
-    if (!error) {
+    if (result.success) {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } else {
-      alert('Failed to save: ' + error.message);
+      alert('Failed to save: ' + (result.error || 'Unknown error'));
     }
     setProfileSaving(false);
   }

@@ -11,6 +11,7 @@ import { cn } from '../../../lib/utils';
 import { resendWelcomeEmail } from '../../../app/actions/resend-welcome-email';
 import { StatCard } from '../../../components/admin/StatCard';
 import { supabase } from '@/lib/supabase';
+import { deleteOrganizationAction } from '@/app/actions/delete-organization';
 
 interface Organisation {
   id: string;
@@ -119,12 +120,12 @@ export default function OrganizationsPage() {
   async function handleDelete() {
     if (!deleteOrg) return;
     setActionLoading(true);
-    const { error } = await supabase.from('organizations').delete().eq('id', deleteOrg.id);
-    if (!error) {
+    const result = await deleteOrganizationAction(deleteOrg.id);
+    if (result.success) {
       setOrganizations(prev => prev.filter(o => o.id !== deleteOrg.id));
       setDeleteOrg(null);
     } else {
-      alert('Failed to delete: ' + error.message);
+      alert('Failed to delete: ' + (result.error || 'Unknown error'));
     }
     setActionLoading(false);
   }
