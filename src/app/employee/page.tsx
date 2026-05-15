@@ -62,16 +62,16 @@ export default function EmployeeDashboardPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Link href="/employee/wellness?tab=assessments" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-600/20">
+          <Link href="/employee/assessments?tab=assessments" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-600/20">
             <ClipboardList className="w-4 h-4" />
-            New Assessment
+            My Assessments
           </Link>
         </div>
       </div>
 
       {/* KPI Row with Deep Linking */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        <Link href="/employee/wellness?tab=analytics">
+        <Link href="/employee/assessments?tab=analytics">
           <StatCard 
             title="Compliance" 
             value={`${stats.compliance}%`} 
@@ -81,7 +81,7 @@ export default function EmployeeDashboardPage() {
             iconColor="blue"
           />
         </Link>
-        <Link href="/employee/wellness?tab=assessments">
+        <Link href="/employee/assessments?tab=assessments">
           <StatCard 
             title="Assessments" 
             value={stats.completedCount} 
@@ -90,7 +90,7 @@ export default function EmployeeDashboardPage() {
             iconColor="emerald"
           />
         </Link>
-        <Link href="/employee/wellness?tab=analytics">
+        <Link href="/employee/assessments?tab=analytics">
           <StatCard 
             title="Next Due" 
             value={stats.nextDue} 
@@ -99,7 +99,7 @@ export default function EmployeeDashboardPage() {
             iconColor="amber"
           />
         </Link>
-        <Link href="/employee/wellness?tab=analytics">
+        <Link href="/employee/assessments?tab=analytics">
           <StatCard 
             title="Risk Level" 
             value={stats.riskLevel} 
@@ -108,7 +108,7 @@ export default function EmployeeDashboardPage() {
             iconColor="purple"
           />
         </Link>
-        <Link href="/employee/wellness?tab=assessments">
+        <Link href="/employee/assessments?tab=assessments">
           <StatCard 
             title="Pending" 
             value={stats.pendingTasks} 
@@ -124,22 +124,38 @@ export default function EmployeeDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column (8 units) */}
         <div className="lg:col-span-8 space-y-8">
-          {/* Wellness Hub Summary */}
+          {/* Assessment Hub Summary */}
           <section className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Active Assessments</h3>
-              <Link href="/employee/wellness?tab=assessments" className="text-[11px] font-bold text-blue-600 hover:underline">Manage All Hubs</Link>
+              <Link href="/employee/assessments?tab=assessments" className="text-[11px] font-bold text-blue-600 hover:underline">View Assessment Hub</Link>
             </div>
             <div className="space-y-4">
               {assessments.length === 0 ? (
-                <div className="py-12 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
-                  <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                  <p className="text-sm font-medium text-slate-400">No active assessments found.</p>
-                </div>
+                <Link href="/employee/assessment" className="group relative p-8 rounded-[2.5rem] border-2 border-dashed border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all block overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/20 rounded-full -mr-32 -mt-32 blur-3xl" />
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div className="w-20 h-20 rounded-[2rem] bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20 group-hover:scale-110 transition-transform duration-500">
+                      <Monitor className="w-10 h-10" />
+                    </div>
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider mb-3">
+                        Required
+                      </div>
+                      <h4 className="text-xl font-bold text-slate-900 mb-2">DSE Hybrid Assessment</h4>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-md">Your workstation assessment is ready. Complete this to ensure your hybrid setup meets health and safety standards.</p>
+                    </div>
+                    <div className="shrink-0">
+                      <div className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold group-hover:bg-blue-600 transition-all shadow-lg group-hover:shadow-blue-600/20">
+                        Start Now <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
               ) : (
                 assessments.slice(0, 3).map((assessment) => (
                   <Link 
-                    href={assessment.status === 'Completed' ? `/employee/wellness?tab=assessments` : `/employee/assessment?id=${assessment.id}`}
+                    href={assessment.status === 'Completed' ? `/employee/assessments?tab=assessments` : `/employee/assessment?id=${assessment.id}`}
                     key={assessment.id} 
                     className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer block"
                   >

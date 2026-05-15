@@ -22,7 +22,7 @@ import { useProfile } from '@/hooks/useProfile';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Wellness Hub', href: '/wellness', icon: ShieldCheck },
+  { name: 'Assessment Hub', href: '/assessments', icon: ShieldCheck },
   { name: 'Communication', href: '/communication', icon: MessageCircle, badge: '5' },
   { name: 'My Profile', href: '/profile', icon: User },
 ];

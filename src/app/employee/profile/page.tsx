@@ -231,7 +231,7 @@ export default function EmployeeProfilePage() {
               <h2 className="text-xl font-bold mb-2">Upcoming Assessments</h2>
               <p className="text-slate-400 text-sm mb-6 max-w-md">Stay on top of your workplace health requirements. Your next scheduled assessment is due in 3 months.</p>
               <button 
-                onClick={() => router.push('/employee/wellness')}
+                onClick={() => router.push('/employee/assessments')}
                 className="px-6 py-3 bg-white text-slate-900 rounded-2xl text-[13px] font-bold hover:bg-blue-50 transition-all"
               >
                 View Schedule

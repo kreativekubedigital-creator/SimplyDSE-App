@@ -40,7 +40,7 @@ import {
   CartesianGrid
 } from 'recharts';
 
-function WellnessContent() {
+function AssessmentContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') as 'assessments' | 'analytics' | 'resources' || 'assessments';
   const [activeTab, setActiveTab] = useState<'assessments' | 'analytics' | 'resources'>(initialTab);
@@ -58,7 +58,7 @@ function WellnessContent() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Wellness Hub</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Assessment Hub</h1>
           <p className="text-[13px] text-slate-500 mt-1">Manage your workstation assessments, track health progress, and access ergonomic resources.</p>
         </div>
         
@@ -146,10 +146,28 @@ function WellnessContent() {
                   <p className="text-sm font-medium text-slate-500">Hydrating assessments...</p>
                 </div>
               ) : assessments.length === 0 ? (
-                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
-                  <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                  <p className="text-sm font-medium text-slate-500">No assessment records found.</p>
-                </div>
+                <Link href="/employee/assessment" className="group relative p-12 rounded-[3rem] border-2 border-dashed border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all block overflow-hidden text-center md:text-left">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/20 rounded-full -mr-48 -mt-48 blur-3xl" />
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+                    <div className="w-24 h-24 rounded-[2.5rem] bg-blue-600 text-white flex items-center justify-center shadow-2xl shadow-blue-600/30 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-3">
+                      <Monitor className="w-12 h-12" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-[11px] font-black uppercase tracking-widest mb-4">
+                        Action Required
+                      </div>
+                      <h4 className="text-2xl font-bold text-slate-900 mb-3">DSE Hybrid Assessment</h4>
+                      <p className="text-slate-500 font-medium leading-relaxed max-w-xl">
+                        Your workstation health and safety review is pending. This assessment helps optimize your workspace for comfort and compliance.
+                      </p>
+                    </div>
+                    <div className="shrink-0 w-full md:w-auto">
+                      <div className="flex items-center justify-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] text-[14px] font-bold group-hover:bg-blue-600 transition-all shadow-xl group-hover:shadow-blue-600/20 group-hover:-translate-y-1">
+                        Start Assessment <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
               ) : (
                 assessments.map((item) => (
                   <div key={item.id} className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
@@ -331,14 +349,14 @@ function WellnessContent() {
   );
 }
 
-export default function WellnessHubPage() {
+export default function AssessmentHubPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
       </div>
     }>
-      <WellnessContent />
+      <AssessmentContent />
     </Suspense>
   );
 }

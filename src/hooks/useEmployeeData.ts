@@ -33,17 +33,28 @@ export function useEmployeeData() {
       if (error) throw error;
 
       // Process assessments for UI
-      const processedAssessments = records.map((rec: any) => ({
-        id: rec.id,
-        title: rec.type === 'dse_workstation' || rec.type === 'dse' ? 'DSE Assessment' : 'Workstation Review',
-        subtitle: rec.results_summary || 'Self-assessment of your workstation',
-        status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Not Started',
-        progress: rec.status === 'in_progress' ? 50 : rec.status === 'completed' ? 100 : 0,
-        date: rec.created_at ? new Date(rec.created_at).toLocaleDateString() : 'Pending',
-        dateLabel: rec.status === 'completed' ? 'Completed on' : 'Due date',
-        risk: rec.risk_level || 'none',
-        pdfUrl: rec.metadata?.pdf_report_url || null
-      }));
+      const processedAssessments = records.map((rec: any) => {
+        let displayTitle = rec.type;
+        
+        // Clean up titles
+        if (rec.type === 'dse_workstation' || rec.type === 'dse') displayTitle = 'DSE Assessment';
+        else if (rec.type === 'Hybrid DSE Assessment') displayTitle = 'DSE Hybrid Assessment';
+        else if (rec.type.includes('_')) {
+          displayTitle = rec.type.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        return {
+          id: rec.id,
+          title: displayTitle,
+          subtitle: rec.results_summary || 'Self-assessment of your workstation',
+          status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Not Started',
+          progress: rec.status === 'in_progress' ? 50 : rec.status === 'completed' ? 100 : 0,
+          date: rec.created_at ? new Date(rec.created_at).toLocaleDateString() : 'Pending',
+          dateLabel: rec.status === 'completed' ? 'Completed on' : 'Due date',
+          risk: rec.risk_level || 'none',
+          pdfUrl: rec.metadata?.pdf_report_url || null
+        };
+      });
 
       setAssessments(processedAssessments);
 

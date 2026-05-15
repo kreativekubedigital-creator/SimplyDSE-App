@@ -102,12 +102,6 @@ export function EmployeeNavbar() {
 
       {/* Right Side Actions */}
       <div className="flex items-center gap-8">
-        {/* Support Link */}
-        <button className="hidden lg:flex items-center gap-2.5 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[13px] font-bold hover:bg-blue-600 hover:text-white transition-all group">
-          <Zap className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
-          Quick Assessment
-        </button>
-
         <div className="flex items-center gap-2">
           <button className="p-2.5 text-text-muted hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
             <HelpCircle className="w-5 h-5" />
