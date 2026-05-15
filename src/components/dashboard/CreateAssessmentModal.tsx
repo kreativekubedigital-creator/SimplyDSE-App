@@ -150,18 +150,22 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
                     key={t.id}
                     onClick={() => setSelectedTemplate(t.id)}
                     className={cn(
-                      "w-full text-left p-5 rounded-2xl border-2 transition-all",
+                      "w-full text-left p-4 rounded-2xl border transition-all",
                       selectedTemplate === t.id
-                        ? "border-blue-500 bg-blue-50/50 shadow-md shadow-blue-500/10"
+                        ? "border-blue-500 bg-blue-50/50 shadow-sm"
                         : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                     )}
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="text-[14px] font-bold text-slate-900">{t.name}</h4>
-                        <p className="text-[12px] text-slate-500 font-medium mt-1">{t.description}</p>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h4 className="text-[14px] font-bold text-slate-900 leading-tight">{t.name}</h4>
+                        <p className="text-[12px] text-slate-500 font-medium mt-1 line-clamp-2 leading-relaxed">
+                          {t.description}
+                        </p>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">v{t.version}</span>
+                      <span className="shrink-0 text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">
+                        v{t.version}
+                      </span>
                     </div>
                   </button>
                 ))

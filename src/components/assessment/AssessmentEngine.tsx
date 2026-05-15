@@ -110,6 +110,7 @@ function GuidanceModal({
 export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngineProps = {}) {
   const [activeAssessmentId, setActiveAssessmentId] = useState<string | undefined>(preAssignedId);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [templateData, setTemplateData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [viewState, setViewState] = useState<'intro' | 'guided' | 'review' | 'completed'>('intro');
   const [currentCatIndex, setCurrentCatIndex] = useState(0);
@@ -153,6 +154,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
           .single();
 
         if (tErr || !template) throw new Error('Hybrid DSE Assessment template not found');
+        setTemplateData(template);
 
         // Fetch Categories
         const { data: cats, error: cErr } = await supabase
@@ -635,12 +637,16 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         </div>
 
         <div className="prose prose-slate max-w-none mb-12">
-          <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 text-slate-600 leading-relaxed text-sm space-y-4">
+          <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 text-slate-600 leading-relaxed text-sm space-y-4 whitespace-pre-wrap">
             <p className="font-bold text-slate-900 text-lg">Introduction</p>
-            <p>The law requires your employer to protect your health, safety, and wellbeing while you are at work. This responsibility includes employees who work at locations other than the main business address.</p>
-            <p>While there are no specific rules only for remote work, general health and safety laws still apply when you work away from the office.</p>
-            <p>This risk assessment is a formal part of the office and remote working policy. You must review it regularly to stay compliant. You should also complete a new assessment if your work routine changes significantly.</p>
-            <p className="font-medium text-slate-900">To begin, we need to gather some details about your current working environment.</p>
+            {templateData?.introduction_content || (
+              <>
+                <p>The law requires your employer to protect your health, safety, and wellbeing while you are at work. This responsibility includes employees who work at locations other than the main business address.</p>
+                <p>While there are no specific rules only for remote work, general health and safety laws still apply when you work away from the office.</p>
+                <p>This risk assessment is a formal part of the office and remote working policy. You must review it regularly to stay compliant. You should also complete a new assessment if your work routine changes significantly.</p>
+                <p className="font-medium text-slate-900">To begin, we need to gather some details about your current working environment.</p>
+              </>
+            )}
           </div>
         </div>
 
