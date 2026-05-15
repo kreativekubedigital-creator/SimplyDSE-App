@@ -82,8 +82,8 @@ export default function AboutPage() {
                 >
                   <div className="relative glass-card overflow-hidden aspect-[4/3] shadow-2xl">
                     <img 
-                      src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=2070" 
-                      alt="Modern Workspace" 
+                      src="/Man ergonomic 2.png" 
+                      alt="Man working ergonomically" 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 opacity-90"
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 to-transparent" />
