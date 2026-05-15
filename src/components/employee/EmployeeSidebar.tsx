@@ -32,15 +32,21 @@ export function EmployeeSidebar() {
 
   return (
     <aside className="w-64 bg-[#0F172A] text-slate-300 flex flex-col h-screen fixed left-0 top-0 z-50 border-r border-slate-800">
-      {/* Brand */}
+      {/* Organisation Brand */}
       <div className="p-5 pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
-            <ShieldCheck className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden">
+            {organizationLogoUrl ? (
+              <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1.5" />
+            ) : (
+              <Building2 className="w-5 h-5 text-slate-400" />
+            )}
           </div>
-          <div>
-            <h1 className="text-[16px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
-            <p className="text-[10px] text-slate-400 font-medium mt-1">Employee Portal</p>
+          <div className="text-left min-w-0">
+            <p className="text-[15px] font-bold text-white leading-tight truncate">
+              {loading ? '...' : organizationName}
+            </p>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate uppercase tracking-wider">Tenant Member</p>
           </div>
         </div>
       </div>
@@ -89,26 +95,17 @@ export function EmployeeSidebar() {
         })}
       </nav>
 
-      {/* Bottom Profile & Org */}
-      <div className="p-4 space-y-2 border-t border-slate-800/50">
-        {/* Organisation */}
-        <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 group-hover:bg-slate-700 transition-colors overflow-hidden">
-              {organizationLogoUrl ? (
-                <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1" />
-              ) : (
-                <Building2 className="w-4 h-4 text-slate-400 group-hover:text-slate-200" />
-              )}
-            </div>
-            <div className="text-left min-w-0">
-              <p className="text-[12px] font-semibold text-white leading-none truncate">
-                {loading ? '...' : organizationName}
-              </p>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">SimplyDSE Member</p>
-            </div>
+      {/* Powered by SimplyDSE */}
+      <div className="p-4 border-t border-slate-800/50">
+        <div className="flex items-center gap-3 px-2 py-1">
+          <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
+            <ShieldCheck className="w-4 h-4" />
           </div>
-        </button>
+          <div>
+            <h1 className="text-[12px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
+            <p className="text-[9px] text-slate-500 font-medium mt-1">Platform Partner</p>
+          </div>
+        </div>
       </div>
     </aside>
   );
