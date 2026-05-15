@@ -165,10 +165,6 @@ export function HRDashboardSidebar() {
               {section.title}
             </p>
             {section.items.map((item) => {
-              // Robust matching logic:
-              // 1. Exact match for the current href
-              // 2. For non-root paths, match if the pathname starts with the href followed by a slash (nested routes)
-              // 3. Special case for /dashboard to ensure it doesn't over-match sub-modules
               const isActive = item.href === '/' 
                 ? pathname === '/' || pathname === ''
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);

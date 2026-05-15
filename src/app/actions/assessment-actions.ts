@@ -125,6 +125,7 @@ export async function getOrgEmployees(organizationId: string) {
     return { success: false, error: err.message };
   }
 }
+
 export async function sendAssessmentReminders(organizationId: string) {
   try {
     const { data: pending, error } = await supabaseAdmin
