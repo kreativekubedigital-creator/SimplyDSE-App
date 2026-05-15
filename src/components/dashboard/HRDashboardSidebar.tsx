@@ -126,7 +126,7 @@ export function HRDashboardSidebar() {
     }
   };
 
-  const orgName = loading ? 'Loading...' : (organizationName || 'Your Organisation');
+  const displayOrgName = loading ? 'Loading...' : (organizationName || 'Organisation Workspace');
 
   return (
     <aside className="w-[260px] bg-[#0F172A] text-slate-300 h-screen flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
@@ -146,7 +146,7 @@ export function HRDashboardSidebar() {
           </div>
           <div className="text-left min-w-0">
             <h1 className="text-[14px] font-bold text-white leading-tight truncate">
-              {loading ? 'Loading...' : (organizationName || 'Organisation Workspace')}
+              {displayOrgName}
             </h1>
             <div className="mt-1 space-y-0.5">
               <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider leading-none">Organisation Workspace</p>

@@ -15,7 +15,12 @@ import {
   Save,
   CheckCircle2,
   ChevronRight,
-  UserPlus
+  UserPlus,
+  Zap,
+  AlertTriangle,
+  RotateCcw,
+  Clock,
+  RefreshCcw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
