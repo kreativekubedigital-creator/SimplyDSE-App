@@ -125,3 +125,37 @@ export async function getOrgEmployees(organizationId: string) {
     return { success: false, error: err.message };
   }
 }
+
+export async function sendAssessmentReminders(organizationId: string) {
+  try {
+    const { data: pending, error } = await supabaseAdmin
+      .from('assessments')
+      .select(`
+        user_id,
+        assessment_templates (
+          name
+        )
+      `)
+      .eq('organization_id', organizationId)
+      .eq('status', 'pending');
+
+    if (error) return { success: false, error: error.message };
+    if (!pending || pending.length === 0) return { success: true, sent: 0 };
+
+    const notifications = pending.map((p: any) => ({
+      organization_id: organizationId,
+      user_id: p.user_id,
+      title: 'Assessment Reminder',
+      message: `Friendly reminder to complete your "${p.assessment_templates?.name || 'assigned'}" assessment.`,
+      type: 'assessment_reminder',
+      is_read: false,
+    }));
+
+    const { error: notifyErr } = await supabaseAdmin.from('notifications').insert(notifications);
+    if (notifyErr) return { success: false, error: notifyErr.message };
+
+    return { success: true, sent: notifications.length };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}

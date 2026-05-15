@@ -20,6 +20,11 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { CreateAssessmentModal } from '@/components/dashboard/CreateAssessmentModal';
+import { sendAssessmentReminders } from '@/app/actions/assessment-actions';
+import { supabase } from '@/lib/supabase';
 
 const navSections = [
   {
@@ -44,7 +49,84 @@ const quickActions = [
 
 export function HRDashboardSidebar() {
   const pathname = usePathname();
-  const { organizationName, organizationLogoUrl, loading } = useProfile();
+  const router = useRouter();
+  const { organizationName, organizationLogoUrl, organizationId, loading } = useProfile();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isReminderLoading, setIsReminderLoading] = useState(false);
+
+  const handleAction = async (actionName: string) => {
+    switch (actionName) {
+      case 'Create Assessment':
+        setIsCreateModalOpen(true);
+        break;
+      case 'Send Reminder':
+        if (!organizationId) return;
+        setIsReminderLoading(true);
+        const res = await sendAssessmentReminders(organizationId);
+        setIsReminderLoading(false);
+        if (res.success) {
+          alert(`Success! Sent reminders to ${res.sent} employee(s).`);
+        } else {
+          alert(`Error: ${res.error}`);
+        }
+        break;
+      case 'Generate Report':
+        router.push('/compliance');
+        break;
+      case 'Export Compliance Data':
+        await exportComplianceData();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const exportComplianceData = async () => {
+    try {
+      if (!organizationId) return;
+      
+      const { data: assessments, error } = await supabase
+        .from('assessments')
+        .select(`
+          id,
+          status,
+          risk_level,
+          created_at,
+          profiles(full_name, email, department)
+        `)
+        .eq('organization_id', organizationId);
+
+      if (error) throw error;
+      if (!assessments) return;
+
+      const headers = ['Assessment ID', 'Employee Name', 'Email', 'Department', 'Status', 'Risk Level', 'Date Assigned'];
+      const rows = assessments.map((a: any) => [
+        a.id.substring(0, 8).toUpperCase(),
+        a.profiles?.full_name || 'N/A',
+        a.profiles?.email || 'N/A',
+        a.profiles?.department || 'N/A',
+        a.status.charAt(0).toUpperCase() + a.status.slice(1),
+        a.risk_level || 'Pending',
+        new Date(a.created_at).toLocaleDateString()
+      ]);
+
+      const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `SimplyDSE_Compliance_Report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Failed to export compliance data. Please try again.');
+    }
+  };
+
+  const orgName = loading ? 'Loading...' : (organizationName || 'Your Organisation');
 
   return (
     <aside className="w-[260px] bg-[#0F172A] text-slate-300 h-screen flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
@@ -125,15 +207,39 @@ export function HRDashboardSidebar() {
               {quickActions.map((action) => (
                 <button 
                   key={action.name}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold text-slate-200 hover:text-white hover:bg-slate-700/50 transition-all group text-left"
+                  onClick={() => handleAction(action.name)}
+                  disabled={action.name === 'Send Reminder' && isReminderLoading}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold text-slate-200 transition-all group text-left",
+                    (action.name === 'Send Reminder' && isReminderLoading)
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:text-white hover:bg-slate-700/50"
+                  )}
                 >
-                  <action.icon className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition-colors" />
-                  {action.name}
+                  <action.icon className={cn(
+                    "w-3.5 h-3.5 transition-colors",
+                    (action.name === 'Send Reminder' && isReminderLoading)
+                      ? "text-slate-500 animate-pulse"
+                      : "text-slate-300 group-hover:text-blue-400"
+                  )} />
+                  {action.name === 'Send Reminder' && isReminderLoading ? 'Sending...' : action.name}
                 </button>
               ))}
             </div>
           </div>
         </div>
+
+        {/* Create Assessment Modal */}
+        {organizationId && (
+          <CreateAssessmentModal
+            isOpen={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            organizationId={organizationId}
+            onSuccess={() => {
+              // Optionally refetch data or show success
+            }}
+          />
+        )}
 
         {/* Sign Out Button */}
         <div className="px-3 pb-2">
