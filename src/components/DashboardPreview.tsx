@@ -7,7 +7,7 @@ const DashboardPreview = () => {
   return (
     <section className="bg-slate-50 border-y border-border-subtle">
       <div className="section-container">
-        <div className="flex flex-col lg:flex-row gap-20 items-center">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
           {/* Content Side */}
           <div className="flex-1 space-y-8">
             <Reveal delay={0.1}>

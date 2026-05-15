@@ -16,9 +16,17 @@ const Solutions = () => {
       reverse: false
     },
     {
+      badge: "Intelligent Insights",
+      title: "Proactive Risk Identification",
+      description: "Go beyond basic completion tracking. SimplyDSE's analytics engine identifies ergonomic risk patterns across your organisation, allowing you to prioritise interventions where they are needed most. Visualise health trends and compliance status at a glance with audit-ready reporting.",
+      image: "/solution-2.png",
+      icon: BarChart2,
+      reverse: true
+    },
+    {
       badge: "Operational Efficiency",
       title: "Automation That Respects Your Team’s Time",
-      description: "SimplyDSE removes the burden of manual follow ups and repetitive admin tasks. Assessments are distributed automatically, responses are tracked in real time, and reporting is generated instantly. Your team spends less time on paperwork and more time on meaningful action that improves workplace wellbeing and compliance.",
+      description: "SimplyDSE removes the burden of manual follow ups and repetitive admin tasks. Assessments are distributed automatically, responses are tracked in real time, and reporting is generated instantly. Your team spends less time on paperwork and more time on meaningful action that improves workplace wellbeing.",
       image: "/solution-3.png",
       icon: Briefcase,
       reverse: false
@@ -27,11 +35,11 @@ const Solutions = () => {
 
   return (
     <section id="solutions" className="bg-white">
-      <div className="section-container space-y-32 md:space-y-56">
+      <div className="section-container space-y-24 md:space-y-40">
         {solutions.map((item, index) => (
-          <div key={index} className={`flex flex-col ${item.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-16 md:gap-24`}>
+          <div key={index} className={`flex flex-col ${item.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-20`}>
             {/* Content Side */}
-            <div className={`flex-1 w-full space-y-8 ${item.reverse ? 'md:pl-12' : 'md:pr-12'}`}>
+            <div className={`flex-1 w-full space-y-6 ${item.reverse ? 'md:pl-8' : 'md:pr-8'}`}>
               <Reveal delay={0.2} width="100%">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-border-strong text-text-secondary text-[11px] font-bold tracking-widest uppercase">
                   <item.icon className="w-3.5 h-3.5 text-brand-primary" />
@@ -40,13 +48,13 @@ const Solutions = () => {
               </Reveal>
               
               <Reveal delay={0.3} width="100%">
-                <h2 className="text-4xl md:text-6xl font-bold text-text-primary tracking-tight leading-[1.1] text-balance">
+                <h2 className="text-4xl md:text-5xl font-bold text-text-primary tracking-tight leading-[1.1] text-balance">
                   {item.title}
                 </h2>
               </Reveal>
 
               <Reveal delay={0.4} width="100%">
-                <p className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-xl opacity-70">
+                <p className="text-lg text-text-secondary leading-relaxed max-w-xl opacity-70">
                   {item.description}
                 </p>
               </Reveal>

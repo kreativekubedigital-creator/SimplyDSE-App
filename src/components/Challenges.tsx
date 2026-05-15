@@ -42,7 +42,7 @@ const Challenges = ({ data }: ChallengesProps) => {
   return (
     <section id="challenges" className="bg-white">
       <div className="section-container">
-        <div className="flex flex-col lg:flex-row gap-20">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
           {/* Headline Side */}
           <div className="lg:w-1/3">
             <Reveal delay={0.1}>

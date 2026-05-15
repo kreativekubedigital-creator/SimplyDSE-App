@@ -38,9 +38,9 @@ const Trust = ({ headline }: TrustProps) => {
 
   return (
     <section id="trust" className="bg-white border-b border-border-subtle overflow-hidden">
-      <div className="section-container !py-16">
+      <div className="section-container !py-10">
         <Reveal delay={0.1} width="100%">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <span className="label-secondary tracking-[0.3em] opacity-80">
               {headline || "Trusted by Global Enterprise Leaders"}
             </span>

@@ -60,7 +60,7 @@ const Hero = ({ data }: HeroProps) => {
 
       <div className="relative z-10 w-full flex flex-col items-center justify-center text-center">
         {/* Bold Brand Anchor - Max width edge-to-edge - Lowered position */}
-        <div className="w-screen max-w-full overflow-hidden select-none pointer-events-none mb-12 md:mb-16 mt-32 md:mt-48">
+        <div className="w-screen max-w-full overflow-hidden select-none pointer-events-none mb-8 md:mb-10 mt-20 md:mt-32">
           <div className="flex justify-center items-center flex-nowrap whitespace-nowrap px-[1vw]">
             {"SIMPLYDSE".split("").map((char, index) => (
               <motion.span

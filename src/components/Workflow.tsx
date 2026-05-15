@@ -103,7 +103,7 @@ const Workflow = () => {
   return (
     <section id="workflow" className="bg-white">
       <div className="section-container">
-        <div className="mb-20">
+        <div className="mb-12">
           <Reveal delay={0.1}>
             <div className="text-brand-primary text-xs font-black uppercase tracking-[0.3em] mb-4">Operations</div>
           </Reveal>

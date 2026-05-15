@@ -30,7 +30,7 @@ const Security = () => {
   return (
     <section id="security" className="bg-bg-muted">
       <div className="section-container">
-        <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12">
+        <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-12">
           <div className="max-w-2xl">
             <Reveal delay={0.1}>
               <span className="badge-enterprise">Security & Compliance</span>

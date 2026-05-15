@@ -26,6 +26,11 @@ const HumanImpact = ({ badge, headline, items }: HumanImpactProps) => {
       desc: "Methodical approach to compliance that leaves no room for error."
     },
     {
+      src: '/compliance_officer.png',
+      title: "Compliance Leadership",
+      desc: "Empowering safety leaders with the data they need to drive change."
+    },
+    {
       src: '/support.png',
       title: "Expert Support",
       desc: "Clinical ergonomic experts available whenever your team needs them."
@@ -35,9 +40,9 @@ const HumanImpact = ({ badge, headline, items }: HumanImpactProps) => {
   const images = items || defaultImages;
 
   return (
-    <section className="bg-white">
+    <section className="bg-slate-50">
       <div className="section-container">
-        <div className="mb-20 text-center max-w-3xl mx-auto">
+        <div className="mb-16 text-center max-w-3xl mx-auto">
           <Reveal delay={0.1}>
             <span className="badge-enterprise">{badge || "The Human Element"}</span>
           </Reveal>
@@ -48,7 +53,7 @@ const HumanImpact = ({ badge, headline, items }: HumanImpactProps) => {
           </Reveal>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {images.map((img, i) => (
             <Reveal key={i} delay={0.2 + i * 0.1} direction="up" hFull>
               <div className="group relative rounded-[2rem] overflow-hidden border border-border-subtle aspect-[3/4] bg-bg-muted">

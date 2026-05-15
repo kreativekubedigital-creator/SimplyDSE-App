@@ -61,9 +61,9 @@ const FeaturesGrid = () => {
     <section id="features" className="bg-black overflow-hidden">
       <div className="section-container">
         {/* Header */}
-        <div className="mb-24 max-w-4xl">
+        <div className="mb-16 max-w-4xl">
           <Reveal delay={0.1}>
-            <span className="badge-enterprise">Platform Architecture</span>
+            <span className="badge-enterprise-dark">Platform Architecture</span>
           </Reveal>
           <Reveal delay={0.2}>
             <h2 className="text-6xl md:text-8xl font-bold text-white mt-8 tracking-tighter leading-[0.9] text-balance">
