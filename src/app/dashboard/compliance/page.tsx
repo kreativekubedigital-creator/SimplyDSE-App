@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { CreateAssessmentModal } from '@/components/dashboard/CreateAssessmentModal';
 import { useComplianceData } from '@/hooks/useComplianceData';
+import Link from 'next/link';
 import { 
   BarChart, 
   Bar, 
