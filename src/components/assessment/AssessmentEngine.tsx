@@ -519,7 +519,12 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
       totalScore += catScore;
       maxPossibleScore += catMax;
-      categoryResults.push({ name: cat.name, score: catScore, riskLevel: catRisk });
+      categoryResults.push({ 
+        name: cat.name, 
+        score: catScore, 
+        maxScore: catMax, 
+        riskLevel: catRisk 
+      });
     });
 
     // Score Normalize to 100
@@ -567,13 +572,16 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
           assessmentId: activeAssessmentId,
           organizationId,
           userId,
-          employeeName: profile.fullName,
+          employeeName: profile.fullName || 'Employee',
           employeeEmail: profile.email,
-          companyName: profile.organizationName,
+          companyName: profile.organizationName || 'Organisation',
           assessmentDate: new Date().toLocaleDateString('en-GB'),
           overallScore: normalizedScore,
           overallRiskLevel: overallRisk,
-          categories: categoryResults
+          categories: categoryResults,
+          strengths: [],
+          improvements: [],
+          recommendations: []
         })
       });
 

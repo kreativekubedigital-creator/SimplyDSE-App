@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { renderToStream } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import { AssessmentReportPDF } from '@/components/pdf/AssessmentReportPDF';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
@@ -26,6 +26,8 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    console.log('Generating report for body:', { ...body, categories: 'truncated' });
+    
     const { 
       assessmentId, 
       organizationId,
@@ -42,24 +44,25 @@ export async function POST(req: Request) {
       employeeEmail
     } = body;
 
-    // 1. Generate PDF Stream
-    const pdfStream = await renderToStream(
+    // 1. Generate PDF Buffer
+    const pdfInstance = pdf(
       React.createElement(AssessmentReportPDF, {
         data: {
-          employeeName,
-          companyName,
-          assessmentDate,
-          assessmentId,
-          overallScore,
-          overallRiskLevel,
-          categories,
-          strengths,
-          improvements,
-          recommendations
+          employeeName: employeeName || 'Employee',
+          companyName: companyName || 'Organisation',
+          assessmentDate: assessmentDate || new Date().toLocaleDateString(),
+          assessmentId: assessmentId || 'N/A',
+          overallScore: overallScore || 0,
+          overallRiskLevel: overallRiskLevel || 'Low',
+          categories: categories || [],
+          strengths: strengths || [],
+          improvements: improvements || [],
+          recommendations: recommendations || []
         }
       }) as any
     );
 
+    const pdfStream = await pdfInstance.toBuffer();
     const pdfBuffer = await streamToBuffer(pdfStream);
 
     // 2. Upload to Supabase Storage
