@@ -91,26 +91,6 @@ export function EmployeeSidebar() {
 
       {/* Bottom Profile & Org */}
       <div className="p-4 space-y-2 border-t border-slate-800/50">
-        {/* User */}
-        <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700 text-white text-[10px] font-bold group-hover:border-blue-600 transition-colors">
-                {loading ? '...' : initials}
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0F172A] rounded-full" />
-            </div>
-            <div className="text-left min-w-0">
-              <p className="text-[12px] font-semibold text-white leading-none truncate">
-                {loading ? 'Loading...' : fullName}
-              </p>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">
-                {loading ? '...' : roleLabel}
-              </p>
-            </div>
-          </div>
-        </button>
-
         {/* Organisation */}
         <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
           <div className="flex items-center gap-3">
