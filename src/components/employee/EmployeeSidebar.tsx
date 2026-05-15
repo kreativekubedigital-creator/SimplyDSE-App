@@ -21,10 +21,10 @@ import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Assessment Hub', href: '/assessments', icon: ShieldCheck },
-  { name: 'Communication', href: '/communication', icon: MessageCircle, badge: '5' },
-  { name: 'My Profile', href: '/profile', icon: User },
+  { name: 'Dashboard', href: '/employee', icon: LayoutDashboard },
+  { name: 'Assessment Hub', href: '/employee/assessments', icon: ShieldCheck },
+  { name: 'Communication', href: '/employee/communication', icon: MessageCircle, badge: '5' },
+  { name: 'My Profile', href: '/employee/profile', icon: User },
 ];
 
 export function EmployeeSidebar() {
@@ -49,8 +49,8 @@ export function EmployeeSidebar() {
       {/* Main Navigation */}
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
         {navigation.map((item) => {
-          const isActive = item.href === '/' 
-            ? pathname === '/' || pathname === ''
+          const isActive = item.href === '/employee' 
+            ? pathname === '/employee' || pathname === '/employee/'
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
             
           return (

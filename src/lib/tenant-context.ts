@@ -6,7 +6,23 @@ export async function getTenantContext() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name, avatar_url, designation, organization_id, organizations!profiles_organization_id_fkey(name, slug, logo_url)')
+    .select(`
+      role, 
+      full_name, 
+      avatar_url, 
+      designation, 
+      department,
+      organization_id, 
+      phone_number,
+      preferred_name,
+      start_date,
+      employment_type,
+      employee_id_official,
+      work_location,
+      manager_id,
+      manager:manager_id(full_name),
+      organizations!profiles_organization_id_fkey(name, slug, logo_url)
+    `)
     .eq('id', user.id)
     .single();
 
@@ -52,6 +68,14 @@ export async function getTenantContext() {
     fullName: profile?.full_name,
     avatarUrl: profile?.avatar_url,
     designation: profile?.designation,
+    department: profile?.department,
+    phoneNumber: profile?.phone_number,
+    preferredName: profile?.preferred_name,
+    startDate: profile?.start_date,
+    employmentType: profile?.employment_type,
+    employeeIdOfficial: profile?.employee_id_official,
+    workLocation: profile?.work_location,
+    managerName: (profile?.manager as any)?.full_name || null,
     organizationId,
     organizationName,
     organizationSlug,

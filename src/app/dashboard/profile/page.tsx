@@ -43,7 +43,7 @@ export default function HRProfilePage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    const result = await updateProfileAction(newName);
+    const result = await updateProfileAction({ fullName: newName });
     setIsSaving(false);
     if (result.success) {
       setIsEditing(false);
@@ -303,4 +303,3 @@ export default function HRProfilePage() {
     </div>
   );
 }
-

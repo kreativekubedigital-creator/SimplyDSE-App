@@ -11,6 +11,14 @@ export function useProfile() {
     role: string | null;
     avatarUrl: string | null;
     designation: string | null;
+    department: string | null;
+    phoneNumber: string | null;
+    preferredName: string | null;
+    startDate: string | null;
+    employmentType: string | null;
+    employeeIdOfficial: string | null;
+    workLocation: string | null;
+    managerName: string | null;
     organizationId: string | null;
     organizationName: string | null;
     organizationLogoUrl: string | null;
@@ -22,6 +30,14 @@ export function useProfile() {
     role: null,
     avatarUrl: null,
     designation: null,
+    department: null,
+    phoneNumber: null,
+    preferredName: null,
+    startDate: null,
+    employmentType: null,
+    employeeIdOfficial: null,
+    workLocation: null,
+    managerName: null,
     organizationId: null,
     organizationName: null,
     organizationLogoUrl: null,
@@ -39,6 +55,14 @@ export function useProfile() {
           role: context.role,
           avatarUrl: context.avatarUrl,
           designation: context.designation || null,
+          department: context.department || null,
+          phoneNumber: context.phoneNumber || null,
+          preferredName: context.preferredName || null,
+          startDate: context.startDate || null,
+          employmentType: context.employmentType || null,
+          employeeIdOfficial: context.employeeIdOfficial || null,
+          workLocation: context.workLocation || null,
+          managerName: context.managerName || null,
           organizationId: context.organizationId,
           organizationName: context.organizationName,
           organizationLogoUrl: context.organizationLogoUrl,
@@ -54,9 +78,10 @@ export function useProfile() {
   }, []);
 
   const getInitials = (name: string | null) => {
-    if (!name) return '??';
+    if (!name || name === 'User') return '??';
     return name
       .split(' ')
+      .filter(n => n.length > 0)
       .map(n => n[0])
       .join('')
       .toUpperCase()
