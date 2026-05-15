@@ -145,15 +145,51 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         setLoading(true);
         setError(null);
 
-        // Fetch the "Hybrid DSE Assessment" Template
-        const { data: template, error: tErr } = await supabase
+        // Handle Assessment ID (Load existing or Prepare to create)
+        let currentId = activeAssessmentId;
+
+        if (!currentId && profile.id && profile.organizationId) {
+          // Check for an existing in-progress assessment to resume
+          const { data: existing } = await supabase
+            .from('assessments')
+            .select('id, template_id')
+            .eq('user_id', profile.id)
+            .eq('status', 'in_progress')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (existing) {
+            currentId = existing.id;
+            setActiveAssessmentId(currentId);
+          }
+        }
+
+        let targetTemplateId = null;
+        if (currentId) {
+           const { data: assessment } = await supabase
+            .from('assessments')
+            .select('template_id')
+            .eq('id', currentId)
+            .single();
+          if (assessment) targetTemplateId = assessment.template_id;
+        }
+
+        // Fetch Template
+        const templateQuery = supabase
           .from('assessment_templates')
           .select('*')
-          .eq('name', 'Hybrid DSE Assessment')
-          .eq('is_active', true)
-          .single();
+          .eq('is_active', true);
+        
+        if (targetTemplateId) {
+          templateQuery.eq('id', targetTemplateId);
+        } else {
+          templateQuery.eq('name', 'Hybrid DSE Assessment');
+        }
 
-        if (tErr || !template) throw new Error('Hybrid DSE Assessment template not found');
+        const { data: template, error: tErr } = await templateQuery.single();
+
+        if (tErr || !template) throw new Error('Assessment template not found');
         setTemplateData(template);
 
         // Fetch Categories
@@ -185,26 +221,6 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
         setCategories(structuredCats);
 
-        // Handle Assessment ID (Load existing or Prepare to create)
-        let currentId = activeAssessmentId;
-
-        if (!currentId && profile.id && profile.organizationId) {
-          // Check for an existing in-progress assessment to resume
-          const { data: existing } = await supabase
-            .from('assessments')
-            .select('id')
-            .eq('user_id', profile.id)
-            .eq('template_id', template.id)
-            .eq('status', 'in_progress')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (existing) {
-            currentId = existing.id;
-            setActiveAssessmentId(currentId);
-          }
-        }
 
         // If we have an ID (either passed or found), load answers
         if (currentId) {

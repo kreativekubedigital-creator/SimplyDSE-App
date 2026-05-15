@@ -22,8 +22,14 @@ export async function createAssessments(input: CreateAssessmentInput) {
   try {
     const { organizationId, templateId, userIds, assignedBy, type, frequency, dueDate } = input;
 
-    if (!organizationId || !templateId || userIds.length === 0 || !assignedBy) {
-      return { success: false, error: 'Missing required fields' };
+    const missingFields = [];
+    if (!organizationId) missingFields.push('organizationId');
+    if (!templateId) missingFields.push('templateId');
+    if (!userIds || userIds.length === 0) missingFields.push('userIds');
+    if (!assignedBy) missingFields.push('assignedBy');
+
+    if (missingFields.length > 0) {
+      return { success: false, error: `Missing required fields: ${missingFields.join(', ')}` };
     }
 
     // Verify the template exists

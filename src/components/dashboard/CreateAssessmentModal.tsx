@@ -23,8 +23,15 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [dueDate, setDueDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14); // Default to 14 days
+    return d.toISOString().split('T')[0];
+  });
   const [result, setResult] = useState<{ created?: number; skipped?: number; error?: string } | null>(null);
   const profile = useProfile();
+
+  const selectedTemplateName = templates.find(t => t.id === selectedTemplate)?.name || 'Standard Assessment';
 
   useEffect(() => {
     if (!isOpen || !organizationId) return;
@@ -71,14 +78,15 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
       userIds: Array.from(selectedEmployees),
       assignedBy: profile.id || '',
       frequency: frequency,
+      dueDate: dueDate,
     });
 
     if (res.success) {
       setResult({ created: res.created, skipped: res.skipped });
-      setStep(4);
+      setStep(5);
     } else {
       setResult({ error: res.error });
-      setStep(4);
+      setStep(5);
     }
     setSubmitting(false);
   };
@@ -87,7 +95,6 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
     (e.full_name || e.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedTemplateName = templates.find(t => t.id === selectedTemplate)?.name || '';
 
   if (!isOpen) return null;
 
@@ -104,7 +111,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
             <div>
               <h2 className="text-lg font-bold text-slate-900">Create Assessment</h2>
               <p className="text-[11px] text-slate-400 font-medium">
-                {step <= 3 ? `Step ${step} of 3` : 'Task Complete'}
+                {step <= 4 ? `Step ${step} of 4` : 'Task Complete'}
               </p>
             </div>
           </div>
@@ -123,10 +130,10 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
                   s < step ? "bg-emerald-500 text-white" :
                   s === step ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"
                 )}>
-                  {s < step ? <CheckCircle2 className="w-4 h-4" /> : s}
+                  {s < step || (s === 4 && step === 5 && !result?.error) ? <CheckCircle2 className="w-4 h-4" /> : s}
                 </div>
                 <span className={cn("text-[11px] font-semibold hidden md:block", s === step ? "text-slate-900" : "text-slate-400")}>
-                  {s === 1 ? 'Template' : s === 2 ? 'Settings' : s === 3 ? 'Assign' : 'Confirm'}
+                  {s === 1 ? 'Template' : s === 2 ? 'Settings' : s === 3 ? 'Assign' : 'Review'}
                 </span>
                 {s < 4 && <div className="flex-1 h-px bg-slate-200" />}
               </div>
@@ -198,6 +205,18 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
                     <option value="One-time">One-time Activation</option>
                   </select>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase pl-1">Due Date</label>
+                  <input 
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 font-medium pl-1 italic">When should this assessment be completed by?</p>
+                </div>
               </div>
             </div>
           ) : step === 3 ? (
@@ -256,8 +275,47 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
                 )}
               </div>
             </div>
+          ) : step === 4 ? (
+            /* Step 4: Review Summary */
+            <div className="space-y-6">
+              <p className="text-[13px] text-slate-600 font-medium">Please review the assignment details before confirming:</p>
+              
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4">
+                <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Assessment</span>
+                  <span className="text-[13px] font-bold text-slate-900">{selectedTemplateName}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Employees</span>
+                  <span className="text-[13px] font-bold text-slate-900">{selectedEmployees.size} selected</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Frequency</span>
+                  <span className="text-[13px] font-bold text-slate-900">{frequency}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Due Date</span>
+                  <span className="text-[13px] font-bold text-slate-900">{new Date(dueDate).toLocaleDateString()}</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                <p className="text-[11px] text-blue-700 font-medium leading-relaxed">
+                  By clicking confirm, <span className="font-bold">{selectedEmployees.size}</span> employee(s) will receive notifications and will be able to start their assessment immediately from their dashboard.
+                </p>
+              </div>
+
+              {!profile.id && (
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
+                    Warning: We couldn't verify your HR profile. Submitting may fail. Please ensure you are logged in correctly.
+                  </p>
+                </div>
+              )}
+            </div>
           ) : (
-            /* Step 4: Confirmation */
+            /* Step 5: Result */
             <div className="flex flex-col items-center justify-center py-8">
               {result?.error ? (
                 <>
@@ -320,21 +378,38 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
             <>
               <button onClick={() => setStep(2)} className="px-5 py-2.5 text-[12px] font-semibold text-slate-500 hover:text-slate-700 transition-colors">← Back</button>
               <button
-                onClick={handleSubmit}
-                disabled={selectedEmployees.size === 0 || submitting}
+                onClick={() => setStep(4)}
+                disabled={selectedEmployees.size === 0}
                 className={cn(
-                  "px-6 py-2.5 text-[12px] font-bold rounded-xl transition-all flex items-center gap-2",
-                  selectedEmployees.size > 0 && !submitting
+                  "px-6 py-2.5 text-[12px] font-bold rounded-xl transition-all",
+                  selectedEmployees.size > 0
                     ? "bg-blue-600 text-white hover:scale-[1.02] shadow-lg shadow-blue-600/20"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 )}
               >
-                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Assign {selectedEmployees.size} Assessment{selectedEmployees.size !== 1 ? 's' : ''}
+                Next: Review Summary →
               </button>
             </>
           )}
           {step === 4 && (
+            <>
+              <button onClick={() => setStep(3)} className="px-5 py-2.5 text-[12px] font-semibold text-slate-500 hover:text-slate-700 transition-colors">← Back</button>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className={cn(
+                  "px-6 py-2.5 text-[12px] font-bold rounded-xl transition-all flex items-center gap-2",
+                  !submitting
+                    ? "bg-emerald-600 text-white hover:scale-[1.02] shadow-lg shadow-emerald-600/20"
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                )}
+              >
+                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                Confirm & Assign Assessments
+              </button>
+            </>
+          )}
+          {step === 5 && (
             <div className="w-full flex justify-end">
               <button
                 onClick={() => { onSuccess(); onClose(); }}

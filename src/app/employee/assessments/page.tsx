@@ -168,7 +168,7 @@ function AssessmentContent() {
                           </span>
                           <span className="text-[10px] text-slate-400">Assigned on {item.assignedAt}</span>
                         </div>
-                        <h4 className="text-lg font-bold text-slate-900">{item.title}</h4>
+                        <h4 className="text-base font-semibold text-slate-900">{item.title}</h4>
                         <p className="text-[13px] text-slate-500 font-medium mt-2 leading-relaxed max-w-xl">
                           {item.description || 'This assessment has been assigned to you by your HR manager to ensure your workstation is properly set up.'}
                         </p>
@@ -269,7 +269,7 @@ function AssessmentContent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
-                          <h4 className="text-[15px] font-bold text-slate-900">{item.title}</h4>
+                          <h4 className="text-[14px] font-semibold text-slate-900">{item.title}</h4>
                           <span className={cn(
                             "px-2.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight",
                             "bg-emerald-100 text-emerald-700"
@@ -365,13 +365,13 @@ function AssessmentContent() {
             </div>
 
             <div className="lg:col-span-4 bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Category Breakdown</h3>
+              <h3 className="text-[12px] font-semibold text-slate-900 uppercase tracking-widest mb-8">Category Breakdown</h3>
               <div className="space-y-6">
                 {analytics.categoryBreakdown.map((item) => (
                   <div key={item.name} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-medium text-slate-700">{item.name}</span>
-                      <span className="text-[11px] font-bold text-slate-900">{item.value}%</span>
+                      <span className="text-[11px] font-semibold text-slate-900">{item.value}%</span>
                     </div>
                     <div className="h-2.5 w-full bg-slate-50 rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
@@ -424,7 +424,7 @@ function AssessmentContent() {
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-8">
                 <Video className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold mb-4 tracking-tight">Video Tutorials</h3>
+              <h3 className="text-lg font-semibold mb-4 tracking-tight">Video Tutorials</h3>
               <p className="text-purple-50/80 text-[13px] leading-relaxed mb-8">Watch step-by-step videos on how to optimize your desk and equipment.</p>
               <button className="px-6 py-3 bg-white text-purple-600 rounded-xl text-[11px] font-medium hover:scale-[1.05] transition-all active:scale-95 shadow-xl shadow-purple-900/20">
                 Watch Videos
@@ -447,7 +447,7 @@ function AssessmentContent() {
                       <res.icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="text-[13px] font-bold text-slate-900">{res.title}</h4>
+                      <h4 className="text-[12px] font-semibold text-slate-900">{res.title}</h4>
                       <p className="text-[10px] text-slate-500">{res.cat} • {res.time}</p>
                     </div>
                   </div>
