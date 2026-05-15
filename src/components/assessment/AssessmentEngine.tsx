@@ -541,7 +541,16 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   };
 
   const handleSubmit = async () => {
-    if (submitting || !activeAssessmentId) return;
+    if (submitting || !activeAssessmentId || profile.loading) return;
+    
+    // Final check for required IDs
+    const finalOrgId = organizationId || profile.organizationId;
+    const finalUserId = userId || profile.id;
+
+    if (!finalOrgId || !finalUserId) {
+      setError("Session data missing. Please refresh and try again.");
+      return;
+    }
     
     setSubmitting(true);
     setError(null);
@@ -572,8 +581,8 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assessmentId: activeAssessmentId,
-          organizationId,
-          userId,
+          organizationId: finalOrgId,
+          userId: finalUserId,
           employeeName: profile.fullName || 'Employee',
           employeeEmail: profile.email,
           companyName: profile.organizationName || 'Organisation',

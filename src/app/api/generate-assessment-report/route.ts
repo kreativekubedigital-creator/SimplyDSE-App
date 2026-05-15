@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Generating report for body:', { ...body, categories: 'truncated' });
     
-    const { 
+    let { 
       assessmentId, 
       organizationId,
       userId,
@@ -43,6 +43,43 @@ export async function POST(req: Request) {
       recommendations,
       employeeEmail
     } = body;
+
+    // 1. Fetch missing details from DB if needed
+    if (!employeeName || employeeName === 'Employee' || !companyName || companyName === 'Organisation' || !organizationId) {
+      console.log('Fetching missing details from DB for userId:', userId);
+      
+      const { data: profile, error: pErr } = await supabaseAdmin
+        .from('profiles')
+        .select(`
+          full_name,
+          email,
+          organization_id,
+          organizations:organization_id(name)
+        `)
+        .eq('id', userId)
+        .single();
+
+      if (!pErr && profile) {
+        if (!employeeName || employeeName === 'Employee') employeeName = profile.full_name || 'Employee';
+        if (!employeeEmail) employeeEmail = profile.email;
+        if (!organizationId) organizationId = profile.organization_id;
+        
+        if (!companyName || companyName === 'Organisation') {
+          const orgData: any = profile.organizations;
+          companyName = orgData?.name || 'Your Organisation';
+        }
+      }
+    }
+
+    if (!organizationId) {
+      // Fallback: try to get orgId from assessment record
+      const { data: assRec } = await supabaseAdmin
+        .from('assessments')
+        .select('organization_id')
+        .eq('id', assessmentId)
+        .single();
+      if (assRec?.organization_id) organizationId = assRec.organization_id;
+    }
 
     // 1. Generate PDF Buffer
     const pdfInstance = pdf(
