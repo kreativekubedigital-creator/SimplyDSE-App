@@ -108,6 +108,7 @@ function GuidanceModal({
 // --- MAIN ENGINE --- //
 
 export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngineProps = {}) {
+  const [activeAssessmentId, setActiveAssessmentId] = useState<string | undefined>(preAssignedId);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewState, setViewState] = useState<'intro' | 'guided' | 'review' | 'completed'>('intro');
@@ -119,6 +120,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   const [isValidationDismissed, setIsValidationDismissed] = useState(false);
   const [acknowledgements, setAcknowledgements] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [guidanceModal, setGuidanceModal] = useState<{ isOpen: boolean; title: string; content: string; riskLevel: string } | null>(null);
   
   const profile = useProfile();
@@ -126,11 +128,19 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   const userId = profile.id;
   const router = useRouter();
 
+  // Update active ID if prop changes
+  useEffect(() => {
+    if (preAssignedId) setActiveAssessmentId(preAssignedId);
+  }, [preAssignedId]);
+
   // Load Data
   useEffect(() => {
+    if (profile.loading) return;
     async function loadAssessment() {
       try {
         setLoading(true);
+        setError(null);
+
         // Fetch the "Hybrid DSE Assessment" Template
         const { data: template, error: tErr } = await supabase
           .from('assessment_templates')
@@ -170,12 +180,33 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
         setCategories(structuredCats);
 
-        // If preAssignedId, load existing answers
-        if (preAssignedId) {
+        // Handle Assessment ID (Load existing or Prepare to create)
+        let currentId = activeAssessmentId;
+
+        if (!currentId && profile.id && profile.organizationId) {
+          // Check for an existing in-progress assessment to resume
+          const { data: existing } = await supabase
+            .from('assessments')
+            .select('id')
+            .eq('user_id', profile.id)
+            .eq('template_id', template.id)
+            .eq('status', 'in_progress')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (existing) {
+            currentId = existing.id;
+            setActiveAssessmentId(currentId);
+          }
+        }
+
+        // If we have an ID (either passed or found), load answers
+        if (currentId) {
           const { data: resp, error: rErr } = await supabase
             .from('assessment_responses')
             .select('*')
-            .eq('assessment_id', preAssignedId);
+            .eq('assessment_id', currentId);
           
           if (!rErr && resp) {
             const ansMap: Record<string, string> = {};
@@ -196,18 +227,22 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
             setTextResponses(textMap);
             setConditionalDetails(condMap);
             setIsDetailSaved(savedMap);
-            setViewState('guided'); // Jump to assessment if resuming
+            
+            // If it's a resume from the list, we might want to jump in, 
+            // but if it's the general "Start New", let them see the intro first.
+            if (preAssignedId) setViewState('guided');
           }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error loading assessment:', err);
+        setError(err.message || 'Failed to load assessment structure');
       } finally {
         setLoading(false);
       }
     }
 
     loadAssessment();
-  }, [preAssignedId]);
+  }, [profile.loading, preAssignedId]);
 
   // --- LOGIC --- //
 
@@ -283,18 +318,63 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   };
 
   const saveProgress = async (qId: string, optId?: string, text?: string, detail?: string) => {
-    if (!preAssignedId || !organizationId) return;
-    
-    await supabase.from('assessment_responses').upsert({
-      assessment_id: preAssignedId,
-      organization_id: organizationId,
-      question_id: qId,
-      option_id: optId,
-      text_response: text,
-      conditional_detail: detail,
-      acknowledgement_at: acknowledgements[qId],
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'assessment_id,question_id' });
+    let currentId = activeAssessmentId;
+
+    // Create assessment if it doesn't exist yet
+    if (!currentId && profile.id && profile.organizationId) {
+      try {
+        const { data: template } = await supabase
+          .from('assessment_templates')
+          .select('id')
+          .eq('name', 'Hybrid DSE Assessment')
+          .single();
+
+        if (template) {
+          const { data: created, error: createErr } = await supabase
+            .from('assessments')
+            .insert({
+              user_id: profile.id,
+              organization_id: profile.organizationId,
+              template_id: template.id,
+              type: 'Hybrid DSE Assessment',
+              status: 'in_progress'
+            })
+            .select()
+            .single();
+
+          if (!createErr && created) {
+            currentId = created.id;
+            setActiveAssessmentId(currentId);
+          }
+        }
+      } catch (err) {
+        console.error('Error creating assessment on the fly:', err);
+        return;
+      }
+    }
+
+    if (!currentId || !organizationId) return;
+
+    try {
+      // Upsert response
+      const { error: upsertErr } = await supabase
+        .from('assessment_responses')
+        .upsert({
+          assessment_id: currentId,
+          question_id: qId,
+          option_id: optId,
+          text_response: text,
+          conditional_detail: detail,
+          organization_id: organizationId,
+          acknowledgement_at: acknowledgements[qId]
+        }, {
+          onConflict: 'assessment_id,question_id'
+        });
+
+      if (upsertErr) throw upsertErr;
+    } catch (err) {
+      console.error('Error saving progress:', err);
+    }
   };
 
   const handleNext = () => {
@@ -387,10 +467,14 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   };
 
   const handleSubmit = async () => {
+    if (submitting || !activeAssessmentId) return;
+    
     setSubmitting(true);
+    setError(null);
     const { normalizedScore, overallRisk, categoryResults } = calculateResults();
 
     try {
+      // Update assessment status
       const { error: updateErr } = await supabase
         .from('assessments')
         .update({
@@ -404,16 +488,16 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
             answered_questions: Object.keys(answers).length
           })
         })
-        .eq('id', preAssignedId);
+        .eq('id', activeAssessmentId);
 
       if (updateErr) throw updateErr;
 
       // Call PDF Generation API
-      await fetch('/api/generate-assessment-report', {
+      const response = await fetch('/api/generate-assessment-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          assessmentId: preAssignedId,
+          assessmentId: activeAssessmentId,
           organizationId,
           userId,
           employeeName: profile.fullName,
@@ -426,9 +510,15 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate report');
+      }
+
       setViewState('completed');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error submitting assessment:', err);
+      setError(err.message || 'An unexpected error occurred during submission. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -493,6 +583,24 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
           </button>
         </div>
       </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center px-4">
+      <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center shadow-sm">
+        <AlertCircle className="w-10 h-10" />
+      </div>
+      <div className="max-w-md">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h2>
+        <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
+      </div>
+      <button 
+        onClick={() => window.location.reload()}
+        className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:scale-105 transition-all"
+      >
+        Try Again
+      </button>
     </div>
   );
 
@@ -575,6 +683,13 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
             );
           })}
         </div>
+
+        {error && (
+          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-rose-600 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <p className="text-[13px] font-bold">{error}</p>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-slate-100">
           <button 

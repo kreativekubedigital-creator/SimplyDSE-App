@@ -50,19 +50,18 @@ const Hero = ({ data }: HeroProps) => {
           preload="metadata"
           poster="/hero-poster.png"
           onCanPlayThrough={() => setIsVideoLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-50' : 'opacity-0'}`}
+          className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-70' : 'opacity-0'}`}
         >
           <source src={videoUrl} type="video/mp4" />
         </video>
-        {/* Optimized overlay to ensure text legibility - reduced intensity */}
-        <div className="absolute inset-0 bg-white/10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white/70" />
+        {/* Optimized overlay to ensure text legibility - reduced intensity for better video visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-transparent to-white/30" />
       </div>
 
       <div className="relative z-10 w-full flex flex-col items-center justify-center text-center">
-        {/* Bold Brand Anchor - Hollowed & Bold - Full Viewport Width */}
-        <div className="w-screen max-w-full overflow-hidden select-none pointer-events-none mb-8 md:mb-20 mt-12 md:mt-24">
-          <div className="flex justify-center items-center flex-nowrap whitespace-nowrap">
+        {/* Bold Brand Anchor - Max width edge-to-edge - Lowered position */}
+        <div className="w-screen max-w-full overflow-hidden select-none pointer-events-none mb-12 md:mb-16 mt-32 md:mt-48">
+          <div className="flex justify-center items-center flex-nowrap whitespace-nowrap px-[1vw]">
             {"SIMPLYDSE".split("").map((char, index) => (
               <motion.span
                 key={index}
@@ -76,8 +75,8 @@ const Hero = ({ data }: HeroProps) => {
                     ease: [0.16, 1, 0.3, 1]
                   }
                 }}
-                className="text-[14vw] md:text-[13.5vw] font-black text-transparent uppercase tracking-[-0.06em] leading-[0.8] inline-block will-change-transform"
-                style={{ WebkitTextStroke: 'clamp(1px, 0.15vw, 3px) #0F172A' }}
+                className="text-[16vw] md:text-[15.5vw] font-black text-transparent uppercase tracking-[-0.05em] leading-[0.75] inline-block will-change-transform"
+                style={{ WebkitTextStroke: 'clamp(1px, 0.18vw, 4px) #0F172A' }}
               >
                 {char}
               </motion.span>
