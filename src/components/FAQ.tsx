@@ -29,7 +29,7 @@ const FAQItem = ({ title, content, isOpen, onClick }: { title: string, content: 
             className="overflow-hidden"
           >
             <div className="pb-8 pr-12">
-              <p className="text-lg text-slate-100 leading-relaxed max-w-4xl">
+              <p className="text-lg text-white/90 leading-relaxed max-w-4xl">
                 {content}
               </p>
             </div>
@@ -63,7 +63,7 @@ const FAQ = () => {
   ];
 
   return (
-    <section id="faq" className="bg-black py-32 md:py-48 border-t border-slate-900">
+    <section id="faq" className="bg-black border-t border-slate-900">
       <div className="section-container">
         <div className="grid lg:grid-cols-12 gap-20">
           {/* Header Side */}
@@ -78,7 +78,7 @@ const FAQ = () => {
               </h2>
             </Reveal>
             <Reveal delay={0.3}>
-              <p className="text-xl text-slate-100 mt-12 leading-relaxed max-w-md">
+              <p className="text-xl text-white/90 mt-12 leading-relaxed max-w-md">
                 Everything you need to know about our platform, security standards, and deployment process.
               </p>
             </Reveal>

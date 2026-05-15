@@ -101,7 +101,7 @@ const Workflow = () => {
   ];
 
   return (
-    <section id="workflow" className="bg-white pb-8 md:pb-12 pt-0">
+    <section id="workflow" className="bg-white">
       <div className="section-container">
         <div className="mb-20">
           <Reveal delay={0.1}>
@@ -137,7 +137,7 @@ const Workflow = () => {
                   <h3 className="text-xl font-bold text-white leading-tight">
                     {step.title}
                   </h3>
-                  <p className="text-[15px] text-slate-100 leading-relaxed opacity-90">
+                  <p className="text-[15px] text-white/90 leading-relaxed">
                     {step.description}
                   </p>
                 </div>

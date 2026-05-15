@@ -33,7 +33,7 @@ const FeatureCard = ({
             <h3 className={`${variant === 'hero' ? 'text-3xl md:text-5xl' : 'text-2xl'} font-bold text-white tracking-tight leading-tight mb-4`}>
               {title}
             </h3>
-            <p className="text-slate-100 text-lg leading-relaxed max-w-sm">
+            <p className="text-white/90 text-lg leading-relaxed max-w-sm">
               {description}
             </p>
           </div>
@@ -58,7 +58,7 @@ const FeatureCard = ({
 
 const FeaturesGrid = () => {
   return (
-    <section id="features" className="bg-black py-32 md:py-48 overflow-hidden">
+    <section id="features" className="bg-black overflow-hidden">
       <div className="section-container">
         {/* Header */}
         <div className="mb-24 max-w-4xl">
@@ -71,7 +71,7 @@ const FeaturesGrid = () => {
             </h2>
           </Reveal>
           <Reveal delay={0.3}>
-            <p className="text-xl md:text-2xl text-slate-100 mt-12 leading-relaxed max-w-2xl font-medium">
+            <p className="text-xl md:text-2xl text-white/90 mt-12 leading-relaxed max-w-2xl font-medium">
               SimplyDSE replaces fragmented safety processes with a unified operational intelligence layer designed for modern organisations.
             </p>
           </Reveal>

@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 const CTA = () => {
   return (
-    <section id="contact" className="bg-white py-32 md:py-48">
+    <section id="contact" className="bg-white">
       <div className="section-container">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           <Reveal delay={0.1}>

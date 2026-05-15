@@ -33,8 +33,8 @@
   --radius-3xl: 2rem;
   
   /* Cinematic Spacing Tokens */
-  --spacing-section: 200px; /* Slightly reduced for better pacing */
-  --spacing-section-mobile: 100px;
+  --spacing-section: 100px; /* Reduced for tighter pacing */
+  --spacing-section-mobile: 60px;
   --spacing-hero-offset: 140px;
 }
 

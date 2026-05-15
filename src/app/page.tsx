@@ -25,16 +25,12 @@ export default function HomePage() {
           <Hero />
           <Trust />
           <FeaturesGrid />
-          <div className="bg-slate-50 border-y border-border-subtle">
-            <DashboardPreview />
-          </div>
+          <DashboardPreview />
           <Workflow />
           <Challenges />
           <Solutions />
           <HumanImpact />
-          <div className="bg-bg-light border-y border-border-subtle">
-            <Security />
-          </div>
+          <Security />
           <Testimonials />
           <FAQ />
           <CTA />

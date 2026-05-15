@@ -26,7 +26,7 @@ const Solutions = () => {
   ];
 
   return (
-    <section id="solutions" className="bg-white pb-32 md:pb-48 pt-16 md:pt-24">
+    <section id="solutions" className="bg-white">
       <div className="section-container space-y-32 md:space-y-56">
         {solutions.map((item, index) => (
           <div key={index} className={`flex flex-col ${item.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-16 md:gap-24`}>
