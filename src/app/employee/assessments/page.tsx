@@ -71,12 +71,12 @@ function AssessmentContent() {
         <div className="flex items-center gap-3">
           <button 
             onClick={exportData}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[11px] font-medium rounded-xl hover:bg-slate-50 transition-all"
           >
             <Download className="w-4 h-4" />
             Export My Data
           </button>
-          <Link href={startActionUrl} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
+          <Link href={startActionUrl} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[11px] font-medium rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
             <PlayCircle className="w-4 h-4" />
             {pendingAssignment ? 'Continue Assigned Assessment' : 'Start New Assessment'}
           </Link>
@@ -90,7 +90,7 @@ function AssessmentContent() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={cn(
-              "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[12px] font-bold transition-all",
+              "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[11px] font-medium transition-all",
               activeTab === tab.id 
                 ? "bg-slate-900 text-white shadow-lg" 
                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
@@ -134,8 +134,8 @@ function AssessmentContent() {
           <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Pending Assignments</h3>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">HR-assigned assessments requiring your attention</p>
+                <h3 className="text-[11px] font-medium text-slate-900 uppercase tracking-widest">Pending Assignments</h3>
+                <p className="text-[10px] text-slate-400 mt-1">HR-assigned assessments requiring your attention</p>
               </div>
             </div>
 
@@ -163,22 +163,22 @@ function AssessmentContent() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest">
+                          <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-[9px] font-bold uppercase tracking-widest">
                             {item.status === 'in_progress' ? 'In Progress' : 'New Assignment'}
                           </span>
-                          <span className="text-[11px] font-bold text-slate-400">Assigned on {item.assignedAt}</span>
+                          <span className="text-[10px] text-slate-400">Assigned on {item.assignedAt}</span>
                         </div>
-                        <h4 className="text-xl font-black text-slate-900">{item.title}</h4>
+                        <h4 className="text-lg font-bold text-slate-900">{item.title}</h4>
                         <p className="text-[13px] text-slate-500 font-medium mt-2 leading-relaxed max-w-xl">
                           {item.description || 'This assessment has been assigned to you by your HR manager to ensure your workstation is properly set up.'}
                         </p>
                         <div className="flex items-center gap-4 mt-4">
-                          <div className="flex items-center gap-1.5 text-[12px] font-bold text-amber-600">
+                          <div className="flex items-center gap-1.5 text-[11px] text-amber-600">
                             <Clock className="w-4 h-4" />
                             Due: {item.dueDate}
                           </div>
                           <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                          <div className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">
+                          <div className="text-[11px] text-slate-400 uppercase tracking-widest">
                             Version {item.version}
                           </div>
                         </div>
@@ -186,7 +186,7 @@ function AssessmentContent() {
                       <div className="shrink-0 w-full md:w-auto">
                         <Link 
                           href={`/employee/assessment?id=${item.submissionId || ''}`}
-                          className="flex items-center justify-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] text-[14px] font-bold hover:bg-blue-600 transition-all shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1"
+                          className="flex items-center justify-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] text-[13px] font-medium hover:bg-blue-600 transition-all shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1"
                         >
                           {item.status === 'in_progress' ? 'Resume Now' : 'Start Assessment'} 
                           <ArrowRight className="w-5 h-5" />
@@ -230,7 +230,7 @@ function AssessmentContent() {
 
           <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Assessment History</h3>
+              <h3 className="text-[11px] font-medium text-slate-900 uppercase tracking-widest">Assessment History</h3>
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -269,19 +269,19 @@ function AssessmentContent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
-                          <h4 className="text-[16px] font-bold text-slate-900">{item.title}</h4>
+                          <h4 className="text-[15px] font-bold text-slate-900">{item.title}</h4>
                           <span className={cn(
-                            "px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight",
+                            "px-2.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight",
                             "bg-emerald-100 text-emerald-700"
                           )}>
                             {item.status}
                           </span>
                         </div>
-                        <p className="text-[12px] text-slate-500 font-medium">{item.subtitle}</p>
+                        <p className="text-[11px] text-slate-500">{item.subtitle}</p>
                       </div>
                       <div className="text-right hidden sm:block">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.dateLabel}</p>
-                        <p className="text-[14px] font-bold text-slate-900 mt-1">{item.date}</p>
+                        <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">{item.dateLabel}</p>
+                        <p className="text-[13px] font-bold text-slate-900 mt-1">{item.date}</p>
                       </div>
                       <div className="flex items-center gap-2 pl-6 border-l border-slate-100">
                         {item.pdfUrl && (
@@ -292,7 +292,7 @@ function AssessmentContent() {
                         <Link 
                           href={`/employee/reports/${item.id}`}
                           className={cn(
-                            "px-6 py-3 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 inline-block shadow-lg",
+                            "px-6 py-3 text-white rounded-xl text-[11px] font-medium hover:scale-[1.05] transition-all active:scale-95 inline-block shadow-lg",
                             item.pdfUrl ? "bg-slate-900 shadow-slate-900/10" : "bg-blue-600 shadow-blue-600/20"
                           )}
                         >
@@ -346,7 +346,7 @@ function AssessmentContent() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Historical Progress</h3>
+              <h3 className="text-[11px] font-medium text-slate-900 uppercase tracking-widest mb-8">Historical Progress</h3>
               <div className="h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={analytics.historicalData.length > 0 ? analytics.historicalData : [
@@ -370,8 +370,8 @@ function AssessmentContent() {
                 {analytics.categoryBreakdown.map((item) => (
                   <div key={item.name} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[12px] font-bold text-slate-700">{item.name}</span>
-                      <span className="text-[12px] font-black text-slate-900">{item.value}%</span>
+                      <span className="text-[11px] font-medium text-slate-700">{item.name}</span>
+                      <span className="text-[11px] font-bold text-slate-900">{item.value}%</span>
                     </div>
                     <div className="h-2.5 w-full bg-slate-50 rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
@@ -380,10 +380,10 @@ function AssessmentContent() {
                 ))}
               </div>
               <div className="mt-10 p-6 bg-slate-900 rounded-[2rem] text-white">
-                <p className="text-[13px] font-bold leading-relaxed">
+                <p className="text-[12px] font-medium leading-relaxed">
                   Your workspace setup is {analytics.healthScore}% optimal. {analytics.healthScore < 90 ? 'Review your high-risk areas to improve your score.' : 'Great work! Your workstation is highly optimized.'}
                 </p>
-                <button className="mt-4 flex items-center gap-2 text-blue-400 text-[11px] font-black uppercase tracking-widest hover:text-white transition-colors">
+                <button className="mt-4 flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors">
                   View Recommendation <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
@@ -400,9 +400,9 @@ function AssessmentContent() {
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-8">
                 <Heart className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 tracking-tight">Ergonomic Advice</h3>
-              <p className="text-emerald-50/80 text-[14px] leading-relaxed mb-8">Expert guides on workstation setup, posture, and wellness exercises.</p>
-              <button className="px-6 py-3 bg-white text-emerald-600 rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 shadow-xl shadow-emerald-900/20">
+              <h3 className="text-xl font-bold mb-4 tracking-tight">Ergonomic Advice</h3>
+              <p className="text-emerald-50/80 text-[13px] leading-relaxed mb-8">Expert guides on workstation setup, posture, and wellness exercises.</p>
+              <button className="px-6 py-3 bg-white text-emerald-600 rounded-xl text-[11px] font-medium hover:scale-[1.05] transition-all active:scale-95 shadow-xl shadow-emerald-900/20">
                 Explore Guides
               </button>
             </div>
@@ -412,9 +412,9 @@ function AssessmentContent() {
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-8">
                 <FileText className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 tracking-tight">My Documents</h3>
-              <p className="text-blue-50/80 text-[14px] leading-relaxed mb-8">Access your assessment reports, certificates, and personal health plans.</p>
-              <button className="px-6 py-3 bg-white text-blue-600 rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 shadow-xl shadow-blue-900/20">
+              <h3 className="text-xl font-bold mb-4 tracking-tight">My Documents</h3>
+              <p className="text-blue-50/80 text-[13px] leading-relaxed mb-8">Access your assessment reports, certificates, and personal health plans.</p>
+              <button className="px-6 py-3 bg-white text-blue-600 rounded-xl text-[11px] font-medium hover:scale-[1.05] transition-all active:scale-95 shadow-xl shadow-blue-900/20">
                 View My Files
               </button>
             </div>
@@ -424,16 +424,16 @@ function AssessmentContent() {
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-8">
                 <Video className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 tracking-tight">Video Tutorials</h3>
-              <p className="text-purple-50/80 text-[14px] leading-relaxed mb-8">Watch step-by-step videos on how to optimize your desk and equipment.</p>
-              <button className="px-6 py-3 bg-white text-purple-600 rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 shadow-xl shadow-purple-900/20">
+              <h3 className="text-xl font-bold mb-4 tracking-tight">Video Tutorials</h3>
+              <p className="text-purple-50/80 text-[13px] leading-relaxed mb-8">Watch step-by-step videos on how to optimize your desk and equipment.</p>
+              <button className="px-6 py-3 bg-white text-purple-600 rounded-xl text-[11px] font-medium hover:scale-[1.05] transition-all active:scale-95 shadow-xl shadow-purple-900/20">
                 Watch Videos
               </button>
             </div>
           </div>
 
           <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Latest Resources</h3>
+            <h3 className="text-[11px] font-medium text-slate-900 uppercase tracking-widest mb-8">Latest Resources</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { title: 'The 20-20-20 Rule', cat: 'Posture', time: '5 min read', icon: PlayCircle },
@@ -447,8 +447,8 @@ function AssessmentContent() {
                       <res.icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="text-[14px] font-bold text-slate-900">{res.title}</h4>
-                      <p className="text-[11px] text-slate-500 font-medium">{res.cat} • {res.time}</p>
+                      <h4 className="text-[13px] font-bold text-slate-900">{res.title}</h4>
+                      <p className="text-[10px] text-slate-500">{res.cat} • {res.time}</p>
                     </div>
                   </div>
                   <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-blue-600" />

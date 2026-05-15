@@ -55,9 +55,9 @@ export function StatCard({
         )}
       </div>
       <div>
-        <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.1em]">{title}</p>
+        <p className="text-[10px] font-medium text-text-muted uppercase tracking-[0.1em]">{title}</p>
         <div className="flex items-baseline gap-2 mt-1">
-          <h4 className="text-3xl font-black text-slate-900 tracking-tighter">{value}</h4>
+          <h4 className="text-2xl font-bold text-slate-900 tracking-tighter">{value}</h4>
         </div>
       </div>
       
