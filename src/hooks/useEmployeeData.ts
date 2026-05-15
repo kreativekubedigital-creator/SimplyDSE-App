@@ -52,10 +52,25 @@ export function useEmployeeData() {
           displayTitle = rec.type.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         }
 
+        // Parse results summary for better display
+        let subtitle = 'Self-assessment of your workstation';
+        if (rec.results_summary) {
+          try {
+            const summary = typeof rec.results_summary === 'string' ? JSON.parse(rec.results_summary) : rec.results_summary;
+            if (summary.categories) {
+              const totalScore = summary.score || rec.score || 0;
+              const risk = rec.risk_level || 'low';
+              subtitle = `Score: ${totalScore}/100 • ${risk.charAt(0).toUpperCase() + risk.slice(1)} Risk`;
+            }
+          } catch (e) {
+            console.error('Error parsing results summary for subtitle:', e);
+          }
+        }
+
         return {
           id: rec.id,
           title: displayTitle,
-          subtitle: rec.results_summary || 'Self-assessment of your workstation',
+          subtitle: subtitle,
           status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Not Started',
           progress: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? Math.round(((rec.metadata?.current_category_index || 0) / 21) * 100) : 0,
           date: rec.created_at ? new Date(rec.created_at).toLocaleDateString() : 'Pending',

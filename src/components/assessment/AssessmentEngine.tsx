@@ -238,9 +238,13 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
               .single();
 
             if (currentAssessment?.status === 'completed') {
-              setViewState('completed');
-              setLoading(false);
-              return;
+              const searchParams = new URLSearchParams(window.location.search);
+              const action = searchParams.get('action');
+              if (action !== 'regenerate') {
+                setViewState('completed');
+                setLoading(false);
+                return;
+              }
             }
 
             if (currentAssessment?.metadata) {
@@ -585,6 +589,16 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
       setSubmitting(false);
     }
   };
+
+  // Trigger regeneration if requested
+  useEffect(() => {
+    if (!loading && !submitting && viewState !== 'completed' && categories.length > 0) {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('action') === 'regenerate' && activeAssessmentId) {
+        handleSubmit();
+      }
+    }
+  }, [loading, submitting, viewState, categories, activeAssessmentId]);
 
   // --- VIEWS --- //
 

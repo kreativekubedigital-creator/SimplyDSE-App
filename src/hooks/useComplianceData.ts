@@ -45,6 +45,8 @@ export function useComplianceData() {
         dueDate: rec.completed_at ? new Date(rec.completed_at).toLocaleDateString() : 'Pending',
         riskLevel: rec.risk_level === 'high' ? 'High' : rec.risk_level === 'medium' ? 'Medium' : 'Low',
         completion: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? 50 : 0,
+        pdfUrl: rec.metadata?.pdf_report_url || null,
+        resultsSummary: rec.results_summary
       }));
 
       const riskIncidents = processedAssessments.filter((a: any) => a.riskLevel === 'High' || a.riskLevel === 'Medium');

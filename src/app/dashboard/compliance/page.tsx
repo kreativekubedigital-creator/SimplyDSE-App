@@ -438,7 +438,20 @@ function ComplianceContent() {
                          </div>
                       </td>
                       <td className="px-8 py-5 text-right">
-                         <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><MoreHorizontal className="w-5 h-5" /></button>
+                         <div className="flex items-center justify-end gap-2">
+                           {item.pdfUrl && (
+                             <a 
+                               href={item.pdfUrl} 
+                               target="_blank" 
+                               rel="noreferrer"
+                               className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all"
+                               title="Download Report"
+                             >
+                               <Download className="w-4 h-4" />
+                             </a>
+                           )}
+                           <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><MoreHorizontal className="w-5 h-5" /></button>
+                         </div>
                       </td>
                     </tr>
                   ))

@@ -78,14 +78,22 @@ export async function POST(req: Request) {
     }
 
     // 3. Update Assessment Record with PDF URL
-    // We can store the storage path in a metadata column, since we don't have pdf_url explicitly.
-    // Or if we know the public URL format:
+    // Merge with existing metadata to prevent overwriting state
+    const { data: currentRec } = await supabaseAdmin
+      .from('assessments')
+      .select('metadata')
+      .eq('id', assessmentId)
+      .single();
+
     const pdfUrl = `${supabaseUrl}/storage/v1/object/public/assessment-reports/${fileName}`;
     
     const { error: updateError } = await supabaseAdmin
       .from('assessments')
       .update({ 
-        metadata: { pdf_report_url: pdfUrl } 
+        metadata: { 
+          ...(currentRec?.metadata as any || {}),
+          pdf_report_url: pdfUrl 
+        } 
       })
       .eq('id', assessmentId);
 
