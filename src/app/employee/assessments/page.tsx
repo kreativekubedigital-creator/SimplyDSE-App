@@ -45,7 +45,7 @@ function AssessmentContent() {
   const initialTab = searchParams.get('tab') as 'assessments' | 'analytics' | 'resources' || 'assessments';
   const [activeTab, setActiveTab] = useState<'assessments' | 'analytics' | 'resources'>(initialTab);
   const [searchTerm, setSearchTerm] = useState('');
-  const { assessments, stats, progressData, loading } = useEmployeeData();
+  const { assessments, stats, analytics, loading, exportData } = useEmployeeData();
 
   const tabs = [
     { id: 'assessments', label: 'My Assessments', icon: ClipboardList },
@@ -63,7 +63,10 @@ function AssessmentContent() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all">
+          <button 
+            onClick={exportData}
+            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all"
+          >
             <Download className="w-4 h-4" />
             Export My Data
           </button>
@@ -222,10 +225,37 @@ function AssessmentContent() {
       {activeTab === 'analytics' && (
         <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard title="Health Score" value="84/100" trend="+4% this month" isPositive={true} icon={Heart} iconColor="rose" />
-            <StatCard title="Posture Rating" value="Good" trend="Consistent" isPositive={true} icon={Monitor} iconColor="indigo" />
-            <StatCard title="Break Adherence" value="92%" trend="On track" isPositive={true} icon={Clock} iconColor="emerald" />
-            <StatCard title="Risk Level" value={stats.riskLevel} trend="Stable" icon={AlertCircle} iconColor="amber" />
+            <StatCard 
+              title="Health Score" 
+              value={`${analytics.healthScore}/100`} 
+              trend={analytics.healthTrend} 
+              isPositive={analytics.isPositiveTrend} 
+              icon={Heart} 
+              iconColor="rose" 
+            />
+            <StatCard 
+              title="Posture Rating" 
+              value={analytics.postureRating} 
+              trend="Consistent" 
+              isPositive={true} 
+              icon={Monitor} 
+              iconColor="indigo" 
+            />
+            <StatCard 
+              title="Break Adherence" 
+              value={analytics.breakAdherence} 
+              trend="On track" 
+              isPositive={true} 
+              icon={Clock} 
+              iconColor="emerald" 
+            />
+            <StatCard 
+              title="Risk Level" 
+              value={stats.riskLevel} 
+              trend="Stable" 
+              icon={AlertCircle} 
+              iconColor="amber" 
+            />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -233,12 +263,9 @@ function AssessmentContent() {
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Historical Progress</h3>
               <div className="h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={[
-                    { month: 'Jan', score: 65, avg: 70 },
-                    { month: 'Feb', score: 68, avg: 72 },
-                    { month: 'Mar', score: 75, avg: 71 },
-                    { month: 'Apr', score: 82, avg: 74 },
-                    { month: 'May', score: 84, avg: 75 },
+                  <BarChart data={analytics.historicalData.length > 0 ? analytics.historicalData : [
+                    { month: 'Jan', score: 0, avg: 70 },
+                    { month: 'Feb', score: 0, avg: 72 },
                   ]}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 600, fill: '#64748b' }} dy={10} />
@@ -254,7 +281,7 @@ function AssessmentContent() {
             <div className="lg:col-span-4 bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-8">Category Breakdown</h3>
               <div className="space-y-6">
-                {progressData.map((item) => (
+                {analytics.categoryBreakdown.map((item) => (
                   <div key={item.name} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[12px] font-bold text-slate-700">{item.name}</span>
@@ -268,7 +295,7 @@ function AssessmentContent() {
               </div>
               <div className="mt-10 p-6 bg-slate-900 rounded-[2rem] text-white">
                 <p className="text-[13px] font-bold leading-relaxed">
-                  Your workspace setup is 84% optimal. Adjusting your monitor height could increase this to 95%.
+                  Your workspace setup is {analytics.healthScore}% optimal. {analytics.healthScore < 90 ? 'Review your high-risk areas to improve your score.' : 'Great work! Your workstation is highly optimized.'}
                 </p>
                 <button className="mt-4 flex items-center gap-2 text-blue-400 text-[11px] font-black uppercase tracking-widest hover:text-white transition-colors">
                   View Recommendation <ArrowRight className="w-3 h-3" />

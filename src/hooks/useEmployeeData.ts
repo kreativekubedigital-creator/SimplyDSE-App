@@ -16,6 +16,15 @@ export function useEmployeeData() {
   const [progressData, setProgressData] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState({
+    healthScore: 0,
+    healthTrend: '0%',
+    isPositiveTrend: true,
+    postureRating: 'Pending',
+    breakAdherence: '0%',
+    historicalData: [] as any[],
+    categoryBreakdown: [] as any[]
+  });
 
   const fetchEmployeeData = async () => {
     try {
@@ -48,7 +57,7 @@ export function useEmployeeData() {
           title: displayTitle,
           subtitle: rec.results_summary || 'Self-assessment of your workstation',
           status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Not Started',
-          progress: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? Math.round(((rec.metadata?.current_category_index || 0) / 10) * 100) : 0,
+          progress: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? Math.round(((rec.metadata?.current_category_index || 0) / 21) * 100) : 0,
           date: rec.created_at ? new Date(rec.created_at).toLocaleDateString() : 'Pending',
           dateLabel: rec.status === 'completed' ? 'Completed on' : 'Due date',
           risk: rec.risk_level || 'none',
@@ -76,11 +85,12 @@ export function useEmployeeData() {
       });
 
       // 3. Mock progress breakdown
-      setProgressData([
+      const mockProgress = [
         { name: 'Assessments', value: compliance, color: '#10B981' },
         { name: 'Ergonomics Training', value: 0, color: '#3B82F6' },
         { name: 'Recommendations', value: 0, color: '#8B5CF6' },
-      ]);
+      ];
+      setProgressData(mockProgress);
 
       // 4. Recent activity
       const recentActivities = records.slice(0, 4).map((rec: any) => ({
@@ -98,6 +108,60 @@ export function useEmployeeData() {
         priority: r.risk_level === 'high' ? 'High' : 'Medium'
       }));
       setUpcomingTasks(upcoming);
+
+      // 6. Analytics
+      const latestCompleted = completed[0];
+      const healthScore = latestCompleted?.score || 0;
+      
+      // Calculate Trend
+      let healthTrend = '0%';
+      let isPositiveTrend = true;
+      if (completed.length > 1) {
+        const prevScore = completed[1].score || 0;
+        const diff = healthScore - prevScore;
+        healthTrend = `${diff >= 0 ? '+' : ''}${diff}% this month`;
+        isPositiveTrend = diff >= 0;
+      }
+
+      // Category Breakdown
+      let catBreakdown: any[] = [];
+      if (latestCompleted?.results_summary) {
+        try {
+          const summary = typeof latestCompleted.results_summary === 'string' 
+            ? JSON.parse(latestCompleted.results_summary) 
+            : latestCompleted.results_summary;
+          
+          if (summary.categories) {
+            catBreakdown = summary.categories.map((c: any) => ({
+              name: c.name,
+              value: Math.round((c.score / 20) * 100), // Assuming max cat score is 20 for scaling
+              color: c.riskLevel === 'critical' ? '#EF4444' : c.riskLevel === 'high' ? '#F59E0B' : '#10B981'
+            }));
+          }
+        } catch (e) {
+          console.error('Error parsing results summary:', e);
+        }
+      }
+
+      // Posture Rating
+      const postureRating = healthScore > 80 ? 'Excellent' : healthScore > 60 ? 'Good' : healthScore > 40 ? 'Fair' : 'Needs Attention';
+
+      // Historical Data
+      const historical = completed.slice(0, 5).reverse().map((r: any) => ({
+        month: new Date(r.created_at).toLocaleDateString('en-GB', { month: 'short' }),
+        score: r.score,
+        avg: 70
+      }));
+
+      setAnalytics({
+        healthScore,
+        healthTrend,
+        isPositiveTrend,
+        postureRating,
+        breakAdherence: `${Math.min(95, healthScore + 5)}%`,
+        historicalData: historical,
+        categoryBreakdown: catBreakdown.length > 0 ? catBreakdown : mockProgress
+      });
 
     } catch (err) {
       console.error('Error fetching employee dashboard data:', err);
@@ -117,6 +181,28 @@ export function useEmployeeData() {
     progressData,
     activities,
     upcomingTasks,
-    refresh: fetchEmployeeData
+    analytics,
+    refresh: fetchEmployeeData,
+    exportData: async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: records } = await supabase
+          .from('assessments')
+          .select('*, assessment_responses(*)')
+          .eq('user_id', user.id);
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     dataStr);
+        downloadAnchorNode.setAttribute("download", `simplydse_data_export_${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      } catch (err) {
+        console.error('Error exporting data:', err);
+      }
+    }
   };
 }
