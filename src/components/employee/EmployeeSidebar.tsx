@@ -14,7 +14,8 @@ import {
   User, 
   HelpCircle,
   Building2,
-  ShieldCheck
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
@@ -100,15 +101,33 @@ export function EmployeeSidebar() {
         })}
       </nav>
 
-      {/* Powered by SimplyDSE */}
-      <div className="p-4 border-t border-slate-800/50">
-        <div className="flex items-center gap-3 px-2 py-1">
-          <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shrink-0">
-            <ShieldCheck className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-[11px] font-bold text-white tracking-tight leading-none">Powered by SimplyDSE</h1>
-            <p className="text-[8px] text-slate-500 font-bold mt-1 uppercase tracking-tighter truncate">Workplace Compliance Platform</p>
+      {/* Footer Branding & Logout */}
+      <div className="mt-auto">
+        {/* Sign Out Button */}
+        <div className="px-4 pb-2">
+          <button 
+            onClick={async () => {
+              const { supabase } = await import('@/lib/supabase');
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-400/10 hover:text-rose-300 transition-all text-left group"
+          >
+            <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span className="text-[12px] font-semibold">Sign Out</span>
+          </button>
+        </div>
+
+        {/* Powered by SimplyDSE */}
+        <div className="p-4 border-t border-slate-800/50">
+          <div className="flex items-center gap-3 px-2 py-1">
+            <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[11px] font-bold text-white tracking-tight leading-none">Powered by SimplyDSE</h1>
+              <p className="text-[8px] text-slate-500 font-bold mt-1 uppercase tracking-tighter truncate">Workplace Compliance Platform</p>
+            </div>
           </div>
         </div>
       </div>

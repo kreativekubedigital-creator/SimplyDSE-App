@@ -14,10 +14,9 @@ import {
   Send,
   FileText,
   Download,
-  ChevronDown,
-  Building2,
   FileBarChart,
-  LayoutDashboard
+  LayoutDashboard,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
@@ -134,6 +133,21 @@ export function HRDashboardSidebar() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Sign Out Button */}
+        <div className="px-3 pb-2">
+          <button 
+            onClick={async () => {
+              const { supabase } = await import('@/lib/supabase');
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-400/10 hover:text-rose-300 transition-all text-left group"
+          >
+            <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span className="text-[12px] font-semibold">Sign Out</span>
+          </button>
         </div>
 
         {/* Powered by SimplyDSE */}

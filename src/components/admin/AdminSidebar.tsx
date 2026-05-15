@@ -128,7 +128,7 @@ export function AdminSidebar() {
         ))}
       </nav>
 
-      <div className="p-3 border-t border-slate-800 bg-[#0F172A]">
+      <div className="p-3 border-t border-slate-800 bg-[#0F172A] space-y-1">
         <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 transition-all text-left">
           <div className="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-white overflow-hidden text-[10px] font-bold">
             {loading ? '...' : initials}
@@ -137,7 +137,20 @@ export function AdminSidebar() {
             <p className="text-[11px] font-semibold text-white truncate">{loading ? 'Loading...' : fullName}</p>
             <p className="text-[9px] text-slate-400 truncate">{loading ? '...' : email}</p>
           </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+        </button>
+        
+        <button 
+          onClick={async () => {
+            const { supabase } = await import('@/lib/supabase');
+            await supabase.auth.signOut();
+            window.location.href = '/login';
+          }}
+          className="w-full flex items-center gap-3 p-2 rounded-xl text-rose-400 hover:bg-rose-400/10 hover:text-rose-300 transition-all text-left group"
+        >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-400/10 group-hover:bg-rose-400/20 transition-colors">
+            <LogOut className="w-4 h-4" />
+          </div>
+          <span className="text-[12px] font-semibold">Sign Out</span>
         </button>
       </div>
     </aside>
