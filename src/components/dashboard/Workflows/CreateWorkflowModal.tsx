@@ -10,6 +10,7 @@ interface CreateWorkflowModalProps {
   onClose: () => void;
   organizationId: string;
   onSuccess: () => void;
+  preselectedType?: string;
 }
 
 const workflowTypes = [
@@ -19,7 +20,7 @@ const workflowTypes = [
   { id: 'training_reminder', name: 'Training Follow-up', icon: Play, desc: 'Reminders for incomplete training' },
 ];
 
-export function CreateWorkflowModal({ isOpen, onClose, organizationId, onSuccess }: CreateWorkflowModalProps) {
+export function CreateWorkflowModal({ isOpen, onClose, organizationId, onSuccess, preselectedType }: CreateWorkflowModalProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,6 +33,24 @@ export function CreateWorkflowModal({ isOpen, onClose, organizationId, onSuccess
       value: ''
     }
   });
+
+  React.useEffect(() => {
+    if (isOpen && preselectedType) {
+      const type = workflowTypes.find(t => t.id === preselectedType);
+      if (type) {
+        setFormData(prev => ({ ...prev, type: type.id, name: type.name }));
+        setStep(2);
+      }
+    } else if (isOpen && !preselectedType) {
+      setStep(1);
+      setFormData({
+        name: '',
+        description: '',
+        type: '',
+        trigger_condition: { field: '', operator: '', value: '' }
+      });
+    }
+  }, [isOpen, preselectedType]);
 
   if (!isOpen) return null;
 

@@ -42,6 +42,8 @@ export default function WorkflowsPage() {
   const [isLogsModalOpen, setIsLogsModalOpen] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  const [preselectedTemplate, setPreselectedTemplate] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     if (organizationId) {
       loadData();
@@ -72,6 +74,16 @@ export default function WorkflowsPage() {
       if (mRes.success && mRes.metrics) setMetrics(mRes.metrics);
     }
     setTogglingId(null);
+  };
+
+  const openWithTemplate = (templateId: string) => {
+    setPreselectedTemplate(templateId);
+    setIsCreateModalOpen(true);
+  };
+
+  const openDesigner = () => {
+    setPreselectedTemplate(undefined);
+    setIsCreateModalOpen(true);
   };
 
   return (
@@ -125,7 +137,7 @@ export default function WorkflowsPage() {
               <AlertCircle className="w-12 h-12 mb-4 opacity-20" />
               <p className="text-sm font-medium">No workflows have been created yet</p>
               <button 
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={openDesigner}
                 className="mt-4 text-blue-600 font-bold hover:underline"
               >
                 Create your first workflow
@@ -218,6 +230,7 @@ export default function WorkflowsPage() {
         onClose={() => setIsCreateModalOpen(false)} 
         organizationId={organizationId!} 
         onSuccess={loadData}
+        preselectedType={preselectedTemplate}
       />
       <ExecutionLogsModal 
         isOpen={isLogsModalOpen} 
@@ -256,7 +269,10 @@ export default function WorkflowsPage() {
                 </div>
               </div>
             </div>
-            <button className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-[15px] font-bold rounded-2xl transition-all shadow-xl shadow-blue-600/20">
+            <button 
+              onClick={openDesigner}
+              className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-[15px] font-bold rounded-2xl transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+            >
               Open Workflow Designer
               <ArrowRight className="w-5 h-5" />
             </button>
@@ -275,10 +291,30 @@ export default function WorkflowsPage() {
             <Settings2 className="w-6 h-6 text-slate-300" />
           </div>
           <div className="space-y-4">
-            <TemplateItem icon={RotateCcw} title="Annual Review Loop" desc="Automates the 12-month compliance cycle." />
-            <TemplateItem icon={Bell} title="The 'Gentle Nudge'" desc="Sends subtle reminders before deadlines." />
-            <TemplateItem icon={ShieldAlert} title="Risk Rapid Response" desc="Triggers OH intervention for high risk scores." />
-            <TemplateItem icon={Play} title="Auto-Onboarding" desc="Instantly assigns tasks to new employees." />
+            <TemplateItem 
+              icon={RotateCcw} 
+              title="Annual Review Loop" 
+              desc="Automates the 12-month compliance cycle." 
+              onClick={() => openWithTemplate('reassessment_reminder')}
+            />
+            <TemplateItem 
+              icon={Bell} 
+              title="The 'Gentle Nudge'" 
+              desc="Sends subtle reminders before deadlines." 
+              onClick={() => openWithTemplate('overdue_reminder')}
+            />
+            <TemplateItem 
+              icon={ShieldAlert} 
+              title="Risk Rapid Response" 
+              desc="Triggers OH intervention for high risk scores." 
+              onClick={() => openWithTemplate('high_risk_escalation')}
+            />
+            <TemplateItem 
+              icon={Play} 
+              title="Auto-Onboarding" 
+              desc="Instantly assigns tasks to new employees." 
+              onClick={() => openWithTemplate('training_reminder')}
+            />
           </div>
         </div>
       </div>
@@ -312,9 +348,12 @@ function MetricCard({ icon: Icon, label, value, sub, color, loading }: any) {
   );
 }
 
-function TemplateItem({ icon: Icon, title, desc }: any) {
+function TemplateItem({ icon: Icon, title, desc, onClick }: any) {
   return (
-    <button className="w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-left group">
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-left group"
+    >
       <div className="w-12 h-12 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-white group-hover:text-blue-600 transition-all">
         <Icon className="w-6 h-6" />
       </div>
