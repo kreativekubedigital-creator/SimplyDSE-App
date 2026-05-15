@@ -129,6 +129,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   const organizationId = profile.organizationId;
   const userId = profile.id;
   const router = useRouter();
+  const hasTriggeredRegeneration = React.useRef(false);
 
   // Update active ID if prop changes
   useEffect(() => {
@@ -591,14 +592,17 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   };
 
   // Trigger regeneration if requested
+  /* useEffect disabled to prevent blinking/loops - triggering manually if needed
   useEffect(() => {
-    if (!loading && !submitting && viewState !== 'completed' && categories.length > 0) {
+    if (!loading && !submitting && viewState !== 'completed' && categories.length > 0 && !hasTriggeredRegeneration.current) {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get('action') === 'regenerate' && activeAssessmentId) {
+        hasTriggeredRegeneration.current = true;
         handleSubmit();
       }
     }
   }, [loading, submitting, viewState, categories, activeAssessmentId]);
+  */
 
   // --- VIEWS --- //
 
@@ -732,7 +736,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   );
 
   if (viewState === 'review') return (
-    <div className="max-w-4xl mx-auto py-12 px-4 animate-in fade-in zoom-in-95 duration-500">
+    <div className="max-w-4xl mx-auto py-12 px-4">
       <div className="bg-white rounded-[3rem] border border-slate-200 p-12 shadow-sm">
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-sm">
@@ -777,10 +781,19 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
           <button 
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full sm:w-auto inline-flex items-center gap-2 px-12 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
+            className="w-full sm:w-[320px] inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 disabled:scale-100"
           >
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-            {submitting ? 'Processing Submission...' : 'Confirm and Submit Assessment'}
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Processing Submission...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Confirm and Submit Assessment</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -951,7 +964,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
       </div>
 
       {/* Bottom Navigation */}
-      <div className="mt-16 mb-12 flex items-center justify-between p-6 bg-slate-900 rounded-[2rem] shadow-xl border border-white/10 mx-auto max-w-2xl">
+      <div className="mt-16 mb-12 flex items-center justify-between p-6 bg-slate-900 rounded-[2rem] shadow-xl border border-white/10 mx-auto max-w-2xl relative">
         <button 
           onClick={handleBack}
           className="flex items-center gap-2 px-6 py-3 text-[13px] font-bold text-slate-400 hover:text-white transition-all"
