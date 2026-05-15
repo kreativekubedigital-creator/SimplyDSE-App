@@ -122,6 +122,8 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [guidanceModal, setGuidanceModal] = useState<{ isOpen: boolean; title: string; content: string; riskLevel: string } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const profile = useProfile();
   const organizationId = profile.organizationId;
@@ -228,6 +230,29 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
             setConditionalDetails(condMap);
             setIsDetailSaved(savedMap);
             
+            // Load saved state and check status
+            const { data: currentAssessment } = await supabase
+              .from('assessments')
+              .select('metadata, status')
+              .eq('id', currentId)
+              .single();
+
+            if (currentAssessment?.status === 'completed') {
+              setViewState('completed');
+              setLoading(false);
+              return;
+            }
+
+            if (currentAssessment?.metadata) {
+              const meta = currentAssessment.metadata as any;
+              if (meta.current_category_index !== undefined) {
+                setCurrentCatIndex(meta.current_category_index);
+              }
+              if (meta.current_view_state !== undefined) {
+                setViewState(meta.current_view_state);
+              }
+            }
+
             // If it's a resume from the list, we might want to jump in, 
             // but if it's the general "Start New", let them see the intro first.
             if (preAssignedId) setViewState('guided');
@@ -372,17 +397,51 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         });
 
       if (upsertErr) throw upsertErr;
+      setLastSaved(new Date());
     } catch (err) {
       console.error('Error saving progress:', err);
     }
   };
 
+  const saveAssessmentState = async (catIndex: number, view: string) => {
+    if (!activeAssessmentId) return;
+    setIsSaving(true);
+    try {
+      const { data: current } = await supabase
+        .from('assessments')
+        .select('metadata')
+        .eq('id', activeAssessmentId)
+        .single();
+      
+      const newMetadata = {
+        ...(current?.metadata as any || {}),
+        current_category_index: catIndex,
+        current_view_state: view,
+        last_saved_at: new Date().toISOString()
+      };
+
+      await supabase
+        .from('assessments')
+        .update({ metadata: newMetadata })
+        .eq('id', activeAssessmentId);
+      
+      setLastSaved(new Date());
+    } catch (err) {
+      console.error('Error saving assessment state:', err);
+    } finally {
+      setTimeout(() => setIsSaving(false), 800);
+    }
+  };
+
   const handleNext = () => {
     if (currentCatIndex < visibleCategories.length - 1) {
-      setCurrentCatIndex(prev => prev + 1);
+      const nextIndex = currentCatIndex + 1;
+      setCurrentCatIndex(nextIndex);
+      saveAssessmentState(nextIndex, 'guided');
       window.scrollTo(0, 0);
     } else {
       setViewState('review');
+      saveAssessmentState(currentCatIndex, 'review');
       window.scrollTo(0, 0);
     }
   };
@@ -393,10 +452,13 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
   const handleBack = () => {
     if (currentCatIndex > 0) {
-      setCurrentCatIndex(prev => prev - 1);
+      const prevIndex = currentCatIndex - 1;
+      setCurrentCatIndex(prevIndex);
+      saveAssessmentState(prevIndex, 'guided');
       window.scrollTo(0, 0);
     } else {
       setViewState('intro');
+      saveAssessmentState(0, 'intro');
       window.scrollTo(0, 0);
     }
   };
@@ -884,8 +946,13 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         </button>
         
         <div className="hidden sm:flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Progress Saved</span>
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full transition-all duration-500",
+            isSaving ? "bg-blue-400 animate-ping" : "bg-emerald-500"
+          )} />
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+            {isSaving ? 'Saving Progress...' : 'Progress Saved'}
+          </span>
         </div>
 
         {!isCategoryComplete() && !isValidationDismissed && (

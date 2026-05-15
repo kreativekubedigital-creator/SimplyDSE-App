@@ -48,7 +48,7 @@ export function useEmployeeData() {
           title: displayTitle,
           subtitle: rec.results_summary || 'Self-assessment of your workstation',
           status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Not Started',
-          progress: rec.status === 'in_progress' ? 50 : rec.status === 'completed' ? 100 : 0,
+          progress: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? Math.round(((rec.metadata?.current_category_index || 0) / 10) * 100) : 0,
           date: rec.created_at ? new Date(rec.created_at).toLocaleDateString() : 'Pending',
           dateLabel: rec.status === 'completed' ? 'Completed on' : 'Due date',
           risk: rec.risk_level || 'none',
