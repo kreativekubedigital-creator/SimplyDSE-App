@@ -14,7 +14,6 @@ const Challenges = dynamic(() => import('../components/Challenges'));
 const Security = dynamic(() => import('../components/Security'));
 const Testimonials = dynamic(() => import('../components/Testimonials'));
 const CTA = dynamic(() => import('../components/CTA'));
-const HumanImpact = dynamic(() => import('../components/HumanImpact'));
 const FAQ = dynamic(() => import('../components/FAQ'));
 
 export default function HomePage() {
@@ -29,7 +28,6 @@ export default function HomePage() {
           <Workflow />
           <Challenges />
           <Solutions />
-          <HumanImpact />
           <Security />
           <Testimonials />
           <FAQ />
