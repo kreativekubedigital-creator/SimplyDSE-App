@@ -35,18 +35,23 @@ export function EmployeeSidebar() {
       {/* Organisation Brand */}
       <div className="p-5 pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden">
+          <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden shrink-0">
             {organizationLogoUrl ? (
               <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1.5" />
             ) : (
-              <Building2 className="w-5 h-5 text-slate-400" />
+              <div className="w-full h-full bg-blue-600/10 flex items-center justify-center text-blue-500 font-bold text-xs uppercase">
+                {loading ? '...' : (organizationName ? organizationName.substring(0, 2) : 'OW')}
+              </div>
             )}
           </div>
           <div className="text-left min-w-0">
-            <p className="text-[15px] font-bold text-white leading-tight truncate">
-              {loading ? '...' : organizationName}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate uppercase tracking-wider">Tenant Member</p>
+            <h1 className="text-[14px] font-bold text-white leading-tight truncate">
+              {loading ? 'Loading...' : (organizationName || 'Organisation Workspace')}
+            </h1>
+            <div className="mt-1 space-y-0.5">
+              <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider leading-none">Organisation Workspace</p>
+              <p className="text-[8px] text-blue-500 font-bold uppercase tracking-wider leading-none">Employee Workspace</p>
+            </div>
           </div>
         </div>
       </div>
@@ -98,12 +103,12 @@ export function EmployeeSidebar() {
       {/* Powered by SimplyDSE */}
       <div className="p-4 border-t border-slate-800/50">
         <div className="flex items-center gap-3 px-2 py-1">
-          <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
+          <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </div>
-          <div>
-            <h1 className="text-[12px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
-            <p className="text-[9px] text-slate-500 font-medium mt-1">Platform Partner</p>
+          <div className="min-w-0">
+            <h1 className="text-[11px] font-bold text-white tracking-tight leading-none">Powered by SimplyDSE</h1>
+            <p className="text-[8px] text-slate-500 font-bold mt-1 uppercase tracking-tighter truncate">Workplace Compliance Platform</p>
           </div>
         </div>
       </div>

@@ -47,41 +47,34 @@ export function HRDashboardSidebar() {
   const pathname = usePathname();
   const { organizationName, organizationLogoUrl, loading } = useProfile();
 
-  const orgName = loading ? 'Loading...' : (organizationName || 'Your Organisation');
-
   return (
     <aside className="w-[260px] bg-[#0F172A] text-slate-300 h-screen flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
-      {/* Brand Section - SimplyDSE Platform Logo */}
-      <div className="p-5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-white/5 border border-slate-800">
-            <img src="/simplydselogo.webp" alt="SimplyDSE" className="w-full h-full object-contain p-0.5" />
+      {/* Organisation Brand Section */}
+      <div className="p-5 pb-6 border-b border-slate-800/50 mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden shrink-0">
+            {organizationLogoUrl ? (
+              <div className="w-full h-full bg-white flex items-center justify-center">
+                <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1.5" />
+              </div>
+            ) : (
+              <div className="w-full h-full bg-emerald-600/10 flex items-center justify-center text-emerald-500 font-bold text-xs uppercase">
+                {loading ? '...' : (organizationName ? organizationName.substring(0, 2) : 'OW')}
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-[14px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
-            <p className="text-[10px] text-slate-200 font-medium mt-1">Workplace Compliance</p>
+          <div className="text-left min-w-0">
+            <h1 className="text-[14px] font-bold text-white leading-tight truncate">
+              {loading ? 'Loading...' : (organizationName || 'Organisation Workspace')}
+            </h1>
+            <div className="mt-1 space-y-0.5">
+              <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider leading-none">Organisation Workspace</p>
+              <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-wider leading-none">HR Workspace</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Organisation Selector - Shows org logo */}
-      <div className="px-4 mb-4">
-        <button className="w-full flex items-center justify-between p-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 rounded-lg transition-all group">
-          <div className="flex items-center gap-2.5">
-            {organizationLogoUrl ? (
-              <div className="w-7 h-7 rounded-md bg-white flex items-center justify-center overflow-hidden border border-slate-600">
-                <img src={organizationLogoUrl} alt={orgName} className="w-full h-full object-contain p-0.5" />
-              </div>
-            ) : (
-              <div className="w-7 h-7 rounded-md bg-slate-700 flex items-center justify-center text-slate-200 group-hover:text-white transition-colors">
-                <Building2 className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <span className="text-[12px] font-semibold text-white group-hover:text-white transition-colors">{orgName}</span>
-          </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-200 group-hover:text-white transition-all" />
-        </button>
-      </div>
 
       {/* Navigation items - Reduced vertical padding and font size */}
       <nav className="flex-1 px-3 space-y-6 overflow-y-auto no-scrollbar py-4">
@@ -91,10 +84,6 @@ export function HRDashboardSidebar() {
               {section.title}
             </p>
             {section.items.map((item) => {
-              // Robust matching logic:
-              // 1. Exact match for the current href
-              // 2. For non-root paths, match if the pathname starts with the href followed by a slash (nested routes)
-              // 3. Special case for /dashboard to ensure it doesn't over-match sub-modules
               const isActive = item.href === '/' 
                 ? pathname === '/' || pathname === ''
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -127,20 +116,36 @@ export function HRDashboardSidebar() {
         ))}
       </nav>
 
-      {/* Quick Actions Footer Card - Slimmer profile */}
-      <div className="p-3 mt-auto border-t border-slate-800/50">
-        <div className="bg-slate-800/30 border border-slate-700/40 rounded-xl p-3">
-          <p className="text-[9px] font-semibold text-slate-200 uppercase tracking-widest mb-2 px-1">Quick Actions</p>
-          <div className="grid grid-cols-1 gap-0.5">
-            {quickActions.map((action) => (
-              <button 
-                key={action.name}
-                className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold text-slate-200 hover:text-white hover:bg-slate-700/50 transition-all group text-left"
-              >
-                <action.icon className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition-colors" />
-                {action.name}
-              </button>
-            ))}
+      {/* Footer Branding & Actions */}
+      <div className="mt-auto">
+        {/* Quick Actions Footer Card */}
+        <div className="p-3">
+          <div className="bg-slate-800/30 border border-slate-700/40 rounded-xl p-3">
+            <p className="text-[9px] font-semibold text-slate-200 uppercase tracking-widest mb-2 px-1 text-center">Quick Actions</p>
+            <div className="grid grid-cols-1 gap-0.5">
+              {quickActions.map((action) => (
+                <button 
+                  key={action.name}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold text-slate-200 hover:text-white hover:bg-slate-700/50 transition-all group text-left"
+                >
+                  <action.icon className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition-colors" />
+                  {action.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Powered by SimplyDSE */}
+        <div className="p-4 border-t border-slate-800/50 bg-slate-900/50">
+          <div className="flex items-center gap-3 px-2 py-1">
+            <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[11px] font-bold text-white tracking-tight leading-none">Powered by SimplyDSE</h1>
+              <p className="text-[8px] text-slate-500 font-bold mt-1 uppercase tracking-tighter truncate">Workplace Compliance Platform</p>
+            </div>
           </div>
         </div>
       </div>
