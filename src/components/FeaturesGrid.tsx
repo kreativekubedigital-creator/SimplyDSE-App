@@ -33,7 +33,7 @@ const FeatureCard = ({
             <h3 className={`${variant === 'hero' ? 'text-3xl md:text-5xl' : 'text-2xl'} font-bold text-white tracking-tight leading-tight mb-4`}>
               {title}
             </h3>
-            <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
+            <p className="text-slate-100 text-lg leading-relaxed max-w-sm">
               {description}
             </p>
           </div>
@@ -67,11 +67,11 @@ const FeaturesGrid = () => {
           </Reveal>
           <Reveal delay={0.2}>
             <h2 className="text-6xl md:text-8xl font-bold text-white mt-8 tracking-tighter leading-[0.9] text-balance">
-              Simplifying <span className="text-slate-500">DSE Assessment</span> at Scale.
+              Simplifying <span className="text-slate-300">DSE Assessment</span> at Scale.
             </h2>
           </Reveal>
           <Reveal delay={0.3}>
-            <p className="text-xl md:text-2xl text-slate-400 mt-12 leading-relaxed max-w-2xl font-medium">
+            <p className="text-xl md:text-2xl text-slate-100 mt-12 leading-relaxed max-w-2xl font-medium">
               SimplyDSE replaces fragmented safety processes with a unified operational intelligence layer designed for modern organisations.
             </p>
           </Reveal>

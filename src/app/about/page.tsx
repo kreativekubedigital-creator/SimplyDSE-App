@@ -168,7 +168,7 @@ export default function AboutPage() {
                     Built for Organisations That Take <br/>
                     <span className="text-brand-primary">Workplace Wellbeing Seriously</span>
                   </h2>
-                  <div className="space-y-6 text-lg text-text-muted leading-relaxed">
+                  <div className="space-y-6 text-lg text-slate-100 leading-relaxed">
                     <p>
                       SimplyDSE is trusted by organisations that see workplace wellbeing as a performance priority, not just a compliance requirement.
                     </p>
@@ -185,7 +185,7 @@ export default function AboutPage() {
                   className="glass-card !bg-white/5 border-white/10 p-10 md:p-12"
                 >
                   <h3 className="text-2xl font-bold mb-6">Ready to improve?</h3>
-                  <p className="text-text-muted mb-10 leading-relaxed">
+                  <p className="text-slate-100 mb-10 leading-relaxed">
                     If you are ready to improve ergonomics, reduce risk, and create a more productive working environment, SimplyDSE gives you the structure to make it happen.
                   </p>
                   <Link href="/contact" className="btn-enterprise-primary !py-5 w-full flex items-center justify-center gap-3">

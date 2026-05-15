@@ -29,7 +29,7 @@ const FAQItem = ({ title, content, isOpen, onClick }: { title: string, content: 
             className="overflow-hidden"
           >
             <div className="pb-8 pr-12">
-              <p className="text-lg text-slate-400 leading-relaxed max-w-4xl">
+              <p className="text-lg text-slate-100 leading-relaxed max-w-4xl">
                 {content}
               </p>
             </div>
@@ -74,11 +74,11 @@ const FAQ = () => {
             <Reveal delay={0.2}>
               <h2 className="text-5xl md:text-7xl font-bold text-white mt-8 tracking-tighter leading-[0.95]">
                 Common <br />
-                <span className="text-slate-500">Inquiries.</span>
+                <span className="text-slate-300">Inquiries.</span>
               </h2>
             </Reveal>
             <Reveal delay={0.3}>
-              <p className="text-xl text-slate-400 mt-12 leading-relaxed max-w-md">
+              <p className="text-xl text-slate-100 mt-12 leading-relaxed max-w-md">
                 Everything you need to know about our platform, security standards, and deployment process.
               </p>
             </Reveal>
