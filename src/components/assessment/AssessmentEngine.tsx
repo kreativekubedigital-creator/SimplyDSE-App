@@ -421,6 +421,13 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
       if (upsertErr) throw upsertErr;
 
+      // Update assessment status if exists
+      await supabase
+        .from('assessments')
+        .update({ status: 'in_progress' })
+        .eq('id', currentId)
+        .eq('status', 'pending');
+
       // Update assignment status if exists
       await supabase
         .from('assessment_assignments')
@@ -715,10 +722,26 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
             <span className="text-[11px] font-medium uppercase tracking-wider">British English standards applied</span>
           </div>
           <button 
-            onClick={() => setViewState('guided')}
+            onClick={async () => {
+              setViewState('guided');
+              // Update status to in_progress if not already
+              if (activeAssessmentId) {
+                await supabase
+                  .from('assessments')
+                  .update({ status: 'in_progress' })
+                  .eq('id', activeAssessmentId)
+                  .eq('status', 'pending');
+                
+                await supabase
+                  .from('assessment_assignments')
+                  .update({ status: 'in_progress', started_at: new Date().toISOString() })
+                  .eq('submission_id', activeAssessmentId)
+                  .eq('status', 'assigned');
+              }
+            }}
             className="w-full sm:w-auto inline-flex items-center gap-2 px-12 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95"
           >
-            Enter Guided Workflow <ChevronRight className="w-4 h-4" />
+            {Object.keys(answers).length > 0 ? 'Continue Assessment' : 'Start Assessment'} <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

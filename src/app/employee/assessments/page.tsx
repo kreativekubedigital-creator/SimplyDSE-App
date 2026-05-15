@@ -188,7 +188,7 @@ function AssessmentContent() {
                           href={`/employee/assessment?id=${item.submissionId || ''}`}
                           className="flex items-center justify-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] text-[13px] font-medium hover:bg-blue-600 transition-all shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1"
                         >
-                          {item.status === 'in_progress' ? 'Resume Now' : 'Start Assessment'} 
+                          {item.status === 'in_progress' ? 'Continue Assessment' : 'Start Assessment'} 
                           <ArrowRight className="w-5 h-5" />
                         </Link>
                       </div>
