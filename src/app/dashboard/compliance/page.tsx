@@ -41,7 +41,8 @@ import {
   MoreVertical,
   MoreHorizontal,
   Search,
-  Plus
+  Plus,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -439,6 +440,15 @@ function ComplianceContent() {
                       </td>
                       <td className="px-8 py-5 text-right">
                          <div className="flex items-center justify-end gap-2">
+                           {item.status === 'Completed' && (
+                             <Link 
+                               href={`/employee/reports/${item.id}`}
+                               className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all"
+                               title="View Report"
+                             >
+                               <Eye className="w-4 h-4" />
+                             </Link>
+                           )}
                            {item.pdfUrl && (
                              <a 
                                href={item.pdfUrl} 

@@ -18,10 +18,12 @@ import {
   TrendingUp,
   Calendar,
   Share2,
-  Loader2
+  Loader2,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
+import Link from 'next/link';
 
 export default function ReportsPage() {
   const { fullName, organizationId } = useProfile();
@@ -149,7 +151,10 @@ export default function ReportsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <a href={report.metadata?.pdf_report_url} target="_blank" rel="noreferrer" className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100 block">
+                      <Link href={`/employee/reports/${report.id}`} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100 block" title="View Report">
+                        <Eye className="w-4.5 h-4.5" />
+                      </Link>
+                      <a href={report.metadata?.pdf_report_url} target="_blank" rel="noreferrer" className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100 block" title="Download PDF">
                         <Download className="w-4.5 h-4.5" />
                       </a>
                     </div>

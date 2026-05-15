@@ -155,7 +155,7 @@ export default function EmployeeDashboardPage() {
               ) : (
                 assessments.slice(0, 3).map((assessment) => (
                   <Link 
-                    href={assessment.status === 'Completed' ? `/employee/assessments?tab=assessments` : `/employee/assessment?id=${assessment.id}`}
+                    href={assessment.status === 'Completed' ? `/employee/reports/${assessment.id}` : `/employee/assessment?id=${assessment.id}`}
                     key={assessment.id} 
                     className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer block"
                   >

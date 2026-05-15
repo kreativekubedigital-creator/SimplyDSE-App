@@ -204,27 +204,15 @@ function AssessmentContent() {
                           </a>
                         )}
                         {item.status === 'Completed' ? (
-                          item.pdfUrl ? (
-                            <a 
-                              href={item.pdfUrl} 
-                              target="_blank" 
-                              rel="noreferrer" 
-                              className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 inline-block shadow-lg shadow-slate-900/10"
-                            >
-                              View Report
-                            </a>
-                          ) : (
-                            <button 
-                              onClick={() => {
-                                // Trigger regeneration logic
-                                // We can call the same API or a dedicated one
-                                window.location.href = `/employee/assessment?id=${item.id}&action=regenerate`;
-                              }}
-                              className="px-6 py-3 bg-amber-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 inline-block shadow-lg shadow-amber-600/20"
-                            >
-                              Generate Report
-                            </button>
-                          )
+                          <Link 
+                            href={`/employee/reports/${item.id}`}
+                            className={cn(
+                              "px-6 py-3 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 inline-block shadow-lg",
+                              item.pdfUrl ? "bg-slate-900 shadow-slate-900/10" : "bg-blue-600 shadow-blue-600/20"
+                            )}
+                          >
+                            {item.pdfUrl ? 'View Report' : 'Generate Report'}
+                          </Link>
                         ) : (
                           <Link href={`/employee/assessment?id=${item.id}`} className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] shadow-lg shadow-blue-600/20 transition-all active:scale-95 inline-block">
                             {item.status === 'In Progress' ? 'Resume Assessment' : 'Take Assessment'}

@@ -590,7 +590,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         throw new Error(errorData.error || 'Failed to generate report');
       }
 
-      setViewState('completed');
+      router.push(`/employee/reports/${activeAssessmentId}`);
     } catch (err: any) {
       console.error('Error submitting assessment:', err);
       setError(err.message || 'An unexpected error occurred during submission. Please try again.');
@@ -727,16 +727,16 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button 
-            onClick={() => router.push('/employee')}
-            className="w-full sm:w-auto px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:scale-[1.02] transition-all active:scale-95"
+            onClick={() => router.push(`/employee/reports/${activeAssessmentId}`)}
+            className="w-full sm:w-auto px-10 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95"
           >
-            Return to Dashboard
+            View Assessment Report
           </button>
           <button 
-            onClick={() => router.push('/employee/wellness?tab=assessments')}
+            onClick={() => router.push('/employee/assessments')}
             className="w-full sm:w-auto px-10 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all"
           >
-            View History
+            Return to Dashboard
           </button>
         </div>
       </div>
