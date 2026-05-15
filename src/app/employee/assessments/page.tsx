@@ -42,16 +42,22 @@ import {
 
 function AssessmentContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'assessments' | 'analytics' | 'resources' || 'assessments';
-  const [activeTab, setActiveTab] = useState<'assessments' | 'analytics' | 'resources'>(initialTab);
+  const initialTab = searchParams.get('tab') as 'assigned' | 'history' | 'analytics' | 'resources' || 'assigned';
+  const [activeTab, setActiveTab] = useState<'assigned' | 'history' | 'analytics' | 'resources'>(initialTab);
   const [searchTerm, setSearchTerm] = useState('');
-  const { assessments, stats, analytics, loading, exportData } = useEmployeeData();
+  const { assessments, assignments, stats, analytics, loading, exportData } = useEmployeeData();
 
   const tabs = [
-    { id: 'assessments', label: 'My Assessments', icon: ClipboardList },
+    { id: 'assigned', label: 'Assigned Assessments', icon: ClipboardList },
+    { id: 'history', label: 'My History', icon: Clock },
     { id: 'analytics', label: 'Health Analytics', icon: LineChart },
     { id: 'resources', label: 'Resource Library', icon: BookOpen },
   ];
+
+  const pendingAssignment = assignments.find(a => a.status !== 'completed');
+  const startActionUrl = pendingAssignment 
+    ? `/employee/assessment?id=${pendingAssignment.submissionId || ''}`
+    : '/employee/assessment';
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -70,9 +76,9 @@ function AssessmentContent() {
             <Download className="w-4 h-4" />
             Export My Data
           </button>
-          <Link href="/employee/assessment" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
-            <ClipboardList className="w-4 h-4" />
-            Start New Assessment
+          <Link href={startActionUrl} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
+            <PlayCircle className="w-4 h-4" />
+            {pendingAssignment ? 'Continue Assigned Assessment' : 'Start New Assessment'}
           </Link>
         </div>
       </div>
@@ -97,7 +103,105 @@ function AssessmentContent() {
       </div>
 
       {/* Content */}
-      {activeTab === 'assessments' && (
+      {activeTab === 'assigned' && (
+        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatCard 
+              title="Assigned Tasks" 
+              value={assignments.filter(a => a.status !== 'completed').length} 
+              trend="Pending Completion" 
+              isPositive={assignments.filter(a => a.status !== 'completed').length === 0}
+              icon={AlertCircle}
+              iconColor="blue"
+            />
+            <StatCard 
+              title="Next Deadline" 
+              value={stats.nextDue} 
+              trend="Action Required" 
+              icon={Clock}
+              iconColor="amber"
+            />
+            <StatCard 
+              title="Compliance Status" 
+              value={stats.compliance === 100 ? 'Compliant' : 'Review Needed'} 
+              trend={`${stats.compliance}% Rate`} 
+              isPositive={stats.compliance === 100}
+              icon={CheckCircle2}
+              iconColor="emerald"
+            />
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Pending Assignments</h3>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">HR-assigned assessments requiring your attention</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {loading ? (
+                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
+                  <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
+                  <p className="text-sm font-medium text-slate-500">Fetching assignments...</p>
+                </div>
+              ) : assignments.filter(a => a.status !== 'completed').length === 0 ? (
+                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
+                  <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-900">All Caught Up!</h4>
+                  <p className="text-sm text-slate-500 max-w-xs mx-auto mt-2">You have no pending HR-assigned assessments at this time.</p>
+                </div>
+              ) : (
+                assignments.filter(a => a.status !== 'completed').map((item) => (
+                  <div key={item.id} className="group relative p-8 rounded-[2.5rem] border-2 border-blue-100 bg-blue-50/20 hover:bg-blue-50/50 transition-all overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                      <div className="w-20 h-20 rounded-[2rem] bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20">
+                        <Monitor className="w-10 h-10" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest">
+                            {item.status === 'in_progress' ? 'In Progress' : 'New Assignment'}
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-400">Assigned on {item.assignedAt}</span>
+                        </div>
+                        <h4 className="text-xl font-black text-slate-900">{item.title}</h4>
+                        <p className="text-[13px] text-slate-500 font-medium mt-2 leading-relaxed max-w-xl">
+                          {item.description || 'This assessment has been assigned to you by your HR manager to ensure your workstation is properly set up.'}
+                        </p>
+                        <div className="flex items-center gap-4 mt-4">
+                          <div className="flex items-center gap-1.5 text-[12px] font-bold text-amber-600">
+                            <Clock className="w-4 h-4" />
+                            Due: {item.dueDate}
+                          </div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                          <div className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">
+                            Version {item.version}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="shrink-0 w-full md:w-auto">
+                        <Link 
+                          href={`/employee/assessment?id=${item.submissionId || ''}`}
+                          className="flex items-center justify-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] text-[14px] font-bold hover:bg-blue-600 transition-all shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1"
+                        >
+                          {item.status === 'in_progress' ? 'Resume Now' : 'Start Assessment'} 
+                          <ArrowRight className="w-5 h-5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'history' && (
         <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard 
@@ -109,36 +213,35 @@ function AssessmentContent() {
               iconColor="emerald"
             />
             <StatCard 
-              title="Assessments" 
+              title="Total Completed" 
               value={stats.completedCount} 
-              trend={`of ${stats.totalCount}`} 
+              trend="Lifetime Records" 
               icon={ClipboardList}
               iconColor="blue"
             />
             <StatCard 
-              title="Next Review" 
-              value={stats.nextDue} 
-              trend="Scheduled" 
+              title="Last Assessment" 
+              value={assessments[0]?.date || 'N/A'} 
+              trend="Completed" 
               icon={Clock}
-              iconColor="amber"
+              iconColor="indigo"
             />
           </div>
 
           <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Assessment Records</h3>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Assessment History</h3>
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="text" 
-                    placeholder="Search records..."
+                    placeholder="Search history..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-600/20 w-64"
                   />
                 </div>
-                <button className="p-2 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-all">
-                  <Filter className="w-4 h-4 text-slate-500" />
-                </button>
               </div>
             </div>
 
@@ -146,38 +249,21 @@ function AssessmentContent() {
               {loading ? (
                 <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
                   <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
-                  <p className="text-sm font-medium text-slate-500">Hydrating assessments...</p>
+                  <p className="text-sm font-medium text-slate-500">Hydrating history...</p>
                 </div>
               ) : assessments.length === 0 ? (
-                <Link href="/employee/assessment" className="group relative p-12 rounded-[3rem] border-2 border-dashed border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all block overflow-hidden text-center md:text-left">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/20 rounded-full -mr-48 -mt-48 blur-3xl" />
-                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-                    <div className="w-24 h-24 rounded-[2.5rem] bg-blue-600 text-white flex items-center justify-center shadow-2xl shadow-blue-600/30 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-3">
-                      <Monitor className="w-12 h-12" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-[11px] font-black uppercase tracking-widest mb-4">
-                        Action Required
-                      </div>
-                      <h4 className="text-2xl font-bold text-slate-900 mb-3">DSE Hybrid Assessment</h4>
-                      <p className="text-slate-500 font-medium leading-relaxed max-w-xl">
-                        Your workstation health and safety review is pending. This assessment helps optimize your workspace for comfort and compliance.
-                      </p>
-                    </div>
-                    <div className="shrink-0 w-full md:w-auto">
-                      <div className="flex items-center justify-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] text-[14px] font-bold group-hover:bg-blue-600 transition-all shadow-xl group-hover:shadow-blue-600/20 group-hover:-translate-y-1">
-                        Start Assessment <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
+                  <p className="text-sm font-medium text-slate-500">No completed assessments found.</p>
+                </div>
               ) : (
-                assessments.map((item) => (
+                assessments.filter(item => 
+                  item.title.toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((item) => (
                   <div key={item.id} className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
                     <div className="flex items-center gap-6">
                       <div className={cn(
                         "w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
-                        item.status === 'Completed' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                        "bg-emerald-50 text-emerald-600"
                       )}>
                         {item.title.includes('DSE') ? <Monitor className="w-8 h-8" /> : <ClipboardList className="w-8 h-8" />}
                       </div>
@@ -186,7 +272,7 @@ function AssessmentContent() {
                           <h4 className="text-[16px] font-bold text-slate-900">{item.title}</h4>
                           <span className={cn(
                             "px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight",
-                            item.status === 'Completed' ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
+                            "bg-emerald-100 text-emerald-700"
                           )}>
                             {item.status}
                           </span>
@@ -203,21 +289,15 @@ function AssessmentContent() {
                             <Download className="w-5 h-5" />
                           </a>
                         )}
-                        {item.status === 'Completed' ? (
-                          <Link 
-                            href={`/employee/reports/${item.id}`}
-                            className={cn(
-                              "px-6 py-3 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 inline-block shadow-lg",
-                              item.pdfUrl ? "bg-slate-900 shadow-slate-900/10" : "bg-blue-600 shadow-blue-600/20"
-                            )}
-                          >
-                            {item.pdfUrl ? 'View Report' : 'Generate Report'}
-                          </Link>
-                        ) : (
-                          <Link href={`/employee/assessment?id=${item.id}`} className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] shadow-lg shadow-blue-600/20 transition-all active:scale-95 inline-block">
-                            {item.status === 'In Progress' ? 'Resume Assessment' : 'Take Assessment'}
-                          </Link>
-                        )}
+                        <Link 
+                          href={`/employee/reports/${item.id}`}
+                          className={cn(
+                            "px-6 py-3 text-white rounded-xl text-[12px] font-bold hover:scale-[1.05] transition-all active:scale-95 inline-block shadow-lg",
+                            item.pdfUrl ? "bg-slate-900 shadow-slate-900/10" : "bg-blue-600 shadow-blue-600/20"
+                          )}
+                        >
+                          {item.pdfUrl ? 'View Report' : 'Generate Report'}
+                        </Link>
                       </div>
                     </div>
                   </div>

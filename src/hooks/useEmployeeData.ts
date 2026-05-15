@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 export function useEmployeeData() {
   const [loading, setLoading] = useState(true);
   const [assessments, setAssessments] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [stats, setStats] = useState({
     compliance: 0,
     completedCount: 0,
@@ -40,6 +41,22 @@ export function useEmployeeData() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // 1b. Fetch user's assignments
+      const { data: assignmentRecords, error: assignError } = await supabase
+        .from('assessment_assignments')
+        .select(`
+          *,
+          assessment_templates (
+            name,
+            description,
+            version
+          )
+        `)
+        .eq('employee_id', user.id)
+        .order('assigned_at', { ascending: false });
+
+      if (assignError) throw assignError;
 
       // Process assessments for UI
       const processedAssessments = records.map((rec: any) => {
@@ -82,9 +99,25 @@ export function useEmployeeData() {
 
       setAssessments(processedAssessments);
 
+      // Process assignments for UI
+      const processedAssignments = (assignmentRecords || []).map((rec: any) => ({
+        id: rec.id,
+        templateId: rec.assessment_template_id,
+        title: rec.assessment_templates?.name || 'Assigned Assessment',
+        description: rec.assessment_templates?.description || '',
+        status: rec.status,
+        dueDate: rec.due_date ? new Date(rec.due_date).toLocaleDateString() : 'No due date',
+        assignedAt: new Date(rec.assigned_at).toLocaleDateString(),
+        submissionId: rec.submission_id,
+        version: rec.assessment_templates?.version || '1.0'
+      }));
+
+      setAssignments(processedAssignments);
+
       // 2. Calculate stats
       const completed = records.filter((r: any) => r.status === 'completed');
       const pending = records.filter((r: any) => r.status !== 'completed');
+      const activeAssignments = processedAssignments.filter(a => a.status !== 'completed');
       const compliance = records.length > 0 ? Math.round((completed.length / records.length) * 100) : 0;
       
       const latestRisk = records[0]?.risk_level || 'Low';
@@ -93,10 +126,10 @@ export function useEmployeeData() {
         compliance,
         completedCount: completed.length,
         totalCount: records.length,
-        nextDue: 'TBD',
+        nextDue: activeAssignments[0]?.dueDate || 'TBD',
         dueInDays: 0,
         riskLevel: latestRisk.charAt(0).toUpperCase() + latestRisk.slice(1),
-        pendingTasks: pending.length
+        pendingTasks: activeAssignments.length || pending.length
       });
 
       // 3. Mock progress breakdown
@@ -192,6 +225,7 @@ export function useEmployeeData() {
   return {
     loading,
     assessments,
+    assignments,
     stats,
     progressData,
     activities,

@@ -404,6 +404,17 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         });
 
       if (upsertErr) throw upsertErr;
+
+      // Update assignment status if exists
+      await supabase
+        .from('assessment_assignments')
+        .update({ 
+          status: 'in_progress',
+          started_at: new Date().toISOString()
+        })
+        .eq('submission_id', currentId)
+        .eq('status', 'assigned');
+
       setLastSaved(new Date());
     } catch (err) {
       console.error('Error saving progress:', err);
@@ -574,6 +585,15 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
         .eq('id', activeAssessmentId);
 
       if (updateErr) throw updateErr;
+
+      // Update assignment status if exists
+      await supabase
+        .from('assessment_assignments')
+        .update({ 
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .eq('submission_id', activeAssessmentId);
 
       // Call PDF Generation API
       const response = await fetch('/api/generate-assessment-report', {

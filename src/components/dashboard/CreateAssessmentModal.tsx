@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ClipboardList, Users, CheckCircle2, AlertCircle, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createAssessments, getAssessmentTemplates, getOrgEmployees } from '@/app/actions/assessment-actions';
+import { useProfile } from '@/hooks/useProfile';
 
 interface CreateAssessmentModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ created?: number; skipped?: number; error?: string } | null>(null);
+  const profile = useProfile();
 
   useEffect(() => {
     if (!isOpen || !organizationId) return;
@@ -67,6 +69,7 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
       organizationId,
       templateId: selectedTemplate,
       userIds: Array.from(selectedEmployees),
+      assignedBy: profile.id || '',
       frequency: frequency,
     });
 

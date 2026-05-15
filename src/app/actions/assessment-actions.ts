@@ -12,15 +12,17 @@ interface CreateAssessmentInput {
   organizationId: string;
   templateId: string;
   userIds: string[]; // employees to assign
+  assignedBy: string; // HR/Admin ID
   type?: string;
   frequency?: string;
+  dueDate?: string;
 }
 
 export async function createAssessments(input: CreateAssessmentInput) {
   try {
-    const { organizationId, templateId, userIds, type, frequency } = input;
+    const { organizationId, templateId, userIds, assignedBy, type, frequency, dueDate } = input;
 
-    if (!organizationId || !templateId || userIds.length === 0) {
+    if (!organizationId || !templateId || userIds.length === 0 || !assignedBy) {
       return { success: false, error: 'Missing required fields' };
     }
 
@@ -35,19 +37,19 @@ export async function createAssessments(input: CreateAssessmentInput) {
       return { success: false, error: 'Assessment template not found' };
     }
 
-    // Check for existing pending assessments (avoid duplicates)
+    // Check for existing pending assignments (avoid duplicates)
     const { data: existing } = await supabaseAdmin
-      .from('assessments')
-      .select('user_id')
+      .from('assessment_assignments')
+      .select('employee_id')
       .eq('organization_id', organizationId)
-      .eq('template_id', templateId)
-      .in('status', ['pending', 'in_progress'])
-      .in('user_id', userIds);
+      .eq('assessment_template_id', templateId)
+      .in('status', ['assigned', 'in_progress'])
+      .in('employee_id', userIds);
 
-    const existingUserIds = new Set((existing || []).map((a: any) => a.user_id));
-    const newUserIds = userIds.filter(id => !existingUserIds.has(id));
+    const existingEmployeeIds = new Set((existing || []).map((a: any) => a.employee_id));
+    const newEmployeeIds = userIds.filter(id => !existingEmployeeIds.has(id));
 
-    if (newUserIds.length === 0) {
+    if (newEmployeeIds.length === 0) {
       return { 
         success: true, 
         created: 0,
@@ -55,8 +57,8 @@ export async function createAssessments(input: CreateAssessmentInput) {
       };
     }
 
-    // Create assessments for each new user
-    const records = newUserIds.map(userId => ({
+    // 1. Create records in assessments table (the actual assessment instances)
+    const assessmentRecords = newEmployeeIds.map(userId => ({
       organization_id: organizationId,
       user_id: userId,
       template_id: templateId,
@@ -65,17 +67,32 @@ export async function createAssessments(input: CreateAssessmentInput) {
       frequency: frequency || 'Annual',
     }));
 
-    const { data: created, error: insertErr } = await supabaseAdmin
+    const { data: createdAssessments, error: insertErr } = await supabaseAdmin
       .from('assessments')
-      .insert(records)
+      .insert(assessmentRecords)
       .select();
 
-    if (insertErr) {
-      return { success: false, error: insertErr.message };
-    }
+    if (insertErr) throw insertErr;
 
-    // Create notifications for assigned employees
-    const notifications = newUserIds.map(userId => ({
+    // 2. Create records in assessment_assignments table (the HR tracking records)
+    const assignmentRecords = (createdAssessments || []).map(assessment => ({
+      organization_id: organizationId,
+      assessment_template_id: templateId,
+      employee_id: assessment.user_id,
+      assigned_by: assignedBy,
+      status: 'assigned',
+      due_date: dueDate || null,
+      submission_id: assessment.id
+    }));
+
+    const { error: assignErr } = await supabaseAdmin
+      .from('assessment_assignments')
+      .insert(assignmentRecords);
+
+    if (assignErr) throw assignErr;
+
+    // 3. Create notifications for assigned employees
+    const notifications = newEmployeeIds.map(userId => ({
       organization_id: organizationId,
       user_id: userId,
       title: 'New Assessment Assigned',
@@ -88,10 +105,11 @@ export async function createAssessments(input: CreateAssessmentInput) {
 
     return { 
       success: true, 
-      created: created?.length || 0,
-      skipped: existingUserIds.size,
+      created: createdAssessments?.length || 0,
+      skipped: existingEmployeeIds.size,
     };
   } catch (err: any) {
+    console.error('Error in createAssessments:', err);
     return { success: false, error: err.message };
   }
 }
