@@ -57,7 +57,7 @@ export default function AdminSettingsPage() {
   async function handleSaveProfile() {
     if (!profile.id) return;
     setProfileSaving(true);
-    const result = await updateProfileAction(fullName);
+    const result = await updateProfileAction({ fullName });
     
     if (result.success) {
       setSaved(true);

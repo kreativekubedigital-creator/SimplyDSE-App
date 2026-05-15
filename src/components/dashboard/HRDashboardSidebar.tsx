@@ -14,13 +14,17 @@ import {
   Send,
   FileText,
   Download,
-  ChevronDown,
-  Building2,
   FileBarChart,
-  LayoutDashboard
+  LayoutDashboard,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { CreateAssessmentModal } from '@/components/dashboard/CreateAssessmentModal';
+import { sendAssessmentReminders } from '@/app/actions/assessment-actions';
+import { supabase } from '@/lib/supabase';
 
 const navSections = [
   {
@@ -45,43 +49,113 @@ const quickActions = [
 
 export function HRDashboardSidebar() {
   const pathname = usePathname();
-  const { organizationName, organizationLogoUrl, loading } = useProfile();
+  const router = useRouter();
+  const { organizationName, organizationLogoUrl, organizationId, loading } = useProfile();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isReminderLoading, setIsReminderLoading] = useState(false);
+
+  const handleAction = async (actionName: string) => {
+    switch (actionName) {
+      case 'Create Assessment':
+        setIsCreateModalOpen(true);
+        break;
+      case 'Send Reminder':
+        if (!organizationId) return;
+        setIsReminderLoading(true);
+        const res = await sendAssessmentReminders(organizationId);
+        setIsReminderLoading(false);
+        if (res.success) {
+          alert(`Success! Sent reminders to ${res.sent} employee(s).`);
+        } else {
+          alert(`Error: ${res.error}`);
+        }
+        break;
+      case 'Generate Report':
+        router.push('/compliance');
+        break;
+      case 'Export Compliance Data':
+        await exportComplianceData();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const exportComplianceData = async () => {
+    try {
+      if (!organizationId) return;
+      
+      const { data: assessments, error } = await supabase
+        .from('assessments')
+        .select(`
+          id,
+          status,
+          risk_level,
+          created_at,
+          profiles(full_name, email, department)
+        `)
+        .eq('organization_id', organizationId);
+
+      if (error) throw error;
+      if (!assessments) return;
+
+      const headers = ['Assessment ID', 'Employee Name', 'Email', 'Department', 'Status', 'Risk Level', 'Date Assigned'];
+      const rows = assessments.map((a: any) => [
+        a.id.substring(0, 8).toUpperCase(),
+        a.profiles?.full_name || 'N/A',
+        a.profiles?.email || 'N/A',
+        a.profiles?.department || 'N/A',
+        a.status.charAt(0).toUpperCase() + a.status.slice(1),
+        a.risk_level || 'Pending',
+        new Date(a.created_at).toLocaleDateString()
+      ]);
+
+      const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `SimplyDSE_Compliance_Report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Failed to export compliance data. Please try again.');
+    }
+  };
 
   const orgName = loading ? 'Loading...' : (organizationName || 'Your Organisation');
 
   return (
     <aside className="w-[260px] bg-[#0F172A] text-slate-300 h-screen flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
-      {/* Brand Section - SimplyDSE Platform Logo */}
-      <div className="p-5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-white/5 border border-slate-800">
-            <img src="/simplydselogo.webp" alt="SimplyDSE" className="w-full h-full object-contain p-0.5" />
+      {/* Organisation Brand Section */}
+      <div className="p-5 pb-6 border-b border-slate-800/50 mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden shrink-0">
+            {organizationLogoUrl ? (
+              <div className="w-full h-full bg-white flex items-center justify-center">
+                <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1.5" />
+              </div>
+            ) : (
+              <div className="w-full h-full bg-emerald-600/10 flex items-center justify-center text-emerald-500 font-bold text-xs uppercase">
+                {loading ? '...' : (organizationName ? organizationName.substring(0, 2) : 'OW')}
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-[14px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
-            <p className="text-[10px] text-slate-200 font-medium mt-1">Workplace Compliance</p>
+          <div className="text-left min-w-0">
+            <h1 className="text-[14px] font-bold text-white leading-tight truncate">
+              {loading ? 'Loading...' : (organizationName || 'Organisation Workspace')}
+            </h1>
+            <div className="mt-1 space-y-0.5">
+              <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider leading-none">Organisation Workspace</p>
+              <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-wider leading-none">HR Workspace</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Organisation Selector - Shows org logo */}
-      <div className="px-4 mb-4">
-        <button className="w-full flex items-center justify-between p-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 rounded-lg transition-all group">
-          <div className="flex items-center gap-2.5">
-            {organizationLogoUrl ? (
-              <div className="w-7 h-7 rounded-md bg-white flex items-center justify-center overflow-hidden border border-slate-600">
-                <img src={organizationLogoUrl} alt={orgName} className="w-full h-full object-contain p-0.5" />
-              </div>
-            ) : (
-              <div className="w-7 h-7 rounded-md bg-slate-700 flex items-center justify-center text-slate-200 group-hover:text-white transition-colors">
-                <Building2 className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <span className="text-[12px] font-semibold text-white group-hover:text-white transition-colors">{orgName}</span>
-          </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-200 group-hover:text-white transition-all" />
-        </button>
-      </div>
 
       {/* Navigation items - Reduced vertical padding and font size */}
       <nav className="flex-1 px-3 space-y-6 overflow-y-auto no-scrollbar py-4">
@@ -127,20 +201,75 @@ export function HRDashboardSidebar() {
         ))}
       </nav>
 
-      {/* Quick Actions Footer Card - Slimmer profile */}
-      <div className="p-3 mt-auto border-t border-slate-800/50">
-        <div className="bg-slate-800/30 border border-slate-700/40 rounded-xl p-3">
-          <p className="text-[9px] font-semibold text-slate-200 uppercase tracking-widest mb-2 px-1">Quick Actions</p>
-          <div className="grid grid-cols-1 gap-0.5">
-            {quickActions.map((action) => (
-              <button 
-                key={action.name}
-                className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold text-slate-200 hover:text-white hover:bg-slate-700/50 transition-all group text-left"
-              >
-                <action.icon className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition-colors" />
-                {action.name}
-              </button>
-            ))}
+      {/* Footer Branding & Actions */}
+      <div className="mt-auto">
+        {/* Quick Actions Footer Card */}
+        <div className="p-3">
+          <div className="bg-slate-800/30 border border-slate-700/40 rounded-xl p-3">
+            <p className="text-[9px] font-semibold text-slate-200 uppercase tracking-widest mb-2 px-1 text-center">Quick Actions</p>
+            <div className="grid grid-cols-1 gap-0.5">
+              {quickActions.map((action) => (
+                <button 
+                  key={action.name}
+                  onClick={() => handleAction(action.name)}
+                  disabled={action.name === 'Send Reminder' && isReminderLoading}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold text-slate-200 transition-all group text-left",
+                    (action.name === 'Send Reminder' && isReminderLoading)
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:text-white hover:bg-slate-700/50"
+                  )}
+                >
+                  <action.icon className={cn(
+                    "w-3.5 h-3.5 transition-colors",
+                    (action.name === 'Send Reminder' && isReminderLoading)
+                      ? "text-slate-500 animate-pulse"
+                      : "text-slate-300 group-hover:text-blue-400"
+                  )} />
+                  {action.name === 'Send Reminder' && isReminderLoading ? 'Sending...' : action.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Create Assessment Modal */}
+        {organizationId && (
+          <CreateAssessmentModal
+            isOpen={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            organizationId={organizationId}
+            onSuccess={() => {
+              // Optionally refetch data or show success
+            }}
+          />
+        )}
+
+        {/* Sign Out Button */}
+        <div className="px-3 pb-2">
+          <button 
+            onClick={async () => {
+              const { supabase } = await import('@/lib/supabase');
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-400/10 hover:text-rose-300 transition-all text-left group"
+          >
+            <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span className="text-[12px] font-semibold">Sign Out</span>
+          </button>
+        </div>
+
+        {/* Powered by SimplyDSE */}
+        <div className="p-4 border-t border-slate-800/50 bg-slate-900/50">
+          <div className="flex items-center gap-3 px-2 py-1">
+            <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[11px] font-bold text-white tracking-tight leading-none">Powered by SimplyDSE</h1>
+              <p className="text-[8px] text-slate-500 font-bold mt-1 uppercase tracking-tighter truncate">Workplace Compliance Platform</p>
+            </div>
           </div>
         </div>
       </div>

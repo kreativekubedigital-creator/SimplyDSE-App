@@ -13,18 +13,18 @@ import {
   Bell, 
   User, 
   HelpCircle,
-  ChevronDown,
   Building2,
-  ShieldCheck
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Assessment Hub', href: '/assessments', icon: ShieldCheck },
-  { name: 'Communication', href: '/communication', icon: MessageCircle, badge: '5' },
-  { name: 'My Profile', href: '/profile', icon: User },
+  { name: 'Dashboard', href: '/employee', icon: LayoutDashboard },
+  { name: 'Assessment Hub', href: '/employee/assessments', icon: ShieldCheck },
+  { name: 'Communication', href: '/employee/communication', icon: MessageCircle, badge: '5' },
+  { name: 'My Profile', href: '/employee/profile', icon: User },
 ];
 
 export function EmployeeSidebar() {
@@ -33,15 +33,26 @@ export function EmployeeSidebar() {
 
   return (
     <aside className="w-64 bg-[#0F172A] text-slate-300 flex flex-col h-screen fixed left-0 top-0 z-50 border-r border-slate-800">
-      {/* Brand */}
+      {/* Organisation Brand */}
       <div className="p-5 pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
-            <ShieldCheck className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden shrink-0">
+            {organizationLogoUrl ? (
+              <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1.5" />
+            ) : (
+              <div className="w-full h-full bg-blue-600/10 flex items-center justify-center text-blue-500 font-bold text-xs uppercase">
+                {loading ? '...' : (organizationName ? organizationName.substring(0, 2) : 'OW')}
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-[16px] font-semibold text-white tracking-tight leading-none">SimplyDSE</h1>
-            <p className="text-[10px] text-slate-400 font-medium mt-1">Employee Portal</p>
+          <div className="text-left min-w-0">
+            <h1 className="text-[14px] font-bold text-white leading-tight truncate">
+              {loading ? 'Loading...' : (organizationName || 'Organisation Workspace')}
+            </h1>
+            <div className="mt-1 space-y-0.5">
+              <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider leading-none">Organisation Workspace</p>
+              <p className="text-[8px] text-blue-500 font-bold uppercase tracking-wider leading-none">Employee Workspace</p>
+            </div>
           </div>
         </div>
       </div>
@@ -49,8 +60,8 @@ export function EmployeeSidebar() {
       {/* Main Navigation */}
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
         {navigation.map((item) => {
-          const isActive = item.href === '/' 
-            ? pathname === '/' || pathname === ''
+          const isActive = item.href === '/employee' 
+            ? pathname === '/employee' || pathname === '/employee/'
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
             
           return (
@@ -90,48 +101,35 @@ export function EmployeeSidebar() {
         })}
       </nav>
 
-      {/* Bottom Profile & Org */}
-      <div className="p-4 space-y-2 border-t border-slate-800/50">
-        {/* User */}
-        <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700 text-white text-[10px] font-bold group-hover:border-blue-600 transition-colors">
-                {loading ? '...' : initials}
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0F172A] rounded-full" />
-            </div>
-            <div className="text-left min-w-0">
-              <p className="text-[12px] font-semibold text-white leading-none truncate">
-                {loading ? 'Loading...' : fullName}
-              </p>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">
-                {loading ? '...' : roleLabel}
-              </p>
-            </div>
-          </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
-        </button>
+      {/* Footer Branding & Logout */}
+      <div className="mt-auto">
+        {/* Sign Out Button */}
+        <div className="px-4 pb-2">
+          <button 
+            onClick={async () => {
+              const { supabase } = await import('@/lib/supabase');
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-400/10 hover:text-rose-300 transition-all text-left group"
+          >
+            <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span className="text-[12px] font-semibold">Sign Out</span>
+          </button>
+        </div>
 
-        {/* Organisation */}
-        <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-all group">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700/50 group-hover:bg-slate-700 transition-colors overflow-hidden">
-              {organizationLogoUrl ? (
-                <img src={organizationLogoUrl} alt={organizationName || ''} className="w-full h-full object-contain p-1" />
-              ) : (
-                <Building2 className="w-4 h-4 text-slate-400 group-hover:text-slate-200" />
-              )}
+        {/* Powered by SimplyDSE */}
+        <div className="p-4 border-t border-slate-800/50">
+          <div className="flex items-center gap-3 px-2 py-1">
+            <div className="w-7 h-7 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
             </div>
-            <div className="text-left min-w-0">
-              <p className="text-[12px] font-semibold text-white leading-none truncate">
-                {loading ? '...' : organizationName}
-              </p>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">SimplyDSE Member</p>
+            <div className="min-w-0">
+              <h1 className="text-[11px] font-bold text-white tracking-tight leading-none">Powered by SimplyDSE</h1>
+              <p className="text-[8px] text-slate-500 font-bold mt-1 uppercase tracking-tighter truncate">Workplace Compliance Platform</p>
             </div>
           </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
-        </button>
+        </div>
       </div>
     </aside>
   );

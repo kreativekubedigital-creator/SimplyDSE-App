@@ -171,7 +171,7 @@ export default function ComplianceOverviewPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <span className="px-3 py-1 bg-blue-600/10 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 inline-block">
-            {orgName} Dashboard
+            HR Dashboard
           </span>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Compliance Overview</h1>
           <p className="text-[13px] text-slate-500 mt-1 font-medium">Real-time health intelligence across your organization.</p>
@@ -184,10 +184,6 @@ export default function ComplianceOverviewPage() {
           >
             <ClipboardList className="w-4 h-4" />
             New Assessment
-          </button>
-          <button className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-xl text-[12px] font-semibold text-slate-900 hover:bg-slate-50 transition-all shadow-sm">
-            <Filter className="w-4 h-4 text-slate-500" />
-            Filters
           </button>
         </div>
       </div>

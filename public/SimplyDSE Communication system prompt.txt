@@ -1,0 +1,816 @@
+You are building the SimplyDSE Communication system.
+
+IMPORTANT:
+Do NOT build a full Slack/WhatsApp-style chat system yet.
+Do NOT build unnecessary real-time complexity at this stage.
+Do NOT create casual social messaging.
+
+Build a focused enterprise “Compliance Inbox” system designed for workplace DSE assessment communication, HR follow-ups, training reminders, and risk-related conversations.
+
+This is a communication module for a multi-tenant workplace compliance SaaS platform.
+
+==================================================
+PRIMARY GOAL
+==================================================
+
+Build a professional internal communication interface for SimplyDSE that allows employees, HR users, managers, and compliance teams to communicate securely inside their organisation.
+
+The system should support:
+
+- assessment-related conversations
+- HR follow-ups
+- employee support messages
+- risk review discussions
+- training reminders
+- department-level communication
+- compliance action threads
+- basic announcements
+
+This should feel like:
+
+“a secure enterprise compliance inbox”
+
+NOT:
+
+“a casual chat app”.
+
+==================================================
+CURRENT PROJECT CONTEXT
+==================================================
+
+SimplyDSE is a multi-tenant enterprise SaaS platform for:
+
+- DSE assessments
+- workplace compliance
+- employee wellbeing
+- ergonomic risk tracking
+- HR follow-ups
+- reporting
+- training
+- audit records
+
+The messaging system must support this compliance workflow.
+
+==================================================
+IMPORTANT ARCHITECTURE RULE
+==================================================
+
+Every message, conversation, thread, notification, and attachment must belong to an organisation.
+
+Every communication record must include:
+
+- organisation_id
+- sender_id
+- recipient/participant data
+- timestamps
+
+Do NOT allow cross-tenant messaging.
+
+Users from one organisation must never see messages from another organisation.
+
+==================================================
+PHASE 1 SCOPE — COMPLIANCE INBOX MVP
+==================================================
+
+Build the first version as a simple but professional inbox system.
+
+Do NOT implement live chat or typing indicators yet.
+
+Use normal Supabase database reads/writes.
+
+Real-time messaging can be added later.
+
+The MVP should include:
+
+1. Inbox
+2. Conversation list
+3. Message thread view
+4. Send message
+5. Reply to message
+6. Assessment-linked conversations
+7. Follow-up conversations
+8. Unread message count
+9. Basic notifications
+10. Role-based access
+11. Optional file attachments
+12. Announcement messages
+
+==================================================
+MAIN INTERFACE
+==================================================
+
+Create a communication page called:
+
+Messages
+
+or:
+
+Compliance Inbox
+
+Preferred navigation label:
+
+Messages
+
+The interface should contain:
+
+LEFT PANEL:
+- inbox/thread list
+- unread indicators
+- conversation type badges
+- search
+- filters
+
+MAIN PANEL:
+- selected conversation
+- message history
+- message composer
+- related assessment/follow-up context
+
+RIGHT PANEL:
+- conversation details
+- participants
+- related assessment
+- related employee
+- status
+- quick actions
+
+The layout should feel:
+- enterprise-grade
+- calm
+- focused
+- readable
+- operational
+
+==================================================
+CONVERSATION TYPES
+==================================================
+
+Support these conversation types:
+
+1. Direct Message
+For one-to-one communication.
+
+2. Assessment Follow-Up
+Linked to a specific assessment submission.
+
+3. Risk Review
+Linked to high-risk or unresolved assessment results.
+
+4. Training Reminder
+Linked to assigned training or guidance.
+
+5. Department Thread
+For HR/manager communication around a department.
+
+6. Announcement
+For HR/admin broadcasts to employees.
+
+==================================================
+ROLE-BASED COMMUNICATION LOGIC
+==================================================
+
+Employee users can:
+
+- view conversations they are part of
+- reply to HR or manager messages
+- view messages linked to their assessments
+- receive training reminders
+- receive announcements
+- send support/request messages to HR
+
+Employees must NOT:
+
+- view organisation-wide conversations
+- message all staff
+- access HR-only discussions
+- see conversations between HR and other employees
+
+==================================================
+
+HR users can:
+
+- message employees
+- create assessment follow-up threads
+- create training reminder messages
+- view organisation-level HR communication
+- communicate with managers
+- send announcements if permitted
+- view conversations related to employees in their organisation
+
+==================================================
+
+Managers can:
+
+- message HR
+- view team-related communication only
+- message employees assigned to their team
+- participate in department-level threads
+
+==================================================
+
+Organisation Admins can:
+
+- manage organisation-level communication
+- view compliance-related conversations within the organisation
+- send announcements
+- manage communication settings
+
+==================================================
+
+Super Admin users should NOT casually read tenant messages.
+
+If support access is needed later, it must be implemented as a controlled audited support mode.
+
+Do not expose tenant messages to Super Admin by default.
+
+==================================================
+DATABASE REQUIREMENTS
+==================================================
+
+Use Supabase.
+
+Create or extend database structures safely.
+
+Do not break existing schema.
+
+Use additive migrations only.
+
+Recommended tables:
+
+conversations
+conversation_participants
+messages
+message_attachments
+message_reads
+notifications
+
+==================================================
+CONVERSATIONS TABLE
+==================================================
+
+The conversations table should support:
+
+- id
+- organisation_id
+- type
+- title
+- status
+- related_assessment_id
+- related_employee_id
+- related_department_id
+- created_by
+- created_at
+- updated_at
+- last_message_at
+
+Conversation types:
+
+- direct
+- assessment_follow_up
+- risk_review
+- training_reminder
+- department_thread
+- announcement
+
+Statuses:
+
+- open
+- pending
+- resolved
+- archived
+
+==================================================
+CONVERSATION PARTICIPANTS TABLE
+==================================================
+
+The conversation_participants table should support:
+
+- id
+- conversation_id
+- organisation_id
+- user_id
+- role
+- joined_at
+- last_read_at
+- is_muted
+- archived_at
+
+This table controls who can see each conversation.
+
+==================================================
+MESSAGES TABLE
+==================================================
+
+The messages table should support:
+
+- id
+- conversation_id
+- organisation_id
+- sender_id
+- body
+- message_type
+- created_at
+- edited_at
+- deleted_at
+
+Message types:
+
+- text
+- system
+- reminder
+- announcement
+- assessment_update
+- training_update
+
+==================================================
+MESSAGE ATTACHMENTS TABLE
+==================================================
+
+The message_attachments table should support:
+
+- id
+- message_id
+- organisation_id
+- file_name
+- file_url
+- file_type
+- file_size
+- uploaded_by
+- created_at
+
+Attachments should use secure Supabase Storage.
+
+==================================================
+MESSAGE READS TABLE
+==================================================
+
+The message_reads table should support:
+
+- id
+- message_id
+- conversation_id
+- organisation_id
+- user_id
+- read_at
+
+Use this to support unread counts.
+
+==================================================
+NOTIFICATIONS TABLE
+==================================================
+
+The notifications table should support:
+
+- id
+- organisation_id
+- user_id
+- type
+- title
+- body
+- related_conversation_id
+- related_assessment_id
+- read_at
+- created_at
+
+Notification types:
+
+- new_message
+- assessment_follow_up
+- training_reminder
+- risk_review
+- announcement
+
+==================================================
+SUPABASE RLS REQUIREMENTS
+==================================================
+
+Implement or preserve RLS policies.
+
+Users can only access conversations where:
+
+- conversation.organisation_id matches their organisation_id
+AND
+- they are listed in conversation_participants
+
+HR/Admin users can access organisation-level compliance conversations according to role permissions.
+
+Employees can only access their own conversations.
+
+No cross-tenant message access is allowed.
+
+==================================================
+MESSAGE CREATION LOGIC
+==================================================
+
+When a user sends a message:
+
+1. Validate authenticated user
+2. Validate organisation_id
+3. Validate conversation access
+4. Insert message
+5. Update conversation last_message_at
+6. Create notification records for other participants
+7. Update unread state
+
+Do not allow users to send messages into conversations they are not part of.
+
+==================================================
+ASSESSMENT-LINKED CONVERSATIONS
+==================================================
+
+When an assessment requires HR review, the system should be able to create an assessment follow-up conversation.
+
+Example:
+
+Employee completes Hybrid DSE Assessment
+↓
+Risk level = High
+↓
+System creates thread:
+“Follow-up required for Hybrid DSE Assessment”
+↓
+Participants:
+- employee
+- HR user
+- manager where applicable
+
+The conversation should link to:
+- assessment submission
+- employee profile
+- risk result
+- report PDF
+
+==================================================
+RISK REVIEW CONVERSATIONS
+==================================================
+
+If an employee is flagged as high risk or critical risk:
+
+Create or allow HR to create a Risk Review thread.
+
+The thread should include:
+
+- risk level
+- relevant category
+- report link
+- recommendation summary
+- follow-up status
+
+==================================================
+TRAINING REMINDER MESSAGES
+==================================================
+
+If training or guidance is triggered from the assessment:
+
+The system should be able to create a training reminder message.
+
+Example:
+
+“You have been assigned workstation guidance based on your assessment response.”
+
+The employee should be able to view the linked training resource.
+
+==================================================
+ANNOUNCEMENTS
+==================================================
+
+Allow HR/Admin users to send announcements.
+
+Announcement options:
+
+- all employees
+- selected department
+- selected team
+- selected role
+
+Announcements should appear in the Messages/Inbox area.
+
+They do not need full two-way chat by default.
+
+Optional setting:
+Allow replies or disable replies.
+
+==================================================
+INBOX FILTERS
+==================================================
+
+Include filters for:
+
+- All
+- Unread
+- Direct Messages
+- Assessment Follow-Ups
+- Risk Reviews
+- Training Reminders
+- Announcements
+- Resolved
+- Archived
+
+Include search by:
+
+- employee name
+- conversation title
+- assessment name
+- message content
+
+==================================================
+MESSAGE THREAD UI
+==================================================
+
+Each thread should show:
+
+- conversation title
+- conversation type badge
+- participants
+- related assessment/report if applicable
+- message history
+- timestamps
+- sender identity
+- message composer
+- attachment button if supported
+- resolve/archive action where permitted
+
+==================================================
+MESSAGE COMPOSER
+==================================================
+
+The composer should support:
+
+- text input
+- send button
+- loading state
+- validation
+- optional attachment upload
+- clear error messages
+
+Validation:
+
+- message body cannot be empty
+- user must be a participant
+- user must have permission to reply
+- organisation must match
+
+==================================================
+NOTIFICATION BEHAVIOUR
+==================================================
+
+When a new message is sent:
+
+- notify all other participants
+- increment unread count
+- show inbox badge
+- create notification record
+
+Do not implement expensive real-time messaging yet unless already available and safe.
+
+For now:
+- update unread counts on page load
+- refresh inbox after sending
+- optionally poll lightly if needed
+
+==================================================
+COST CONTROL RULE
+==================================================
+
+Do NOT build heavy real-time features in this phase.
+
+Avoid:
+
+- typing indicators
+- online status
+- continuous live subscriptions
+- Slack-style channels
+- unnecessary polling
+- media-heavy messaging
+
+This keeps Supabase usage and costs controlled.
+
+Build the system using standard database reads/writes first.
+
+==================================================
+FUTURE REAL-TIME SUPPORT
+==================================================
+
+Design the database so real-time can be added later.
+
+Future features may include:
+
+- instant message updates
+- live unread counts
+- typing indicators
+- online status
+
+But do not implement them now unless specifically requested.
+
+==================================================
+UI DESIGN RULES
+==================================================
+
+The interface should feel:
+
+- enterprise-grade
+- calm
+- structured
+- professional
+- secure
+- HR-friendly
+- compliance-focused
+
+Use:
+
+- clean inbox layout
+- readable message bubbles or message rows
+- subtle badges
+- clear status indicators
+- good spacing
+- accessible controls
+- British English
+
+Avoid:
+
+- casual social media styling
+- playful chat UI
+- excessive animation
+- bright noisy colours
+- cluttered message screens
+
+==================================================
+LANGUAGE RULES
+==================================================
+
+Use British English.
+
+Use workplace-friendly language.
+
+Good labels:
+
+- Messages
+- Inbox
+- Assessment Follow-Up
+- Risk Review
+- Training Reminder
+- Announcement
+- Mark as Read
+- Resolve Conversation
+- Archive Conversation
+- Send Message
+- Attach File
+
+Avoid technical labels like:
+
+- Message Entity
+- Conversation Object
+- Payload
+- Trigger Event
+
+==================================================
+EMPLOYEE EXPERIENCE
+==================================================
+
+Employees should see a simple experience:
+
+- Inbox
+- Assessment follow-up messages
+- Training reminders
+- HR messages
+- Announcements
+- Support request option
+
+Employees should not see advanced HR/admin controls.
+
+==================================================
+HR EXPERIENCE
+==================================================
+
+HR users should see:
+
+- all relevant employee conversations
+- assessment follow-ups
+- risk review threads
+- training reminder messages
+- department filters
+- unresolved conversation status
+- quick actions
+
+HR should be able to:
+
+- message an employee
+- start an assessment follow-up
+- mark a conversation as resolved
+- request reassessment
+- attach a PDF/report where needed
+
+==================================================
+MANAGER EXPERIENCE
+==================================================
+
+Managers should see only:
+
+- messages related to their team
+- department threads they participate in
+- follow-up conversations assigned to them
+
+Managers should not see unrelated employee conversations.
+
+==================================================
+AUDIT AND COMPLIANCE REQUIREMENTS
+==================================================
+
+Important communication actions should create audit records.
+
+Track:
+
+- conversation created
+- message sent
+- message read
+- conversation resolved
+- report attached
+- follow-up requested
+- announcement sent
+
+This supports compliance traceability.
+
+==================================================
+ATTACHMENTS
+==================================================
+
+Support optional attachments in a controlled way.
+
+Allowed file types:
+
+- PDF
+- images
+- documents
+
+Use Supabase Storage.
+
+Apply tenant-aware storage paths.
+
+Example:
+
+organisation_id/conversations/conversation_id/file_name
+
+Only conversation participants should access attachments.
+
+==================================================
+EMPTY STATES
+==================================================
+
+Create professional empty states.
+
+Examples:
+
+No messages:
+“You have no messages yet.”
+
+No unread messages:
+“You’re all caught up.”
+
+No assessment follow-ups:
+“There are no assessment follow-ups at the moment.”
+
+==================================================
+ERROR STATES
+==================================================
+
+Use clear non-technical errors.
+
+Examples:
+
+“We could not send your message. Please try again.”
+
+“You do not have access to this conversation.”
+
+“This file could not be uploaded.”
+
+==================================================
+FINAL VALIDATION
+==================================================
+
+The task is complete only if:
+
+- Messages page exists
+- Inbox list works
+- Conversation thread works
+- Sending messages works
+- Replies are saved to Supabase
+- Unread counts work
+- Notifications are created
+- Assessment-linked conversations work
+- Role-based access works
+- Tenant isolation works
+- Employees only see their own conversations
+- HR only sees organisation conversations
+- Managers only see relevant team conversations
+- Attachments are secure if implemented
+- No cross-tenant data leakage is possible
+
+==================================================
+FINAL GOAL
+==================================================
+
+The final system should feel like:
+
+“a secure enterprise compliance inbox built specifically for workplace DSE assessment follow-ups, HR communication, and employee support.”
+
+It should not feel like a generic chat app.
