@@ -13,7 +13,6 @@ import {
   Bell, 
   User, 
   HelpCircle,
-  ChevronDown,
   Building2,
   ShieldCheck
 } from 'lucide-react';
@@ -110,7 +109,6 @@ export function EmployeeSidebar() {
               </p>
             </div>
           </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
         </button>
 
         {/* Organisation */}
@@ -130,7 +128,6 @@ export function EmployeeSidebar() {
               <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">SimplyDSE Member</p>
             </div>
           </div>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
         </button>
       </div>
     </aside>
