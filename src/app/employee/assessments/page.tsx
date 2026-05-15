@@ -380,7 +380,7 @@ function AssessmentContent() {
                 ))}
               </div>
               <div className="mt-10 p-6 bg-slate-900 rounded-[2rem] text-white">
-                <p className="text-[12px] font-medium leading-relaxed">
+                <p className="text-[12px] font-medium leading-relaxed text-slate-100">
                   Your workspace setup is {analytics.healthScore}% optimal. {analytics.healthScore < 90 ? 'Review your high-risk areas to improve your score.' : 'Great work! Your workstation is highly optimized.'}
                 </p>
                 <button className="mt-4 flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors">
