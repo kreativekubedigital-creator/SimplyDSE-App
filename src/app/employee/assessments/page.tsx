@@ -276,6 +276,18 @@ function AssessmentContent() {
                           )}>
                             {item.status}
                           </span>
+                          {item.emailStatus === 'sent' && (
+                            <span className="flex items-center gap-1 text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Email Sent
+                            </span>
+                          )}
+                          {item.emailStatus === 'failed' && (
+                            <span className="flex items-center gap-1 text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg">
+                              <AlertCircle className="w-3 h-3" />
+                              Email Failed
+                            </span>
+                          )}
                         </div>
                         <p className="text-[11px] text-slate-500">{item.subtitle}</p>
                       </div>

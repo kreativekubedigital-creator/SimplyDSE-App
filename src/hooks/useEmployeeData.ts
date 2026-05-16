@@ -33,10 +33,17 @@ export function useEmployeeData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // 1. Fetch user's assessments
+      // 1. Fetch user's assessments with reports
       const { data: records, error } = await supabase
         .from('assessments')
-        .select('*')
+        .select(`
+          *,
+          assessment_reports (
+            id,
+            email_status,
+            report_status
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -84,6 +91,8 @@ export function useEmployeeData() {
           }
         }
 
+        const report = rec.assessment_reports?.[0];
+
         return {
           id: rec.id,
           title: displayTitle,
@@ -93,7 +102,9 @@ export function useEmployeeData() {
           date: rec.created_at ? new Date(rec.created_at).toLocaleDateString() : 'Pending',
           dateLabel: rec.status === 'completed' ? 'Completed on' : 'Due date',
           risk: rec.risk_level || 'none',
-          pdfUrl: rec.metadata?.pdf_report_url || null
+          pdfUrl: rec.metadata?.pdf_report_url || null,
+          reportStatus: report?.report_status || (rec.status === 'completed' ? 'ready' : 'pending'),
+          emailStatus: report?.email_status || 'not_sent'
         };
       });
 

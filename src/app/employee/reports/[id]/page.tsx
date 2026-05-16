@@ -65,9 +65,14 @@ export default function ReportPage() {
       if (fetchError) throw fetchError;
       if (!assessment) throw new Error('Assessment not found');
 
-      // Security check: 
-      // 1. If employee, must own the assessment
-      // 2. If HR (org_admin), must be in the same organization
+      // Fetch official report record
+      const { data: reportRecord } = await supabase
+        .from('assessment_reports')
+        .select('*')
+        .eq('assessment_submission_id', id)
+        .single();
+
+      // Security check
       const isOwner = assessment.user_id === user.id;
       const isHR = profile?.role === 'org_admin' || profile?.role === 'organization_admin';
       const sameOrg = assessment.organization_id === profile?.organization_id;
@@ -90,7 +95,10 @@ export default function ReportPage() {
       setReportData({
         ...assessment,
         summary,
-        viewerRole: profile?.role
+        report: reportRecord,
+        viewerRole: profile?.role,
+        organizationId: profile?.organization_id,
+        userId: user.id
       });
       
     } catch (err: any) {
@@ -102,61 +110,69 @@ export default function ReportPage() {
   };
 
   const handleDownloadPDF = async () => {
-    if (reportData?.metadata?.pdf_report_url) {
-      window.open(reportData.metadata.pdf_report_url, '_blank');
-      return;
-    }
-
-    // Trigger generation if not exists
     try {
       setGenerating(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*, organizations(*)')
-        .eq('id', user.id)
-        .single();
-
-      const response = await fetch('/api/generate-assessment-report', {
+      // Call secure download API to get a signed URL
+      const response = await fetch('/api/reports/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assessmentId: reportData.id,
-          organizationId: profile?.organizations?.id,
-          userId: user.id,
-          employeeName: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Employee',
-          companyName: profile?.organizations?.name || 'Organisation',
-          assessmentDate: new Date(reportData.created_at).toLocaleDateString(),
-          overallScore: reportData.summary?.score || reportData.score || 0,
-          overallRiskLevel: reportData.risk_level || 'Low',
-          categories: reportData.summary?.categories || [],
-          strengths: reportData.summary?.strengths || [],
-          improvements: reportData.summary?.improvements || [],
-          recommendations: reportData.summary?.recommendations || [],
-          employeeEmail: user.email
+          userId: reportData.userId,
+          organizationId: reportData.organizationId
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to generate report');
-      
-      const result = await response.json();
-      
-      // Update local state with new PDF URL
-      setReportData((prev: any) => ({
-        ...prev,
-        metadata: {
-          ...prev.metadata,
-          pdf_report_url: result.pdfUrl
-        }
-      }));
+      if (response.ok) {
+        const { signedUrl } = await response.json();
+        window.open(signedUrl, '_blank');
+      } else {
+        // If download API fails (e.g., report doesn't exist yet), trigger generation
+        const genResponse = await fetch('/api/generate-assessment-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assessmentId: reportData.id,
+            organizationId: reportData.organizationId,
+            userId: reportData.userId,
+            employeeName: reportData.employee_name || 'Employee',
+            employeeEmail: reportData.employee_email,
+            companyName: reportData.organization_name || 'Organisation',
+            assessmentDate: new Date(reportData.created_at).toLocaleDateString(),
+            overallScore: reportData.summary?.score || reportData.score || 0,
+            overallRiskLevel: reportData.risk_level || 'Low',
+            categories: reportData.summary?.categories || [],
+            strengths: reportData.summary?.strengths || [],
+            improvements: reportData.summary?.improvements || [],
+            recommendations: reportData.summary?.recommendations || []
+          }),
+        });
 
-      window.open(result.pdfUrl, '_blank');
+        if (!genResponse.ok) throw new Error('Failed to generate report');
+        
+        // After generation, try downloading again
+        const retryDownload = await fetch('/api/reports/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assessmentId: reportData.id,
+            userId: reportData.userId,
+            organizationId: reportData.organizationId
+          }),
+        });
+
+        if (retryDownload.ok) {
+          const { signedUrl } = await retryDownload.json();
+          window.open(signedUrl, '_blank');
+          fetchReportData(); // Refresh to get the new report record
+        } else {
+          throw new Error('Failed to get download link after generation');
+        }
+      }
     } catch (err) {
-      console.error('Error generating PDF:', err);
-      alert('Could not generate PDF. Please try again later.');
+      console.error('Error handling PDF:', err);
+      alert('Could not process PDF. Please try again later.');
     } finally {
       setGenerating(false);
     }
@@ -226,11 +242,23 @@ export default function ReportPage() {
               )}
             >
               {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {generating ? 'Generating PDF...' : 'Download PDF Report'}
+              {generating ? 'Processing...' : 'Download PDF Report'}
             </button>
           </div>
         </div>
       </nav>
+
+      {/* Email Status Alert */}
+      {reportData.report?.email_status === 'failed' && (
+        <div className="max-w-5xl mx-auto px-6 pt-6">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4 text-amber-800">
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <div className="text-[13px] font-medium">
+              Your report is ready, but we could not email it to you. You can still download it using the button above.
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-5xl mx-auto px-6 pt-12 space-y-12">
         {/* Header Section */}
