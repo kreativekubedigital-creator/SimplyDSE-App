@@ -25,40 +25,75 @@ export function useComplianceData() {
         return;
       }
 
-      // Fetch all assessments for this org
-      const { data: assessments, error } = await supabase
-        .from('assessments')
+      // Fetch all assignments for this org
+      const { data: assignments, error } = await supabase
+        .from('assessment_assignments')
         .select(`
           *,
-          profiles(full_name, email, department)
+          profiles:employee_id(id, full_name, email, department, employee_id_official),
+          template:assessment_template_id(id, name, version),
+          assessment:submission_id(id, status, risk_level, score, completed_at, metadata, results_summary)
         `)
         .eq('organization_id', organizationId)
-        .order('created_at', { ascending: false });
+        .order('assigned_at', { ascending: false });
 
       if (error) throw error;
 
-      const processedAssessments = assessments.map((rec: any) => ({
-        id: rec.id.substring(0, 12).toUpperCase(),
-        employee: rec.profiles?.full_name || rec.profiles?.email || 'Unnamed',
-        department: rec.profiles?.department || 'General',
-        status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Pending',
-        dueDate: rec.completed_at ? new Date(rec.completed_at).toLocaleDateString() : 'Pending',
-        riskLevel: rec.risk_level === 'high' ? 'High' : rec.risk_level === 'medium' ? 'Medium' : 'Low',
-        completion: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? 50 : 0,
-        pdfUrl: rec.metadata?.pdf_report_url || null,
-        resultsSummary: rec.results_summary
-      }));
+      const processedItems = (assignments || []).map((rec: any) => {
+        const isOverdue = rec.due_date && new Date(rec.due_date) < new Date() && rec.status !== 'completed';
+        
+        // Completion logic
+        let completion = 0;
+        if (rec.status === 'completed' || (rec.assessment && rec.assessment.status === 'completed')) {
+          completion = 100;
+        } else if (rec.status === 'in_progress' || (rec.assessment && rec.assessment.status === 'in_progress')) {
+          // Estimate progress based on metadata if available, otherwise 50%
+          const meta = rec.assessment?.metadata as any;
+          if (meta?.current_category_index !== undefined) {
+            completion = Math.round((meta.current_category_index / 21) * 100);
+          } else {
+            completion = 30; // Started but no progress record
+          }
+        }
 
-      const riskIncidents = processedAssessments.filter((a: any) => a.riskLevel === 'High' || a.riskLevel === 'Medium');
+        return {
+          id: rec.id,
+          employeeId: rec.employee_id,
+          employeeIdOfficial: rec.profiles?.employee_id_official,
+          employeeName: rec.profiles?.full_name || rec.profiles?.email || 'Unnamed Employee',
+          employeeEmail: rec.profiles?.email,
+          department: rec.profiles?.department || 'General',
+          assessmentName: rec.template?.name || 'DSE Assessment',
+          assessmentVersion: rec.template?.version || '1.0',
+          assignedAt: rec.assigned_at,
+          dueDate: rec.due_date,
+          status: isOverdue ? 'Overdue' : rec.status.charAt(0).toUpperCase() + rec.status.slice(1).replace('_', ' '),
+          rawStatus: rec.status,
+          isOverdue,
+          riskLevel: rec.assessment?.risk_level ? rec.assessment.risk_level.charAt(0).toUpperCase() + rec.assessment.risk_level.slice(1) : (rec.status === 'completed' ? 'Low' : 'Pending'),
+          rawRisk: rec.assessment?.risk_level,
+          score: rec.assessment?.score,
+          completion,
+          completedAt: rec.assessment?.completed_at,
+          pdfUrl: rec.assessment?.metadata?.pdf_report_url || null,
+          assessmentId: rec.submission_id,
+          assessmentTemplateId: rec.assessment_template_id,
+          assignedBy: rec.assigned_by
+        };
+      });
+
+      const riskIncidents = processedItems.filter((a: any) => 
+        a.rawRisk === 'high' || a.rawRisk === 'critical' || a.rawRisk === 'medium'
+      );
 
       setData({
-        assessments: processedAssessments,
+        assessments: processedItems,
         risks: riskIncidents,
         stats: {
-          critical: riskIncidents.filter((i: any) => i.riskLevel === 'High').length,
-          high: riskIncidents.filter((i: any) => i.riskLevel === 'Medium').length,
-          completed: processedAssessments.filter((a: any) => a.status === 'Completed').length,
-          pending: processedAssessments.filter((a: any) => a.status !== 'Completed').length,
+          critical: processedItems.filter((i: any) => i.rawRisk === 'critical').length,
+          high: processedItems.filter((i: any) => i.rawRisk === 'high').length,
+          completed: processedItems.filter((a: any) => a.rawStatus === 'completed').length,
+          pending: processedItems.filter((a: any) => a.rawStatus === 'assigned').length,
         }
       });
 
