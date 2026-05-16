@@ -741,7 +741,7 @@ export function AssessmentEngine({ assessmentId: preAssignedId }: AssessmentEngi
             }}
             className="w-full sm:w-auto inline-flex items-center gap-2 px-12 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95"
           >
-            {Object.keys(answers).length > 0 ? 'Continue Assessment' : 'Start Assessment'} <ChevronRight className="w-4 h-4" />
+            {(Object.keys(answers).length > 0 || (activeAssessmentId && templateData)) ? 'Continue Assessment' : 'Start Assessment'} <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

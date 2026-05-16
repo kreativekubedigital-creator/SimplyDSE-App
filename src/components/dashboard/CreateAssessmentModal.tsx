@@ -71,24 +71,36 @@ export function CreateAssessmentModal({ isOpen, onClose, organizationId, onSucce
   };
 
   const handleSubmit = async () => {
-    setSubmitting(true);
-    const res = await createAssessments({
-      organizationId,
-      templateId: selectedTemplate,
-      userIds: Array.from(selectedEmployees),
-      assignedBy: profile.id || '',
-      frequency: frequency,
-      dueDate: dueDate,
-    });
-
-    if (res.success) {
-      setResult({ created: res.created, skipped: res.skipped });
+    if (!profile.id) {
+      setResult({ error: 'User session not verified. Please refresh the page.' });
       setStep(5);
-    } else {
-      setResult({ error: res.error });
-      setStep(5);
+      return;
     }
-    setSubmitting(false);
+
+    setSubmitting(true);
+    try {
+      const res = await createAssessments({
+        organizationId,
+        templateId: selectedTemplate,
+        userIds: Array.from(selectedEmployees),
+        assignedBy: profile.id,
+        frequency: frequency,
+        dueDate: dueDate,
+      });
+
+      if (res.success) {
+        setResult({ created: res.created, skipped: res.skipped });
+        setStep(5);
+      } else {
+        setResult({ error: res.error });
+        setStep(5);
+      }
+    } catch (err: any) {
+      setResult({ error: err.message || 'An unexpected error occurred' });
+      setStep(5);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const filteredEmployees = employees.filter(e =>

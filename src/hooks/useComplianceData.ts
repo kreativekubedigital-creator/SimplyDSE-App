@@ -118,6 +118,15 @@ export function useComplianceData() {
         trendStats.push({ month: monthLabel, score });
       }
 
+      // Calculate trend percentage (current vs last month)
+      let complianceTrend = "0%";
+      if (trendStats.length >= 2) {
+        const current = trendStats[trendStats.length - 1].score;
+        const previous = trendStats[trendStats.length - 2].score;
+        const diff = current - previous;
+        complianceTrend = diff >= 0 ? `+${diff}%` : `${diff}%`;
+      }
+
       setData({
         assessments: processedItems,
         risks: riskIncidents,
@@ -128,6 +137,8 @@ export function useComplianceData() {
           high: processedItems.filter((i: any) => i.rawRisk === 'high').length,
           completed: processedItems.filter((a: any) => a.rawStatus === 'completed').length,
           pending: processedItems.filter((a: any) => a.rawStatus === 'assigned').length,
+          inProgress: processedItems.filter((a: any) => a.rawStatus === 'in_progress').length,
+          trend: complianceTrend
         }
       });
 

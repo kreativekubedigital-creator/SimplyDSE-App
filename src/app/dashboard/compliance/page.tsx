@@ -128,6 +128,41 @@ function ComplianceContent() {
     }
   };
 
+  const handleRegeneratePdf = async (item: any) => {
+    try {
+      const confirmGen = confirm("Trigger PDF generation for this assessment?");
+      if (!confirmGen) return;
+      
+      const res = await fetch('/api/generate-assessment-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assessmentId: item.assessmentId,
+          userId: item.employeeId,
+          organizationId: profile.organizationId,
+          employeeName: item.employeeName,
+          companyName: profile.organizationName || 'Organisation',
+          assessmentDate: item.completedAt ? new Date(item.completedAt).toLocaleDateString() : new Date().toLocaleDateString(),
+          overallScore: item.score || 0,
+          overallRiskLevel: item.rawRisk || 'Low',
+          categories: [], // The API will fetch details if needed, but passing empty for now
+          employeeEmail: item.employeeEmail
+        })
+      });
+
+      if (res.ok) {
+        alert("PDF Generation triggered successfully. It will be available in a few moments.");
+        refetch();
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to generate");
+      }
+    } catch (e: any) {
+      console.error("PDF Gen Error:", e);
+      alert(`Failed to generate report: ${e.message}`);
+    }
+  };
+
   React.useEffect(() => {
     const tab = searchParams.get('tab') as any;
     if (tab && ['analytics', 'risks', 'tracking'].includes(tab)) {
@@ -251,15 +286,15 @@ function ComplianceContent() {
             <StatCard 
               title="Global Compliance" 
               value={`${assessments.length > 0 ? Math.round((stats.completed / assessments.length) * 100) : 0}%`} 
-              trend="+4.2%" 
+              trend={stats.trend} 
               icon={ShieldCheck}
               iconColor="blue"
             />
             <StatCard 
-              title="Assigned Target" 
-              value="95.0%" 
-              trend="-6.6%" 
-              isPositive={false}
+              title="In Progress" 
+              value={stats.inProgress} 
+              trend="Active" 
+              isPositive={true}
               icon={Target}
               iconColor="indigo"
             />
@@ -511,20 +546,20 @@ function ComplianceContent() {
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Level</th>
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</th>
-                  <th className="pl-8 pr-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right min-w-[120px]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-8 py-20 text-center">
+                    <td colSpan={8} className="px-8 py-20 text-center">
                       <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
                       <p className="text-[13px] text-slate-400 font-medium mt-3">Hydrating assessment records...</p>
                     </td>
                   </tr>
                 ) : filteredItems.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-8 py-20 text-center text-slate-400 text-[13px]">No matching records found.</td>
+                    <td colSpan={8} className="px-8 py-20 text-center text-slate-400 text-[13px]">No matching records found.</td>
                   </tr>
                 ) : (
                   filteredItems.map((item: any) => (
@@ -598,7 +633,7 @@ function ComplianceContent() {
                          <div className="flex items-center justify-end gap-2">
                            <button 
                              onClick={() => setSelectedItem(item)}
-                             className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all"
+                             className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all shrink-0"
                              title="View Details"
                            >
                              <Info className="w-4 h-4" />
@@ -608,8 +643,8 @@ function ComplianceContent() {
                              <>
                                <Link 
                                  href={`/employee/reports/${item.assessmentId}`}
-                                 className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all"
-                                 title="View Report"
+                                 className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all shrink-0"
+                                 title="View Web Report"
                                >
                                  <Eye className="w-4 h-4" />
                                </Link>
@@ -618,14 +653,18 @@ function ComplianceContent() {
                                    href={item.pdfUrl} 
                                    target="_blank" 
                                    rel="noreferrer"
-                                   className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all"
+                                   className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all shrink-0"
                                    title="Download PDF"
                                  >
                                    <Download className="w-4 h-4" />
                                  </a>
                                ) : (
-                                 <button disabled className="p-2 bg-slate-50 text-slate-200 rounded-lg border border-slate-100 cursor-not-allowed" title="PDF not available yet">
-                                   <Download className="w-4 h-4" />
+                                 <button 
+                                   onClick={() => handleRegeneratePdf(item)}
+                                   className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg border border-slate-100 transition-all shrink-0"
+                                   title="Generate PDF Report"
+                                 >
+                                   <FileText className="w-4 h-4" />
                                  </button>
                                )}
                                {(item.rawRisk === 'high' || item.rawRisk === 'critical') && (
