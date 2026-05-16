@@ -56,24 +56,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { StatCard } from '@/components/dashboard/StatCard';
 
-const departmentData = [
-  { name: 'Engineering', compliance: 88, risk: 12 },
-  { name: 'Marketing', compliance: 65, risk: 35 },
-  { name: 'Operations', compliance: 92, risk: 8 },
-  { name: 'Sales', compliance: 78, risk: 22 },
-  { name: 'HR', compliance: 96, risk: 4 },
-  { name: 'Legal', compliance: 94, risk: 6 },
-  { name: 'Finance', compliance: 82, risk: 18 },
-];
+// Dynamic data derived from hook
 
-const trendData = [
-  { month: 'Jan', score: 65 },
-  { month: 'Feb', score: 68 },
-  { month: 'Mar', score: 72 },
-  { month: 'Apr', score: 78 },
-  { month: 'May', score: 85 },
-  { month: 'Jun', score: 88 },
-];
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -85,7 +69,7 @@ function ComplianceContent() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [deptFilter, setDeptFilter] = useState('All');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { assessments, risks, stats, loading, refetch } = useComplianceData();
+  const { assessments, risks, stats, loading, refetch, departmentStats, trendStats } = useComplianceData();
   const profile = useProfile();
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isReminderSending, setIsReminderSending] = useState(false);
@@ -266,7 +250,7 @@ function ComplianceContent() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <StatCard 
               title="Global Compliance" 
-              value={`${data.assessments.length > 0 ? Math.round((data.stats.completed / data.assessments.length) * 100) : 0}%`} 
+              value={`${assessments.length > 0 ? Math.round((stats.completed / assessments.length) * 100) : 0}%`} 
               trend="+4.2%" 
               icon={ShieldCheck}
               iconColor="blue"
@@ -281,15 +265,15 @@ function ComplianceContent() {
             />
             <StatCard 
               title="Critical Risks" 
-              value={data.stats.critical} 
-              trend={data.stats.critical > 0 ? "Action Required" : "Stable"} 
-              isPositive={data.stats.critical === 0}
+              value={stats.critical} 
+              trend={stats.critical > 0 ? "Action Required" : "Stable"} 
+              isPositive={stats.critical === 0}
               icon={Zap}
               iconColor="rose"
             />
             <StatCard 
               title="Pending Reviews" 
-              value={data.stats.pending} 
+              value={stats.pending} 
               trend="Awaiting" 
               isPositive={false}
               icon={Clock}
@@ -306,23 +290,53 @@ function ComplianceContent() {
                   <p className="text-[13px] text-slate-400 font-medium">Organisation score over the last 6 months</p>
                 </div>
               </div>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData}>
-                    <defs>
-                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} domain={[0, 100]} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px', color: '#fff' }} />
-                    <Area type="monotone" dataKey="score" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendStats || []}>
+                      <defs>
+                        <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis 
+                        dataKey="month" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} 
+                        dy={10} 
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} 
+                        domain={[0, 100]} 
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#0f172a', 
+                          border: 'none', 
+                          borderRadius: '16px', 
+                          color: '#fff',
+                          fontSize: '12px',
+                          boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.5)'
+                        }}
+                        itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                        labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="score" 
+                        stroke="#2563eb" 
+                        strokeWidth={4} 
+                        fillOpacity={1} 
+                        fill="url(#colorScore)" 
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
             </div>
 
             <div className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
@@ -332,17 +346,42 @@ function ComplianceContent() {
                   <p className="text-[13px] text-slate-400 font-medium">Compliance performance by business unit</p>
                 </div>
               </div>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={departmentData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 12 }} width={100} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px', color: '#fff' }} />
-                    <Bar dataKey="compliance" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={12} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={departmentStats || []} layout="vertical" margin={{ left: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                      <XAxis type="number" hide domain={[0, 100]} />
+                      <YAxis 
+                        dataKey="name" 
+                        type="category" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} 
+                        width={80} 
+                      />
+                      <Tooltip 
+                        cursor={{ fill: '#f8fafc' }} 
+                        contentStyle={{ 
+                          backgroundColor: '#0f172a', 
+                          border: 'none', 
+                          borderRadius: '16px', 
+                          color: '#fff',
+                          fontSize: '12px',
+                          boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.5)'
+                        }}
+                        itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                        labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                      />
+                      <Bar 
+                        dataKey="compliance" 
+                        fill="#2563eb" 
+                        radius={[0, 8, 8, 0]} 
+                        barSize={16}
+                        animationDuration={1500}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
             </div>
           </div>
         </>
@@ -358,7 +397,7 @@ function ComplianceContent() {
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold text-slate-700 uppercase tracking-widest">Critical Issues</p>
-                  <h4 className="text-2xl font-bold text-slate-900">{data.stats.critical}</h4>
+                  <h4 className="text-2xl font-bold text-slate-900">{stats.critical}</h4>
                 </div>
               </div>
               <p className="text-[12px] text-slate-700 font-medium leading-relaxed">Require immediate intervention based on high-risk results.</p>
@@ -370,7 +409,7 @@ function ComplianceContent() {
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold text-slate-700 uppercase tracking-widest">High Priority</p>
-                  <h4 className="text-2xl font-bold text-slate-900">{data.stats.high}</h4>
+                  <h4 className="text-2xl font-bold text-slate-900">{stats.high}</h4>
                 </div>
               </div>
               <p className="text-[12px] text-slate-700 font-medium leading-relaxed">Medium risk cases assigned for safety review and follow-up.</p>

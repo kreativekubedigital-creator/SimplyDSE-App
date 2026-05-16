@@ -86,9 +86,43 @@ export function useComplianceData() {
         a.rawRisk === 'high' || a.rawRisk === 'critical' || a.rawRisk === 'medium'
       );
 
+      // Calculate Department Stats
+      const depts = Array.from(new Set(processedItems.map(i => i.department))).filter(Boolean);
+      const departmentStats = depts.map(dept => {
+        const deptItems = processedItems.filter(i => i.department === dept);
+        const completed = deptItems.filter(i => i.rawStatus === 'completed').length;
+        const compliance = Math.round((completed / deptItems.length) * 100);
+        return { name: dept, compliance, risk: 100 - compliance };
+      }).sort((a, b) => b.compliance - a.compliance);
+
+      // Calculate Trend Stats (Last 6 months)
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const now = new Date();
+      const trendStats = [];
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthLabel = months[date.getMonth()];
+        const year = date.getFullYear();
+        const month = date.getMonth();
+
+        // Calculate compliance for assignments assigned up to this month
+        const upToThisMonthItems = processedItems.filter(item => {
+          const itemDate = new Date(item.assignedAt);
+          return itemDate.getFullYear() < year || (itemDate.getFullYear() === year && itemDate.getMonth() <= month);
+        });
+
+        const score = upToThisMonthItems.length > 0 
+          ? Math.round((upToThisMonthItems.filter(i => i.rawStatus === 'completed').length / upToThisMonthItems.length) * 100)
+          : 0;
+
+        trendStats.push({ month: monthLabel, score });
+      }
+
       setData({
         assessments: processedItems,
         risks: riskIncidents,
+        departmentStats,
+        trendStats,
         stats: {
           critical: processedItems.filter((i: any) => i.rawRisk === 'critical').length,
           high: processedItems.filter((i: any) => i.rawRisk === 'high').length,
