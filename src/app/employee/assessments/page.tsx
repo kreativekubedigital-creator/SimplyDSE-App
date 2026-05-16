@@ -68,19 +68,7 @@ function AssessmentContent() {
           <p className="text-[13px] text-slate-500 mt-1">Manage your workstation assessments, track health progress, and access ergonomic resources.</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={exportData}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[11px] font-medium rounded-xl hover:bg-slate-50 transition-all"
-          >
-            <Download className="w-4 h-4" />
-            Export My Data
-          </button>
-          <Link href={startActionUrl} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-[11px] font-medium rounded-xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all active:scale-95">
-            <PlayCircle className="w-4 h-4" />
-            {pendingAssignment ? 'Continue Assigned Assessment' : 'Start New Assessment'}
-          </Link>
-        </div>
+        {/* Buttons removed per user request */}
       </div>
 
       {/* Tabs */}
