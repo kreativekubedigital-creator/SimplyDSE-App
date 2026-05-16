@@ -461,7 +461,8 @@ function ComplianceContent() {
                 />
               </div>
            </div>
-           <table className="w-full text-left border-collapse">
+           <div className="overflow-x-auto">
+             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
                 <tr className="bg-slate-50/50">
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Employee</th>
@@ -471,7 +472,7 @@ function ComplianceContent() {
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Level</th>
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</th>
-                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="pl-8 pr-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -554,7 +555,7 @@ function ComplianceContent() {
                           <p className="text-[10px] font-bold text-slate-400">{item.completion}%</p>
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-right">
+                      <td className="pl-8 pr-6 py-5 text-right">
                          <div className="flex items-center justify-end gap-2">
                            <button 
                              onClick={() => setSelectedItem(item)}
@@ -618,7 +619,8 @@ function ComplianceContent() {
                   ))
                 )}
               </tbody>
-           </table>
+            </table>
+          </div>
         </div>
       )}
 
