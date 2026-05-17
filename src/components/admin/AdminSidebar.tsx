@@ -36,7 +36,7 @@ const navigation = [
   
   { name: 'Intelligence', icon: BarChart3, href: '/admin/analytics', section: 'Intelligence' },
   
-  { name: 'Risk & Compliance', icon: Shield, href: '/admin/compliance', section: 'Security' },
+  { name: 'Assessment Management', icon: Shield, href: '/admin/compliance', section: 'Security' },
   { name: 'Audit Logs', icon: History, href: '/admin/audit', section: 'Security' },
   
   { name: 'Operations Center', icon: Workflow, href: '/admin/workflows', section: 'Operations' },

@@ -32,7 +32,7 @@ const navSections = [
     items: [
       { name: 'Overview', href: '/', icon: LayoutDashboard },
       { name: 'Employee Management', href: '/employees', icon: Users },
-      { name: 'Risk & Compliance', href: '/compliance', icon: ShieldCheck },
+      { name: 'Assessment Management', href: '/compliance', icon: ShieldCheck },
       { name: 'Operations Center', href: '/workflows', icon: GitBranch },
       { name: 'Communications', href: '/communications', icon: Bell },
       { name: 'Platform Settings', href: '/settings', icon: Settings },

@@ -187,7 +187,7 @@ function ComplianceContent() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Risk & Compliance</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Assessment Management</h1>
           <p className="text-[13px] text-slate-500 mt-1">Real-time intelligence Hub for Organisation-wide compliance performance and risk mitigations.</p>
         </div>
         
