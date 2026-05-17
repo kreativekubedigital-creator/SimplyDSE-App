@@ -37,15 +37,43 @@ export function useWorkforceData() {
           new Date(b.completed_at || 0).getTime() - new Date(a.completed_at || 0).getTime()
         )[0];
 
+        // Map database status safely to standard UI status options
+        let mappedStatus = emp.status || 'active';
+        if (mappedStatus === 'inactive') mappedStatus = 'pending_setup';
+
         return {
-          id: emp.id.substring(0, 8).toUpperCase(),
+          id: emp.id,
+          idShort: emp.id.substring(0, 8).toUpperCase(),
           name: emp.full_name || emp.email || 'Unnamed',
           email: emp.email,
-          department: 'General',
+          department: emp.department || 'General',
+          jobTitle: emp.designation || 'Staff Member',
+          role: emp.role || 'employee',
           complianceScore: latestAssessment?.score || 0,
-          status: latestAssessment ? (latestAssessment.status === 'completed' ? 'Active' : 'In Progress') : 'Not Started',
-          riskLevel: latestAssessment?.risk_level === 'high' ? 'High' : latestAssessment?.risk_level === 'medium' ? 'Medium' : 'Low',
-          lastAssessment: latestAssessment ? new Date(latestAssessment.completed_at).toLocaleDateString() : 'Never'
+          accountStatus: mappedStatus,
+          assessmentStatus: latestAssessment 
+            ? (latestAssessment.status === 'completed' 
+                ? 'Up To Date' 
+                : latestAssessment.status === 'in_progress' 
+                  ? 'Pending' 
+                  : 'Overdue')
+            : 'Pending',
+          riskLevel: latestAssessment?.risk_level === 'high' 
+            ? 'High' 
+            : latestAssessment?.risk_level === 'medium' 
+              ? 'Medium' 
+              : latestAssessment?.risk_level === 'low'
+                ? 'Low'
+                : 'Low',
+          lastAssessment: latestAssessment ? new Date(latestAssessment.completed_at).toLocaleDateString() : 'Never',
+          loginMethod: emp.login_method || 'SSO',
+          phone: emp.phone_number || '',
+          employmentType: emp.employment_type || 'Full-time',
+          workLocation: emp.work_location || 'Office',
+          managerId: emp.manager_id || '',
+          managerName: emp.manager_id ? 'Assigned' : 'No Manager',
+          accessibilityPrefs: emp.accessibility_prefs || {},
+          notificationPrefs: emp.notification_prefs || {}
         };
       });
 
