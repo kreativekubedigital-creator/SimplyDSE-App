@@ -33,10 +33,11 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import Link from 'next/link';
 
 export default function EmployeeDashboardPage() {
-  const { loading: employeeLoading, assessments, stats, progressData, activities, upcomingTasks } = useEmployeeData();
+  const { loading: employeeLoading, assessments, assignments, stats, progressData, activities, upcomingTasks } = useEmployeeData();
   const { fullName, authMethod, organizationName, loading: profileLoading } = useProfile();
   const loading = employeeLoading || profileLoading;
   const firstName = fullName?.split(' ')[0] || 'User';
+  const activeAssignment = assignments?.find(a => a.status !== 'completed');
 
   if (loading) {
     return (
@@ -138,66 +139,100 @@ export default function EmployeeDashboardPage() {
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Active Assessments</h3>
               <Link href="/employee/assessments?tab=assessments" className="text-[11px] font-bold text-blue-600 hover:underline">View Assessment Hub</Link>
             </div>
-            <div className="space-y-4">
-              {assessments.length === 0 ? (
-                <Link href="/employee/assessment" className="group relative p-8 rounded-[2.5rem] border-2 border-dashed border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all block overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/20 rounded-full -mr-32 -mt-32 blur-3xl" />
+            <div className="space-y-6">
+              {activeAssignment ? (
+                <div className="group relative p-8 rounded-[2.5rem] border border-blue-100 bg-gradient-to-br from-white via-white to-blue-50/20 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/10 rounded-full -mr-32 -mt-32 blur-3xl" />
                   <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                    <div className="w-20 h-20 rounded-[2rem] bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20 group-hover:scale-110 transition-transform duration-500">
+                    <div className="w-20 h-20 rounded-[2rem] bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20 transition-transform duration-500">
                       <Monitor className="w-10 h-10" />
                     </div>
                     <div className="flex-1 text-center md:text-left">
                       <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider mb-3">
                         Required
                       </div>
-                      <h4 className="text-xl font-bold text-slate-900 mb-2">DSE Hybrid Assessment</h4>
-                      <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-md">Your workstation assessment is ready. Complete this to ensure your hybrid setup meets health and safety standards.</p>
+                      <h4 className="text-xl font-bold text-slate-900 mb-2">{activeAssignment.title}</h4>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-md">
+                        {activeAssignment.description || "Your workstation assessment is ready. Complete this to ensure your hybrid setup meets health and safety standards."}
+                      </p>
                     </div>
-                    <div className="shrink-0">
-                      <div className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold group-hover:bg-blue-600 transition-all shadow-lg group-hover:shadow-blue-600/20">
-                        Start Now <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <div className="shrink-0 w-full md:w-auto">
+                      <Link 
+                        href={`/employee/assessment?id=${activeAssignment.submissionId || ''}`}
+                        className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold hover:bg-blue-600 hover:scale-[1.02] active:scale-95 transition-all shadow-lg hover:shadow-blue-600/20"
+                      >
+                        {activeAssignment.status === 'in_progress' ? 'Continue Now' : 'Start Now'} <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="group relative p-8 rounded-[2.5rem] border border-slate-200 bg-slate-50/30 overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-slate-100/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div className="w-20 h-20 rounded-[2rem] bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm">
+                      <Monitor className="w-10 h-10" />
+                    </div>
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-200 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-wider mb-3">
+                        Up to Date
+                      </div>
+                      <h4 className="text-xl font-bold text-slate-400 mb-2">No new assessment yet</h4>
+                      <p className="text-sm text-slate-400 font-medium leading-relaxed max-w-md">
+                        You have completed all assigned assessments. You will be notified when a new one is assigned to you by your HR.
+                      </p>
+                    </div>
+                    <div className="shrink-0 w-full md:w-auto">
+                      <div className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-200 text-slate-400 rounded-2xl text-[13px] font-bold cursor-not-allowed select-none border border-slate-300/40 shadow-inner">
+                        Start Now <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
-                </Link>
-              ) : (
-                assessments.slice(0, 3).map((assessment) => (
-                  <Link 
-                    href={assessment.status === 'Completed' ? `/employee/reports/${assessment.id}` : `/employee/assessment?id=${assessment.id}`}
-                    key={assessment.id} 
-                    className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer block"
-                  >
-                    <div className="flex items-center gap-6">
-                      <div className={cn(
-                        "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
-                        assessment.status === 'Completed' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
-                      )}>
-                        {assessment.title.includes('DSE') ? <Monitor className="w-7 h-7" /> : <ClipboardList className="w-7 h-7" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h4 className="text-[15px] font-bold text-slate-900">{assessment.title}</h4>
-                          <span className={cn(
-                            "px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight",
-                            assessment.status === 'Completed' ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
-                          )}>
-                            {assessment.status}
-                          </span>
+                </div>
+              )}
+
+              {/* Historical completed/in-progress assessments */}
+              {assessments.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-slate-100 space-y-4">
+                  <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Recent Submissions</h4>
+                  {assessments.slice(0, 3).map((assessment) => (
+                    <Link 
+                      href={assessment.status === 'Completed' ? `/employee/reports/${assessment.id}` : `/employee/assessment?id=${assessment.id}`}
+                      key={assessment.id} 
+                      className="group relative p-6 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer block"
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className={cn(
+                          "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
+                          assessment.status === 'Completed' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                        )}>
+                          {assessment.title.includes('DSE') ? <Monitor className="w-7 h-7" /> : <ClipboardList className="w-7 h-7" />}
                         </div>
-                        <p className="text-[11px] text-slate-500 font-medium mb-3 truncate">{assessment.subtitle}</p>
-                        {assessment.progress > 0 && assessment.status !== 'Completed' && (
-                          <div className="flex items-center gap-4">
-                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${assessment.progress}%` }} />
-                            </div>
-                            <span className="text-[10px] font-black text-slate-400">{assessment.progress}%</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h4 className="text-[15px] font-bold text-slate-900">{assessment.title}</h4>
+                            <span className={cn(
+                              "px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight",
+                              assessment.status === 'Completed' ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
+                            )}>
+                              {assessment.status}
+                            </span>
                           </div>
-                        )}
+                          <p className="text-[11px] text-slate-500 font-medium mb-3 truncate">{assessment.subtitle}</p>
+                          {assessment.progress > 0 && assessment.status !== 'Completed' && (
+                            <div className="flex items-center gap-4">
+                              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${assessment.progress}%` }} />
+                              </div>
+                              <span className="text-[10px] font-black text-slate-400">{assessment.progress}%</span>
+                            </div>
+                          )}
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors ml-4" />
                       </div>
-                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors ml-4" />
-                    </div>
-                  </Link>
-                ))
+                    </Link>
+                  ))}
+                </div>
               )}
             </div>
           </section>
