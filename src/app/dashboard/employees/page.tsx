@@ -633,17 +633,17 @@ function StaffDirectoryContent() {
 
         {activeTab === 'directory' ? (
           <div className="overflow-x-auto relative scrollbar-thin">
-            <table className="w-full text-left border-collapse min-w-[900px] lg:min-w-0">
+            <table className="w-full text-left border-collapse min-w-[800px] xl:min-w-0">
               <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Staff Member</th>
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Role / Dept</th>
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Compliance</th>
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Risk</th>
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Last Assessment</th>
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Account</th>
-                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider text-right sticky right-0 bg-slate-50/95 z-20 shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.05)]">Actions</th>
+                <tr className="bg-slate-50/60 border-b border-slate-100">
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Staff Member</th>
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Role / Dept</th>
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Compliance</th>
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Risk</th>
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Status</th>
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Last Assessment</th>
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Account</th>
+                  <th className="px-3 py-2.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-right sticky right-0 bg-slate-50/95 z-20 shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.05)]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -663,25 +663,25 @@ function StaffDirectoryContent() {
                 ) : (
                   filteredEmployees.map((emp: any) => (
                     <tr key={emp.id} className="hover:bg-slate-50/40 transition-colors group">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-[12px] font-semibold text-slate-700 border border-slate-200/50 shadow-sm shrink-0">
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-[11px] font-bold text-slate-700 border border-slate-200/50 shadow-sm shrink-0">
                             {emp.name.charAt(0)}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[12.5px] font-semibold text-slate-900 leading-tight truncate">{emp.name}</p>
-                            <p className="text-[10.5px] text-slate-600 font-normal mt-0.5 leading-tight truncate">{emp.email}</p>
-                            <p className="text-[9.5px] text-slate-500 font-semibold tracking-wider mt-0.5 uppercase leading-tight truncate">ID: {emp.idShort}</p>
+                            <p className="text-[12px] font-semibold text-slate-800 leading-tight truncate">{emp.name}</p>
+                            <p className="text-[10px] text-slate-500 font-normal mt-0.5 leading-tight truncate">{emp.email}</p>
+                            <p className="text-[9px] text-slate-400 font-semibold tracking-wider mt-0.5 uppercase leading-tight truncate">ID: {emp.idShort}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 min-w-[130px]">
-                        <p className="text-[12px] font-medium text-slate-900 leading-tight">{emp.jobTitle}</p>
-                        <p className="text-[9.5px] font-medium text-slate-500 uppercase tracking-wider mt-0.5 leading-tight">{emp.department}</p>
+                      <td className="px-3 py-2.5 min-w-[130px]">
+                        <p className="text-[11.5px] font-semibold text-slate-800 leading-tight truncate max-w-[150px]">{emp.jobTitle}</p>
+                        <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider mt-0.5 leading-tight truncate max-w-[150px]">{emp.department}</p>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/30">
+                          <div className="w-10 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/30">
                             <div 
                               className={cn(
                                 "h-full rounded-full transition-all duration-1000",
@@ -690,52 +690,52 @@ function StaffDirectoryContent() {
                               style={{ width: `${emp.complianceScore}%` }} 
                             />
                           </div>
-                          <span className="text-[11px] font-semibold text-slate-900">{emp.complianceScore}%</span>
+                          <span className="text-[11px] font-bold text-slate-800">{emp.complianceScore}%</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2.5">
                         <span className={cn(
-                          "px-2 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider border",
+                          "px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border",
                           emp.riskLevel === 'Low' 
-                            ? "bg-emerald-50 text-emerald-800 border-emerald-300" 
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
                             : emp.riskLevel === 'Medium' 
-                              ? "bg-amber-50 text-amber-800 border-amber-300" 
-                              : "bg-rose-50 text-rose-800 border-rose-300"
+                              ? "bg-amber-50 text-amber-700 border-amber-250" 
+                              : "bg-rose-50 text-rose-700 border-rose-200"
                         )}>
                           {emp.riskLevel}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2.5">
                         <span className={cn(
-                          "px-2 py-0.5 rounded text-[10px] font-semibold border",
+                          "px-2 py-0.5 rounded text-[9.5px] font-bold border",
                           emp.assessmentStatus === 'Up To Date' 
-                            ? "bg-emerald-50 text-emerald-800 border-emerald-250" 
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
                             : emp.assessmentStatus === 'Pending' 
-                              ? "bg-indigo-50 text-indigo-800 border-indigo-250" 
-                              : "bg-rose-50 text-rose-800 border-rose-250"
+                              ? "bg-indigo-50 text-indigo-700 border-indigo-200" 
+                              : "bg-rose-50 text-rose-700 border-rose-200"
                         )}>
                           {emp.assessmentStatus}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[11px] font-medium text-slate-700">
+                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-600">
                         {emp.lastAssessment}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2.5">
                         <span className={cn(
-                          "px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider border",
+                          "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border",
                           emp.accountStatus === 'active' 
-                            ? "bg-emerald-50 text-emerald-850 border-emerald-300" 
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-250" 
                             : emp.accountStatus === 'suspended' 
-                              ? "bg-amber-50 text-amber-900 border-amber-300" 
+                              ? "bg-amber-50 text-amber-700 border-amber-250" 
                               : emp.accountStatus === 'archived' 
-                                ? "bg-slate-100 text-slate-800 border-slate-350" 
-                                : "bg-indigo-50 text-indigo-850 border-indigo-300"
+                                ? "bg-slate-100 text-slate-600 border-slate-250" 
+                                : "bg-indigo-50 text-indigo-700 border-indigo-250"
                         )}>
                           {emp.accountStatus}
                         </span>
                       </td>
                       
-                      <td className="px-4 py-3 text-right sticky right-0 bg-white/95 group-hover:bg-slate-50/95 transition-colors z-20 shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.05)] min-w-[60px]">
+                      <td className="px-3 py-2.5 text-right sticky right-0 bg-white/95 group-hover:bg-slate-50/95 transition-colors z-20 shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.05)] min-w-[60px]">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();

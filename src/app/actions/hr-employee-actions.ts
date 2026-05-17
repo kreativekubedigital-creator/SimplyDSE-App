@@ -264,7 +264,46 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
 
     const dueDate = dueDateStr ? new Date(dueDateStr) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days default
 
-    // Insert assignment
+    // Fetch the template & check if it exists
+    const { data: template, error: tErr } = await supabaseAdmin
+      .from('assessment_templates')
+      .select('id, name')
+      .eq('id', templateId)
+      .single();
+
+    if (tErr || !template) throw new Error('Assessment template not found');
+
+    // Check for existing pending/in-progress assignments to prevent duplicates
+    const { data: existing } = await supabaseAdmin
+      .from('assessment_assignments')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .eq('assessment_template_id', templateId)
+      .eq('employee_id', employeeId)
+      .in('status', ['assigned', 'in_progress'])
+      .maybeSingle();
+
+    if (existing) {
+      return { success: false, error: 'There is already a pending or active assessment of this type assigned to this employee.' };
+    }
+
+    // 1. Create a matching record in assessments table (the actual assessment instance)
+    const { data: assessment, error: insertErr } = await supabaseAdmin
+      .from('assessments')
+      .insert({
+        organization_id: organizationId,
+        user_id: employeeId,
+        template_id: templateId,
+        type: template.name || 'Hybrid DSE Assessment',
+        status: 'pending',
+        frequency: 'Annual',
+      })
+      .select('id')
+      .single();
+
+    if (insertErr || !assessment) throw insertErr || new Error('Failed to create assessment instance.');
+
+    // 2. Insert assignment pointing to submission_id
     const { error: assignError } = await supabaseAdmin
       .from('assessment_assignments')
       .insert({
@@ -274,7 +313,8 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
         assigned_by: actingUser.id,
         status: 'assigned',
         due_date: dueDate.toISOString(),
-        assigned_at: new Date().toISOString()
+        assigned_at: new Date().toISOString(),
+        submission_id: assessment.id
       });
 
     if (assignError) throw assignError;
@@ -306,7 +346,7 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
     return { success: true };
   } catch (error: any) {
     console.error('HR Assign Assessment Error:', error);
-    return { success: false, error: 'Assessment assignment failed. Please try again.' };
+    return { success: false, error: error.message || 'Assessment assignment failed. Please try again.' };
   }
 }
 
@@ -322,7 +362,46 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
 
     const dueDate = dueDateStr ? new Date(dueDateStr) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days default
 
-    // Create new assignment
+    // Fetch the template & check if it exists
+    const { data: template, error: tErr } = await supabaseAdmin
+      .from('assessment_templates')
+      .select('id, name')
+      .eq('id', templateId)
+      .single();
+
+    if (tErr || !template) throw new Error('Assessment template not found');
+
+    // Check for existing pending/in-progress assignments to prevent duplicates
+    const { data: existing } = await supabaseAdmin
+      .from('assessment_assignments')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .eq('assessment_template_id', templateId)
+      .eq('employee_id', employeeId)
+      .in('status', ['assigned', 'in_progress'])
+      .maybeSingle();
+
+    if (existing) {
+      return { success: false, error: 'There is already a pending or active assessment of this type assigned to this employee.' };
+    }
+
+    // 1. Create a matching record in assessments table (the actual assessment instance)
+    const { data: assessment, error: insertErr } = await supabaseAdmin
+      .from('assessments')
+      .insert({
+        organization_id: organizationId,
+        user_id: employeeId,
+        template_id: templateId,
+        type: template.name || 'Hybrid DSE Assessment',
+        status: 'pending',
+        frequency: 'Annual',
+      })
+      .select('id')
+      .single();
+
+    if (insertErr || !assessment) throw insertErr || new Error('Failed to create assessment instance.');
+
+    // 2. Create new assignment pointing to submission_id
     const { error: assignError } = await supabaseAdmin
       .from('assessment_assignments')
       .insert({
@@ -332,7 +411,8 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
         assigned_by: actingUser.id,
         status: 'assigned',
         due_date: dueDate.toISOString(),
-        assigned_at: new Date().toISOString()
+        assigned_at: new Date().toISOString(),
+        submission_id: assessment.id
       });
 
     if (assignError) throw assignError;
