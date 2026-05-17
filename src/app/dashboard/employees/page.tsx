@@ -518,28 +518,28 @@ function StaffDirectoryContent() {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white/60 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] shadow-sm overflow-hidden">
+      <div className="bg-white/60 backdrop-blur-md border border-slate-200/60 rounded-[1.5rem] shadow-sm overflow-hidden">
         {/* Advanced Filters */}
-        <div className="p-6 border-b border-slate-100 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 border-b border-slate-100 space-y-3">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input 
                 type="text"
                 placeholder="Search staff by name, email or ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="w-full pl-11 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-xl text-[12px] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
               />
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase mr-2">Quick Toggle:</span>
+              <span className="text-[11px] font-semibold text-slate-600 uppercase mr-1">Quick Toggle:</span>
               <button 
                 onClick={() => setFilterAccountStatus('active')}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all",
-                  filterAccountStatus === 'active' ? "bg-blue-50 border-blue-200 text-blue-600" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                  "px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all",
+                  filterAccountStatus === 'active' ? "bg-blue-50 border-blue-200 text-blue-700 font-bold" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                 )}
               >
                 Active Staff
@@ -547,8 +547,8 @@ function StaffDirectoryContent() {
               <button 
                 onClick={() => setFilterAccountStatus('archived')}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all",
-                  filterAccountStatus === 'archived' ? "bg-slate-150 border-slate-300 text-slate-700 bg-slate-100" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                  "px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all",
+                  filterAccountStatus === 'archived' ? "bg-slate-100 border-slate-300 text-slate-800 font-bold" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                 )}
               >
                 Archived Records
@@ -557,13 +557,13 @@ function StaffDirectoryContent() {
           </div>
 
           {/* Detailed Filters row */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 pt-1">
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Department</label>
+              <label className="block text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Department</label>
               <select 
                 value={filterDepartment}
                 onChange={(e) => setFilterDepartment(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[12px] text-slate-700 focus:outline-none"
+                className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 focus:outline-none hover:bg-slate-50/50"
               >
                 <option value="All">All Departments</option>
                 {departmentsList.map((d, i) => <option key={i} value={d}>{d}</option>)}
@@ -571,11 +571,11 @@ function StaffDirectoryContent() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">System Role</label>
+              <label className="block text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">System Role</label>
               <select 
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[12px] text-slate-700 focus:outline-none"
+                className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 focus:outline-none hover:bg-slate-50/50"
               >
                 <option value="All">All Roles</option>
                 <option value="employee">Employee</option>
@@ -586,11 +586,11 @@ function StaffDirectoryContent() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Assessment Status</label>
+              <label className="block text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Assessment Status</label>
               <select 
                 value={filterAssessmentStatus}
                 onChange={(e) => setFilterAssessmentStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[12px] text-slate-700 focus:outline-none"
+                className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 focus:outline-none hover:bg-slate-50/50"
               >
                 <option value="All">All Statuses</option>
                 <option value="Up To Date">Up To Date</option>
@@ -601,11 +601,11 @@ function StaffDirectoryContent() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Risk Level</label>
+              <label className="block text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Risk Level</label>
               <select 
                 value={filterRiskLevel}
                 onChange={(e) => setFilterRiskLevel(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[12px] text-slate-700 focus:outline-none"
+                className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 focus:outline-none hover:bg-slate-50/50"
               >
                 <option value="All">All Risks</option>
                 <option value="Low">Low Risk</option>
@@ -615,11 +615,11 @@ function StaffDirectoryContent() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Account State</label>
+              <label className="block text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Account State</label>
               <select 
                 value={filterAccountStatus}
                 onChange={(e) => setFilterAccountStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[12px] text-slate-700 focus:outline-none"
+                className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 focus:outline-none hover:bg-slate-50/50"
               >
                 <option value="All">All Accounts</option>
                 <option value="active">Active</option>
@@ -632,56 +632,56 @@ function StaffDirectoryContent() {
         </div>
 
         {activeTab === 'directory' ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto relative scrollbar-thin">
+            <table className="w-full text-left border-collapse min-w-[900px] lg:min-w-0">
               <thead>
-                <tr className="bg-slate-50/30">
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Team Member</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Dept & Job Title</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Compliance</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Risk Level</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Task Status</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Last Assessment</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Account Status</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Staff Member</th>
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Role / Dept</th>
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Compliance</th>
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Risk</th>
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Last Assessment</th>
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider">Account</th>
+                  <th className="px-4 py-3.5 text-[10.5px] font-semibold text-slate-600 uppercase tracking-wider text-right sticky right-0 bg-slate-50/95 z-20 shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.05)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-150">
+              <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-8 py-20 text-center">
+                    <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                        <p className="text-[13px] text-slate-400 font-medium">Hydrating Staff compliance records...</p>
+                        <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                        <p className="text-[12px] text-slate-500 font-medium">Hydrating Staff compliance records...</p>
                       </div>
                     </td>
                   </tr>
                 ) : filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-8 py-20 text-center text-slate-400 text-[13px]">No matching records found. Try modifying filters.</td>
+                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500 text-[12px] font-medium">No matching records found. Try modifying filters.</td>
                   </tr>
                 ) : (
                   filteredEmployees.map((emp: any) => (
-                    <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-[13px] font-bold text-slate-600 border border-white shadow-sm">
+                    <tr key={emp.id} className="hover:bg-slate-50/40 transition-colors group">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-[12px] font-semibold text-slate-700 border border-slate-200/50 shadow-sm shrink-0">
                             {emp.name.charAt(0)}
                           </div>
-                          <div>
-                            <p className="text-[13px] font-bold text-slate-900 leading-none">{emp.name}</p>
-                            <p className="text-[11px] text-slate-400 font-medium mt-1 leading-none">{emp.email}</p>
-                            <p className="text-[9px] text-slate-350 font-black tracking-widest mt-1 uppercase leading-none">ID: {emp.idShort}</p>
+                          <div className="min-w-0">
+                            <p className="text-[12.5px] font-semibold text-slate-900 leading-tight truncate">{emp.name}</p>
+                            <p className="text-[10.5px] text-slate-600 font-normal mt-0.5 leading-tight truncate">{emp.email}</p>
+                            <p className="text-[9.5px] text-slate-500 font-semibold tracking-wider mt-0.5 uppercase leading-tight truncate">ID: {emp.idShort}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
-                        <p className="text-[12px] font-bold text-slate-800">{emp.jobTitle}</p>
-                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{emp.department}</p>
+                      <td className="px-4 py-3 min-w-[130px]">
+                        <p className="text-[12px] font-medium text-slate-900 leading-tight">{emp.jobTitle}</p>
+                        <p className="text-[9.5px] font-medium text-slate-500 uppercase tracking-wider mt-0.5 leading-tight">{emp.department}</p>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/30">
                             <div 
                               className={cn(
                                 "h-full rounded-full transition-all duration-1000",
@@ -690,58 +690,58 @@ function StaffDirectoryContent() {
                               style={{ width: `${emp.complianceScore}%` }} 
                             />
                           </div>
-                          <span className="text-[11px] font-black text-slate-700">{emp.complianceScore}%</span>
+                          <span className="text-[11px] font-semibold text-slate-900">{emp.complianceScore}%</span>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-4 py-3">
                         <span className={cn(
-                          "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border",
+                          "px-2 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider border",
                           emp.riskLevel === 'Low' 
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-300" 
                             : emp.riskLevel === 'Medium' 
-                              ? "bg-amber-50 text-amber-700 border-amber-200" 
-                              : "bg-rose-50 text-rose-700 border-rose-250"
+                              ? "bg-amber-50 text-amber-800 border-amber-300" 
+                              : "bg-rose-50 text-rose-800 border-rose-300"
                         )}>
                           {emp.riskLevel}
                         </span>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-4 py-3">
                         <span className={cn(
-                          "px-2 py-0.5 rounded text-[10px] font-bold",
+                          "px-2 py-0.5 rounded text-[10px] font-semibold border",
                           emp.assessmentStatus === 'Up To Date' 
-                            ? "bg-emerald-50 text-emerald-700" 
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-250" 
                             : emp.assessmentStatus === 'Pending' 
-                              ? "bg-indigo-50 text-indigo-700" 
-                              : "bg-rose-50 text-rose-700"
+                              ? "bg-indigo-50 text-indigo-800 border-indigo-250" 
+                              : "bg-rose-50 text-rose-800 border-rose-250"
                         )}>
                           {emp.assessmentStatus}
                         </span>
                       </td>
-                      <td className="px-6 py-5 text-[11px] font-bold text-slate-500">
+                      <td className="px-4 py-3 text-[11px] font-medium text-slate-700">
                         {emp.lastAssessment}
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-4 py-3">
                         <span className={cn(
-                          "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border",
+                          "px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider border",
                           emp.accountStatus === 'active' 
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                            ? "bg-emerald-50 text-emerald-850 border-emerald-300" 
                             : emp.accountStatus === 'suspended' 
-                              ? "bg-amber-50 text-amber-700 border-amber-200" 
+                              ? "bg-amber-50 text-amber-900 border-amber-300" 
                               : emp.accountStatus === 'archived' 
-                                ? "bg-slate-100 text-slate-600 border-slate-200" 
-                                : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                ? "bg-slate-100 text-slate-800 border-slate-350" 
+                                : "bg-indigo-50 text-indigo-850 border-indigo-300"
                         )}>
                           {emp.accountStatus}
                         </span>
                       </td>
                       
-                      <td className="px-6 py-5 text-right relative">
+                      <td className="px-4 py-3 text-right sticky right-0 bg-white/95 group-hover:bg-slate-50/95 transition-colors z-20 shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.05)] min-w-[60px]">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveMenuEmployeeId(activeMenuEmployeeId === emp.id ? null : emp.id);
                           }}
-                          className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                          className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
@@ -750,29 +750,29 @@ function StaffDirectoryContent() {
                         {activeMenuEmployeeId === emp.id && (
                           <div 
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute right-6 top-14 z-40 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 text-left animate-in fade-in zoom-in-95 duration-150"
+                            className="absolute right-4 top-11 z-40 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 text-left animate-in fade-in zoom-in-95 duration-150"
                           >
                             {/* PROFILE */}
-                            <div className="px-3 py-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Profile</div>
-                            <button onClick={() => openEmployeeModal(emp, 'view_profile')} className="w-full text-left px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
+                            <div className="px-3 py-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest border-b border-slate-100">Profile</div>
+                            <button onClick={() => openEmployeeModal(emp, 'view_profile')} className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
                               <Eye className="w-3.5 h-3.5 text-blue-500" /> View Profile
                             </button>
-                            <button onClick={() => openEmployeeModal(emp, 'edit_employee')} className="w-full text-left px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
+                            <button onClick={() => openEmployeeModal(emp, 'edit_employee')} className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
                               <Edit className="w-3.5 h-3.5 text-blue-500" /> Edit Employee
                             </button>
-                            <a href={`/dashboard/employees?employee=${emp.id}`} className="w-full text-left px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
+                            <a href={`/dashboard/employees?employee=${emp.id}`} className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
                               <ExternalLink className="w-3.5 h-3.5 text-blue-500" /> View Workspace
                             </a>
 
                             {/* ASSESSMENTS */}
-                            <div className="px-3 py-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mt-2">Assessments</div>
-                            <button onClick={() => openEmployeeModal(emp, 'assign_assessment')} className="w-full text-left px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
+                            <div className="px-3 py-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest border-b border-slate-100 mt-1.5">Assessments</div>
+                            <button onClick={() => openEmployeeModal(emp, 'assign_assessment')} className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
                               <Plus className="w-3.5 h-3.5 text-indigo-500" /> Assign Assessment
                             </button>
-                            <button onClick={() => openEmployeeModal(emp, 'view_assessments')} className="w-full text-left px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
+                            <button onClick={() => openEmployeeModal(emp, 'view_assessments')} className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
                               <History className="w-3.5 h-3.5 text-indigo-500" /> View Assignments
                             </button>
-                            <button onClick={() => openEmployeeModal(emp, 'view_reports')} className="w-full text-left px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
+                            <button onClick={() => openEmployeeModal(emp, 'view_reports')} className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg flex items-center gap-2">
                               <FileText className="w-3.5 h-3.5 text-indigo-500" /> View Reports
                             </button>
 
