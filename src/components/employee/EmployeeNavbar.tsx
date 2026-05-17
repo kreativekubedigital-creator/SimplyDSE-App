@@ -22,7 +22,7 @@ interface Notification {
 }
 
 export function EmployeeNavbar() {
-  const { fullName, initials, roleLabel, loading, organizationId, id: userId } = useProfile();
+  const { fullName, initials, roleLabel, loading, organizationId, id: userId, avatarUrl } = useProfile();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
@@ -95,7 +95,7 @@ export function EmployeeNavbar() {
       {/* Welcome Message */}
       <div className="flex flex-col">
         <h2 className="text-[20px] font-bold text-slate-900 tracking-tight flex items-center gap-2">
-          Welcome back, {loading ? '...' : firstName} 👋
+          Welcome back, {loading ? '...' : firstName}
         </h2>
         <p className="text-[13px] text-text-muted font-medium">Here's an overview of your assessments and workplace health.</p>
       </div>
@@ -157,10 +157,14 @@ export function EmployeeNavbar() {
 
         <div className="h-8 w-px bg-slate-200/60" />
 
-        <button className="flex items-center gap-3 group">
+        <div className="flex items-center gap-3 group cursor-default">
           <div className="relative">
-            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
-              {loading ? '...' : initials}
+            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={fullName || ''} className="w-full h-full object-cover" />
+              ) : (
+                loading ? '...' : initials
+              )}
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
           </div>
@@ -172,8 +176,7 @@ export function EmployeeNavbar() {
               {loading ? '...' : roleLabel}
             </p>
           </div>
-          <ChevronDown className="w-4 h-4 text-text-muted group-hover:text-slate-600 transition-colors ml-1" />
-        </button>
+        </div>
       </div>
     </header>
   );
