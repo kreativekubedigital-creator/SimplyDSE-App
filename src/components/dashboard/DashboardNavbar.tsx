@@ -1,16 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { 
   Search, 
   Bell, 
   ChevronDown,
   X,
-  Check
+  Check,
+  User,
+  Settings,
+  LogOut,
+  Shield
 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface Notification {
   id: string;
@@ -22,11 +28,25 @@ interface Notification {
 }
 
 export function DashboardNavbar() {
-  const { fullName, initials, designation, roleLabel, organizationId, loading } = useProfile();
+  const { 
+    fullName, 
+    initials, 
+    designation, 
+    roleLabel, 
+    organizationId, 
+    loading, 
+    avatarUrl, 
+    email 
+  } = useProfile();
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
   const notifRef = useRef<HTMLDivElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Fetch notifications from database
   useEffect(() => {
@@ -64,11 +84,14 @@ export function DashboardNavbar() {
     return () => { supabase.removeChannel(channel); };
   }, [organizationId]);
 
-  // Close panel on outside click
+  // Close panels on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setShowNotifPanel(false);
+      }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -88,6 +111,11 @@ export function DashboardNavbar() {
     setUnreadCount(0);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -99,11 +127,10 @@ export function DashboardNavbar() {
     return `${days}d ago`;
   };
 
-  // Display designation if available, otherwise fall back to role label
   const subtitle = designation || roleLabel;
 
   return (
-    <header className="h-[72px] bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
+    <header className="h-[72px] bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-45">
       {/* Search */}
       <div className="flex-1 max-w-2xl">
         <div className="relative group">
@@ -182,21 +209,81 @@ export function DashboardNavbar() {
 
         <div className="h-8 w-px bg-slate-200" />
 
-        {/* User Profile */}
-        <button className="flex items-center gap-3 pl-2 group">
-          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform">
-            {loading ? '...' : initials}
-          </div>
-          <div className="text-left hidden lg:block">
-            <p className="text-[13px] font-bold text-slate-900 leading-none">
-              {loading ? 'Loading...' : fullName}
-            </p>
-            <p className="text-[11px] text-slate-500 font-medium mt-1">
-              {loading ? '...' : subtitle}
-            </p>
-          </div>
-          <ChevronDown className="w-4 h-4 text-text-muted group-hover:text-slate-600 transition-colors ml-1" />
-        </button>
+        {/* User Profile Dropdown Toggle */}
+        <div className="relative" ref={profileMenuRef}>
+          <button 
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="flex items-center gap-3 pl-2 group outline-none"
+          >
+            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform overflow-hidden border border-blue-500/20">
+              {loading ? (
+                '...'
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt={fullName || ''} className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
+            </div>
+            <div className="text-left hidden lg:block">
+              <p className="text-[13px] font-bold text-slate-900 leading-none">
+                {loading ? 'Loading...' : fullName}
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
+                {loading ? '...' : subtitle}
+              </p>
+            </div>
+            <ChevronDown className={cn(
+              "w-4 h-4 text-text-muted group-hover:text-slate-600 transition-all ml-1",
+              showProfileMenu && "rotate-180 text-blue-600"
+            )} />
+          </button>
+
+          {/* Profile Dropdown Menu */}
+          {showProfileMenu && (
+            <div className="absolute right-0 top-full mt-3 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-slate-200/50 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              {/* Profile Header */}
+              <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+                <p className="text-[13px] font-black text-slate-900 truncate">{fullName}</p>
+                <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{email}</p>
+                <span className="inline-block mt-2 px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-bold uppercase tracking-wider rounded border border-blue-100">
+                  {roleLabel}
+                </span>
+              </div>
+
+              {/* Menu Links */}
+              <div className="p-2 space-y-0.5">
+                <Link 
+                  href="/dashboard/profile"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-[12px] font-bold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  <User className="w-4 h-4 text-slate-400 group-hover:text-blue-600" />
+                  My Profile
+                </Link>
+
+                <Link 
+                  href="/dashboard/settings"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-[12px] font-bold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-slate-400 group-hover:text-blue-600" />
+                  Platform Settings
+                </Link>
+              </div>
+
+              {/* Footer Sign Out */}
+              <div className="p-2 border-t border-slate-100 bg-slate-50/30">
+                <button 
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-[12px] font-bold text-rose-600 hover:bg-rose-50 transition-colors text-left"
+                >
+                  <LogOut className="w-4 h-4 text-rose-400" />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
