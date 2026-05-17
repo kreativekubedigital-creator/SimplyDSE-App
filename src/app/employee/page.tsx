@@ -65,7 +65,7 @@ export default function EmployeeDashboardPage() {
               </span>
             )}
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Welcome back, {firstName}</h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Hello, {firstName}</h1>
           <p className="text-[13px] text-slate-500 mt-2 font-medium">Your workplace ergonomics and wellness overview is ready.</p>
         </div>
         
