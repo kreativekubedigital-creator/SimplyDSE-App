@@ -128,7 +128,8 @@ export async function POST(req: Request) {
         areas_for_improvement: improvements || [],
         recommendations: recommendations || [],
         storage_path: storagePath,
-        email_status: 'sending'
+        email_status: 'sending',
+        report_status: 'ready'
       }, { onConflict: 'assessment_submission_id' })
       .select()
       .single();
@@ -222,13 +223,8 @@ export async function POST(req: Request) {
         user_id: userId,
         title: 'Your assessment report is ready',
         message: `Your assessment report is ready to view and download. Risk level: ${overallRiskLevel}`,
-        type: 'assessment_report',
-        link: `/employee/reports/${assessmentId}`,
-        metadata: JSON.stringify({
-          report_id: reportId,
-          assessment_id: assessmentId,
-          risk_level: overallRiskLevel
-        })
+        type: 'assessment',
+        is_read: false
       });
 
     // 9. Notify HR if risk is Medium or higher
@@ -246,14 +242,8 @@ export async function POST(req: Request) {
           user_id: hr.id,
           title: 'Assessment review required',
           message: `${employeeName} completed an assessment with ${overallRiskLevel} risk.`,
-          type: 'hr_review_required',
-          link: `/dashboard/compliance?tab=tracking&search=${encodeURIComponent(employeeName)}`,
-          metadata: JSON.stringify({
-            employee_id: userId,
-            employee_name: employeeName,
-            report_id: reportId,
-            risk_level: overallRiskLevel
-          })
+          type: 'assessment',
+          is_read: false
         }));
 
         await supabaseAdmin.from('notifications').insert(hrNotifications);

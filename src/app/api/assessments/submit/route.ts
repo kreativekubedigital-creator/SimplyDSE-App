@@ -1,20 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    // Initialize Supabase Client inside the handler to avoid build-time errors
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Supabase environment variables are missing.');
-      return NextResponse.json({ error: 'System configuration error' }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await request.json();
     const { assessmentId, userId, answers } = body;
@@ -41,7 +31,7 @@ export async function POST(request: Request) {
     else if (calculatedScore < 80) riskLevel = 'medium';
 
     // 2. Update Supabase Database
-    const { data: updatedAssessment, error: updateError } = await supabase
+    const { data: updatedAssessment, error: updateError } = await supabaseAdmin
       .from('assessments')
       .update({
         status: 'completed',

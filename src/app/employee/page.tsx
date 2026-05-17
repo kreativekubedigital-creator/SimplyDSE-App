@@ -34,7 +34,7 @@ import Link from 'next/link';
 
 export default function EmployeeDashboardPage() {
   const { loading: employeeLoading, assessments, stats, progressData, activities, upcomingTasks } = useEmployeeData();
-  const { fullName, loading: profileLoading } = useProfile();
+  const { fullName, authMethod, organizationName, loading: profileLoading } = useProfile();
   const loading = employeeLoading || profileLoading;
   const firstName = fullName?.split(' ')[0] || 'User';
 
@@ -54,9 +54,17 @@ export default function EmployeeDashboardPage() {
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <span className="px-3 py-1 bg-blue-600/10 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 inline-block">
-            Health & Wellness Status
-          </span>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="px-3 py-1 bg-blue-600/10 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full inline-block">
+              Health & Wellness Status
+            </span>
+            {authMethod !== 'email' && (
+              <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1.5 border border-emerald-500/10">
+                <ShieldCheck className="w-3 h-3" />
+                Logged in via {organizationName} SSO
+              </span>
+            )}
+          </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">Welcome back, {firstName}</h1>
           <p className="text-[13px] text-slate-500 mt-2 font-medium">Your workplace ergonomics and wellness overview is ready.</p>
         </div>

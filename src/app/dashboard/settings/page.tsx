@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useProfile } from '@/hooks/useProfile';
 import { LogoUpload } from '@/components/dashboard/LogoUpload';
 import { supabase } from '@/lib/supabase';
+import { SSOSettings } from '@/components/dashboard/SSOSettings';
 
 export default function SettingsPage() {
   const { organizationId, organizationName, role, loading: profileLoading } = useProfile();
@@ -161,6 +162,7 @@ export default function SettingsPage() {
           <SettingsTab icon={Zap} label="Automation Rules" active={activeTab === 'Automation Rules'} onClick={() => setActiveTab('Automation Rules')} />
           <SettingsTab icon={Bell} label="Notifications" active={activeTab === 'Notifications'} onClick={() => setActiveTab('Notifications')} />
           <SettingsTab icon={Users} label="User Management" active={activeTab === 'User Management'} onClick={() => setActiveTab('User Management')} />
+          <SettingsTab icon={ShieldCheck} label="Authentication" active={activeTab === 'Authentication'} onClick={() => setActiveTab('Authentication')} />
           
           {isSuperAdmin && (
             <>
@@ -172,6 +174,21 @@ export default function SettingsPage() {
 
         {/* Content Area */}
         <div className="md:col-span-2 space-y-8">
+          {activeTab === 'Authentication' && (
+            organizationId ? (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <SSOSettings organizationId={organizationId} />
+              </div>
+            ) : (
+              <div className="p-12 text-center bg-white border border-slate-200 rounded-[2.5rem] shadow-sm">
+                <ShieldCheck className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-slate-900 mb-2">No Organisation Context</h3>
+                <p className="text-[14px] text-slate-400 font-medium max-w-md mx-auto">
+                  To configure SSO settings, please access this page via an organisation subdomain (e.g. orgname.simplydse.online).
+                </p>
+              </div>
+            )
+          )}
           {activeTab === 'General' && (
             <section className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
               <h3 className="text-lg font-bold text-slate-900 mb-6">General Information</h3>

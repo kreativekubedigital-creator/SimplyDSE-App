@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { ArrowRight, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Loader2, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchLoginProfile } from '@/app/actions/fetch-login-profile';
 
@@ -19,6 +19,74 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [ssoCheck, setSsoCheck] = useState<{
+    ssoRequired: boolean;
+    hasActiveProvider: boolean;
+    organizationSlug?: string;
+    organizationName?: string;
+    domain?: string;
+  } | null>(null);
+
+  const handleEmailBlur = async () => {
+    if (!email || !email.includes('@')) return;
+    
+    try {
+      const { checkEmailSSO } = await import('@/app/actions/check-email-sso');
+      const result = await checkEmailSSO(email, tenantSlug);
+      
+      if (result.ssoRequired) {
+        setSsoCheck({
+          ssoRequired: result.ssoRequired,
+          hasActiveProvider: result.hasActiveProvider || false,
+          organizationSlug: result.organizationSlug,
+          organizationName: result.organizationName,
+          domain: result.domain
+        });
+        // If they are on the wrong subdomain, we should warn them or prepare to redirect
+        if (tenantSlug !== 'www' && tenantSlug !== 'admin' && result.organizationSlug !== tenantSlug) {
+          setError(`Note: Your account belongs to ${result.organizationName}. You will be routed there for SSO.`);
+        }
+      } else {
+        setSsoCheck(null);
+      }
+    } catch (err) {
+      console.error('SSO Check failed:', err);
+    }
+  };
+
+  const handleSSORedirect = async () => {
+    if (!ssoCheck?.hasActiveProvider || !ssoCheck.domain) {
+      setError('Your organisation requires SSO, but SSO has not been fully configured yet. Please contact your administrator.');
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      setError('');
+      
+      const redirectTo = window.location.origin + '/auth/callback';
+      
+      const { data, error: ssoError } = await supabase.auth.signInWithSSO({
+        domain: ssoCheck.domain,
+        options: {
+          redirectTo
+        }
+      });
+      
+      if (ssoError) throw ssoError;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        setError('SAML SSO connection is ready, but no redirect URL was returned by Supabase.');
+      }
+    } catch (err: any) {
+      console.error('SSO Redirect error:', err);
+      setError(err.message || 'Failed to initiate Single Sign-On redirect.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleStandardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +140,7 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       const role = profile?.role;
 
       // 3. Workspace validation: If on a tenant subdomain, verify user belongs to it
-      if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
+      if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin' && role !== 'super_admin') {
         // @ts-ignore
         const userSubdomain = profile?.organizations?.subdomain;
 
@@ -145,8 +213,47 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
     }
   };
 
-  const handleSAML = () => {
-    setError('SAML SSO is currently being configured for your Organisation by your IT administrator.');
+  const handleSAML = async () => {
+    if (!email || !email.includes('@')) {
+      setError("Please enter your Work Email first to trigger your Organisation's SSO redirect.");
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      setError('');
+      
+      const { checkEmailSSO } = await import('@/app/actions/check-email-sso');
+      const result = await checkEmailSSO(email, tenantSlug);
+      
+      if (result.ssoRequired && result.hasActiveProvider && result.domain) {
+        const redirectTo = window.location.origin + '/auth/callback';
+        const { data, error: ssoError } = await supabase.auth.signInWithSSO({
+          domain: result.domain,
+          options: {
+            redirectTo
+          }
+        });
+        
+        if (ssoError) throw ssoError;
+        
+        if (data?.url) {
+          window.location.href = data.url;
+        } else {
+          setError('SAML SSO connection is ready, but no redirect URL was returned by Supabase.');
+        }
+      } else if (result.ssoRequired) {
+        setError('Your organisation requires SSO, but SAML has not been fully configured. Please contact your IT administrator.');
+      } else {
+        const domainName = email.split('@')[1];
+        setError(`No corporate SAML SSO configuration was found for "${domainName}". Please log in with your password instead.`);
+      }
+    } catch (err: any) {
+      console.error('SAML Redirect error:', err);
+      setError(err.message || 'Failed to initiate Single Sign-On redirect.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -165,52 +272,82 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={handleEmailBlur}
             className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
             placeholder="name@company.com"
             required
           />
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between pl-1 pr-1">
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
-            <button type="button" className="text-[11px] font-bold text-brand-primary hover:underline">
-              Forgot password?
-            </button>
-          </div>
-          <div className="relative group">
-            <input 
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 pr-12 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
-              placeholder="••••••••••••"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
+        {(!ssoCheck || !ssoCheck.ssoRequired) ? (
+          <>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between pl-1 pr-1">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
+                <button type="button" className="text-[11px] font-bold text-brand-primary hover:underline">
+                  Forgot password?
+                </button>
+              </div>
+              <div className="relative group">
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 pr-12 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
+                  placeholder="••••••••••••"
+                  required={!ssoCheck?.ssoRequired}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
 
-        <button 
-          type="submit"
-          disabled={isSubmitting || !email || !password}
-          className="w-full flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none mt-2"
-        >
-          {isSubmitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <>
-              Sign In
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
+            <button 
+              type="submit"
+              disabled={isSubmitting || !email || !password}
+              className="w-full flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none mt-2"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Sign In
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </>
+        ) : (
+          <div className="space-y-4 pt-2">
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3">
+              <ShieldCheck className="w-5 h-5 text-blue-600" />
+              <p className="text-[12px] text-blue-700 font-medium">
+                <strong>{ssoCheck.organizationName}</strong> requires Enterprise SSO for this domain.
+              </p>
+            </div>
+            
+            <button 
+              type="button"
+              onClick={handleSSORedirect}
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all mt-2"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Continue with SSO
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </form>
 
       <div className="flex items-center gap-4">

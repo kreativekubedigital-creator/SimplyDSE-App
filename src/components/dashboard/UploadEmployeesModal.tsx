@@ -50,26 +50,47 @@ export function UploadEmployeesModal({ isOpen, onClose, onSuccess }: UploadEmplo
     }
   };
 
-  const processFile = (selectedFile: File) => {
-    if (!selectedFile.name.endsWith('.csv') && !selectedFile.name.endsWith('.xlsx')) {
-      alert('Please upload a .csv or .xlsx file');
+  const processFile = async (selectedFile: File) => {
+    if (!selectedFile.name.endsWith('.csv')) {
+      alert('Please upload a .csv file');
       return;
     }
     setFile(selectedFile);
     
-    // Simulate parsing for preview
-    // In a real app, use PapaParse or XLSX.js
-    setPreviewData([
-      { firstName: 'James', lastName: 'Wilson', email: 'j.wilson@org.com', dept: 'Engineering', status: 'valid' },
-      { firstName: 'Sarah', lastName: 'Smith', email: 's.smith@org.com', dept: 'HR', status: 'valid' },
-      { firstName: 'Invalid', lastName: 'User', email: 'bad-email', dept: 'Unknown', status: 'error', error: 'Invalid email format' },
-    ]);
-    setStep('preview');
+    const text = await selectedFile.text();
+    const rows = text.split('\n').filter(row => row.trim());
+    const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+    
+    const employees = rows.slice(1).map(row => {
+      const values = row.split(',').map(v => v.trim());
+      const emp: any = {};
+      headers.forEach((header, index) => {
+        if (header.includes('first')) emp.firstName = values[index];
+        if (header.includes('last')) emp.lastName = values[index];
+        if (header.includes('email')) emp.email = values[index];
+        if (header.includes('dept') || header.includes('department')) emp.dept = values[index];
+      });
+      return emp;
+    });
+
+    try {
+      const { validateCSVEmployees } = await import('@/app/actions/validate-csv');
+      const result = await validateCSVEmployees(organizationId as string, employees);
+      if (result.success) {
+        setPreviewData(result.data || []);
+        setStep('preview');
+      } else {
+        alert('Validation failed: ' + result.error);
+      }
+    } catch (err) {
+      console.error('Error validating CSV:', err);
+      alert('Error processing file');
+    }
   };
 
   const startImport = async () => {
     setStep('importing');
-    const validEmployees = previewData.filter(e => e.status === 'valid').map(e => ({
+    const validEmployees = previewData.filter(e => e.status !== 'error').map(e => ({
       organizationId: organizationId as string,
       firstName: e.firstName,
       lastName: e.lastName,
@@ -182,20 +203,39 @@ export function UploadEmployeesModal({ isOpen, onClose, onSuccess }: UploadEmplo
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/50">
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Name</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Employee</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Validation</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Login Method</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {previewData.map((row, idx) => (
                       <tr key={idx}>
-                        <td className="px-6 py-4 text-[13px] font-bold text-slate-900">{row.firstName} {row.lastName}</td>
+                        <td className="px-6 py-4">
+                          <p className="text-[13px] font-bold text-slate-900">{row.firstName} {row.lastName}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">{row.dept}</p>
+                        </td>
                         <td className="px-6 py-4 text-[12px] text-slate-500 font-medium">{row.email}</td>
+                        <td className="px-6 py-4">
+                          {row.isSSOEligible ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black uppercase tracking-tight">
+                              Enterprise SSO
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 text-slate-400 rounded-md text-[10px] font-bold uppercase">
+                              Email/Password
+                            </span>
+                          )}
+                        </td>
                         <td className="px-6 py-4">
                           {row.status === 'valid' ? (
                             <span className="flex items-center gap-1.5 text-emerald-600 text-[11px] font-bold">
                               <CheckCircle2 className="w-3.5 h-3.5" /> Valid
+                            </span>
+                          ) : row.status === 'warning' ? (
+                            <span className="flex items-center gap-1.5 text-amber-500 text-[11px] font-bold" title={row.error}>
+                              <AlertTriangle className="w-3.5 h-3.5" /> External
                             </span>
                           ) : (
                             <span className="flex items-center gap-1.5 text-rose-500 text-[11px] font-bold" title={row.error}>

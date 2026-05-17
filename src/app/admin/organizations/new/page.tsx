@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
   Building2, 
@@ -62,6 +63,7 @@ const modules = [
 ];
 
 export default function NewOrganisationPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [provisioningLogs, setProvisioningLogs] = useState<string[]>([]);
@@ -143,8 +145,18 @@ export default function NewOrganisationPage() {
         "Sending welcome invitation to administrator...",
         "Organisation workspace is now online."
       ]);
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        router.push('/admin/organizations');
+      }, 3000);
     } else {
-      setProvisioningLogs(prev => [...prev, `ERROR: ${result.error}. Rollback initiated.`]);
+      setProvisioningLogs(prev => [
+        ...prev, 
+        `CRITICAL ERROR: ${result.error}`,
+        "Provisioning failed. Check system logs for details.",
+        "Rollback in progress..."
+      ]);
     }
     
     setIsSubmitting(false);

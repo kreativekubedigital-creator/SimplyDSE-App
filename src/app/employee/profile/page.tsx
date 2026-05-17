@@ -42,6 +42,8 @@ export default function EmployeeProfilePage() {
     phoneNumber,
     preferredName,
     startDate,
+    createdAt,
+    mfaEnabled,
     employmentType,
     employeeIdOfficial,
     workLocation,
@@ -269,17 +271,19 @@ export default function EmployeeProfilePage() {
             <Building2 className="absolute -right-8 -bottom-8 w-40 h-40 opacity-5 -rotate-12" />
             
             <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 relative z-10">Organization</h3>
-            <p className="text-xl font-bold mb-1 relative z-10">{organizationName}</p>
-            <p className="text-sm text-slate-400 font-medium mb-6 relative z-10">Member since {startDate ? new Date(startDate).getFullYear() : '2024'}</p>
+            <p className="text-2xl font-black text-white mb-1 relative z-10 tracking-tight">{organizationName}</p>
+            <p className="text-sm text-white/70 font-medium mb-6 relative z-10">
+              Member since {startDate ? new Date(startDate).getFullYear() : (createdAt ? new Date(createdAt).getFullYear() : '2026')}
+            </p>
             
             <div className="space-y-3 relative z-10">
               <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
                 <Shield className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs font-medium text-slate-300">Verified Employee</span>
+                <span className="text-xs font-medium text-slate-200">Verified Employee</span>
               </div>
               <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
                 <Info className="w-4 h-4 text-blue-400" />
-                <span className="text-xs font-medium text-slate-300">Enterprise Access</span>
+                <span className="text-xs font-medium text-slate-200">Enterprise Access</span>
               </div>
             </div>
           </div>
@@ -478,7 +482,12 @@ export default function EmployeeProfilePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-bold uppercase tracking-wider">Disabled</span>
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider",
+                    mfaEnabled ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                  )}>
+                    {mfaEnabled ? "Enabled" : "Disabled"}
+                  </span>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </div>
               </div>

@@ -15,6 +15,8 @@ export function useProfile() {
     phoneNumber: string | null;
     preferredName: string | null;
     startDate: string | null;
+    createdAt: string | null;
+    mfaEnabled: boolean | null;
     employmentType: string | null;
     employeeIdOfficial: string | null;
     workLocation: string | null;
@@ -22,6 +24,7 @@ export function useProfile() {
     organizationId: string | null;
     organizationName: string | null;
     organizationLogoUrl: string | null;
+    authMethod: string | null;
     loading: boolean;
   }>({
     id: null,
@@ -34,6 +37,8 @@ export function useProfile() {
     phoneNumber: null,
     preferredName: null,
     startDate: null,
+    createdAt: null,
+    mfaEnabled: null,
     employmentType: null,
     employeeIdOfficial: null,
     workLocation: null,
@@ -41,6 +46,7 @@ export function useProfile() {
     organizationId: null,
     organizationName: null,
     organizationLogoUrl: null,
+    authMethod: null,
     loading: true,
   });
 
@@ -59,6 +65,8 @@ export function useProfile() {
           phoneNumber: context.phoneNumber || null,
           preferredName: context.preferredName || null,
           startDate: context.startDate || null,
+          createdAt: context.createdAt || null,
+          mfaEnabled: context.mfaEnabled ?? false,
           employmentType: context.employmentType || null,
           employeeIdOfficial: context.employeeIdOfficial || null,
           workLocation: context.workLocation || null,
@@ -66,6 +74,7 @@ export function useProfile() {
           organizationId: context.organizationId,
           organizationName: context.organizationName,
           organizationLogoUrl: context.organizationLogoUrl,
+          authMethod: context.authMethod || 'email',
           loading: false,
         });
       } catch (error) {

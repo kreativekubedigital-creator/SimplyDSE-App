@@ -1,10 +1,8 @@
 'use server';
 
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { Resend } from 'resend';
 
-// Initialize a Supabase client with the Service Role key
-// This bypasses RLS and allows creating users/roles securely
 interface ProvisionRequest {
   orgName: string;
   domain: string;
@@ -19,29 +17,20 @@ interface ProvisionRequest {
 }
 
 export async function provisionTenant(data: ProvisionRequest) {
-  // Initialize a Supabase client with the Service Role key inside the function
-  // to avoid build-time errors when environment variables are missing.
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  );
-
+  console.log('[Provisioning] Starting provisioning for:', data.orgName);
+  
   try {
     const slug = data.domain.split('.')[0] || data.orgName.toLowerCase().replace(/\s+/g, '-');
+    console.log('[Provisioning] Calculated slug:', slug);
 
     // 1. Create Organisation
+    console.log('[Provisioning] Step 1: Creating Organisation...');
     const { data: org, error: orgError } = await supabaseAdmin
       .from('organizations')
       .insert({
         name: data.orgName,
         slug: slug,
-        subdomain: slug, // from Phase 1
+        subdomain: slug,
         status: 'active',
         plan: data.plan.toLowerCase(),
         region: data.region,
@@ -51,35 +40,48 @@ export async function provisionTenant(data: ProvisionRequest) {
       .select('id')
       .single();
 
-    if (orgError) throw new Error(`Organisation Creation Failed: ${orgError.message}`);
+    if (orgError) {
+      console.error('[Provisioning] Step 1 Failed:', orgError);
+      throw new Error(`Organisation Creation Failed: ${orgError.message}`);
+    }
     const OrganisationId = org.id;
+    console.log('[Provisioning] Organisation created with ID:', OrganisationId);
 
     // 2. Fetch the Organisation Admin Role ID
+    console.log('[Provisioning] Step 2: Fetching role ID...');
     const { data: role, error: roleError } = await supabaseAdmin
       .from('roles')
       .select('id')
       .eq('slug', 'organization_admin')
       .single();
 
-    if (roleError) throw new Error(`Role Fetch Failed: ${roleError.message}`);
+    if (roleError) {
+      console.error('[Provisioning] Step 2 Failed:', roleError);
+      throw new Error(`Role Fetch Failed: ${roleError.message}`);
+    }
+    console.log('[Provisioning] Role ID fetched:', role.id);
 
-    // 3. Create User via Supabase Auth with Password
-    // First check if a user with this email already exists (orphan from deleted org)
-    let userId: string;
+    // 3. Create User via Supabase Auth
+    console.log('[Provisioning] Step 3: Handling Admin User...');
     
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(
+    // Check for existing user to prevent conflicts
+    const { data: userDataCheck, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    if (listError) {
+       console.warn('[Provisioning] Warning: Could not list users for cleanup check');
+    }
+    
+    const existingUser = userDataCheck?.users?.find(
       (u: any) => u.email?.toLowerCase() === data.adminEmail.toLowerCase()
     );
 
     if (existingUser) {
-      // Clean up the orphaned user: remove profile, roles, then auth user
+      console.log('[Provisioning] Cleaning up existing user:', existingUser.id);
       await supabaseAdmin.from('user_roles').delete().eq('user_id', existingUser.id);
       await supabaseAdmin.from('profiles').delete().eq('id', existingUser.id);
       await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
     }
 
-    // Now create the fresh user
+    // Create fresh user
     const { data: userData, error: userCreateError } = await supabaseAdmin.auth.admin.createUser({
       email: data.adminEmail,
       password: data.adminPassword || 'SimplyDSE2024!',
@@ -91,10 +93,15 @@ export async function provisionTenant(data: ProvisionRequest) {
       }
     });
 
-    if (userCreateError) throw new Error(`User Creation Failed: ${userCreateError.message}`);
-    userId = userData.user.id;
+    if (userCreateError) {
+      console.error('[Provisioning] Step 3 Failed:', userCreateError);
+      throw new Error(`User Creation Failed: ${userCreateError.message}`);
+    }
+    const userId = userData.user.id;
+    console.log('[Provisioning] Admin user created with ID:', userId);
 
-    // 4. Create Profile (if not created by a trigger automatically, though often it is. We will explicitly update or insert to ensure organization_id is set)
+    // 4. Create Profile
+    console.log('[Provisioning] Step 4: Creating Profile...');
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .upsert({
@@ -106,9 +113,13 @@ export async function provisionTenant(data: ProvisionRequest) {
         status: 'active'
       });
 
-    if (profileError) throw new Error(`Profile Creation Failed: ${profileError.message}`);
+    if (profileError) {
+      console.error('[Provisioning] Step 4 Failed:', profileError);
+      throw new Error(`Profile Creation Failed: ${profileError.message}`);
+    }
 
-    // 5. Assign Role in user_roles
+    // 5. Assign Role
+    console.log('[Provisioning] Step 5: Assigning Role...');
     const { error: userRoleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
@@ -117,9 +128,13 @@ export async function provisionTenant(data: ProvisionRequest) {
         organization_id: OrganisationId
       });
 
-    if (userRoleError) throw new Error(`Role Assignment Failed: ${userRoleError.message}`);
+    if (userRoleError) {
+      console.error('[Provisioning] Step 5 Failed:', userRoleError);
+      throw new Error(`Role Assignment Failed: ${userRoleError.message}`);
+    }
 
     // 6. Log Audit Event
+    console.log('[Provisioning] Step 6: Logging audit event...');
     await supabaseAdmin
       .from('audit_logs')
       .insert({
@@ -135,13 +150,15 @@ export async function provisionTenant(data: ProvisionRequest) {
         }
       });
 
-    // 7. Send Welcome Email with Credentials
+    // 7. Send Welcome Email
+    console.log('[Provisioning] Step 7: Sending welcome email...');
     const resend = new Resend(process.env.RESEND_API_KEY);
     const loginLink = `https://${slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online'}/login`;
+    const fromEmail = process.env.REPORTS_FROM_EMAIL || 'reports@notifications.simplydse.online';
 
     try {
       await resend.emails.send({
-        from: 'SimplyDSE <onboarding@simplydse.online>',
+        from: `SimplyDSE <${fromEmail}>`,
         to: data.adminEmail,
         subject: `Welcome to SimplyDSE - Your Workspace is Ready`,
         html: `
@@ -169,14 +186,15 @@ export async function provisionTenant(data: ProvisionRequest) {
           </div>
         `
       });
+      console.log('[Provisioning] Welcome email sent successfully.');
     } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError);
-      // We don't throw here because the org is already created, just log it.
+      console.error('[Provisioning] Email Delivery Failed (Non-critical):', emailError);
     }
 
+    console.log('[Provisioning] SUCCESS: Workspace online for', data.orgName);
     return { success: true, OrganisationId };
   } catch (error: any) {
-    console.error('Provisioning Error:', error);
-    return { success: false, error: error.message };
+    console.error('[Provisioning] CRITICAL ERROR:', error);
+    return { success: false, error: error.message || 'An unexpected error occurred during provisioning.' };
   }
 }

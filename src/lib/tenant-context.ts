@@ -20,6 +20,8 @@ export async function getTenantContext() {
       employee_id_official,
       work_location,
       manager_id,
+      created_at,
+      mfa_enabled,
       manager:manager_id(full_name),
       organizations!profiles_organization_id_fkey(name, slug, logo_url)
     `)
@@ -72,6 +74,8 @@ export async function getTenantContext() {
     phoneNumber: profile?.phone_number,
     preferredName: profile?.preferred_name,
     startDate: profile?.start_date,
+    createdAt: profile?.created_at,
+    mfaEnabled: profile?.mfa_enabled,
     employmentType: profile?.employment_type,
     employeeIdOfficial: profile?.employee_id_official,
     workLocation: profile?.work_location,
@@ -79,6 +83,7 @@ export async function getTenantContext() {
     organizationId,
     organizationName,
     organizationSlug,
-    organizationLogoUrl
+    organizationLogoUrl,
+    authMethod: user.app_metadata?.provider || 'email'
   };
 }

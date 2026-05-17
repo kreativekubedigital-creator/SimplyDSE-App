@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { linkSSOEmployee } from '@/lib/auth-linker';
+import { logSSOEvent } from '@/lib/audit-logger';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -33,29 +35,65 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // If a specific next URL was provided, use it
-      if (next) {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
-
-      // Otherwise, determine redirect based on user role
       const { data: { user } } = await supabase.auth.getUser();
 
-      if (user) {
+      if (user && user.email) {
+        // Run the linker for potential SSO users
+        const linkResult = await linkSSOEmployee(user.id, user.email);
+        
+        // Fetch refreshed profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, organization_id, organizations!profiles_organization_id_fkey(subdomain)')
           .eq('id', user.id)
           .single();
 
+        if (profile?.organization_id) {
+          await logSSOEvent({
+            organizationId: profile.organization_id,
+            userId: user.id,
+            action: 'sso_login_success',
+            details: { method: 'sso', email: user.email }
+          });
+        }
+
         const role = profile?.role;
+        // @ts-ignore
+        const subdomain = profile?.organizations?.subdomain;
+        let targetOrigin = origin;
+
+        // Dynamic domain mapping based on user role and organization subdomain
+        if (role === 'super_admin') {
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
+          const urlObj = new URL(origin);
+          if (urlObj.hostname === 'localhost' || urlObj.hostname.endsWith('.localhost')) {
+            urlObj.hostname = `admin.localhost`;
+          } else {
+            urlObj.hostname = `admin.${rootDomain}`;
+          }
+          targetOrigin = urlObj.origin;
+        } else if (subdomain && subdomain !== 'www') {
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
+          const urlObj = new URL(origin);
+          if (urlObj.hostname === 'localhost' || urlObj.hostname.endsWith('.localhost')) {
+            urlObj.hostname = `${subdomain}.localhost`;
+          } else {
+            urlObj.hostname = `${subdomain}.${rootDomain}`;
+          }
+          targetOrigin = urlObj.origin;
+        }
+
+        // If a specific next URL was provided, use it
+        if (next) {
+          return NextResponse.redirect(`${targetOrigin}${next}`);
+        }
 
         if (role === 'super_admin') {
-          return NextResponse.redirect(`${origin}/admin`);
+          return NextResponse.redirect(`${targetOrigin}/admin`);
         } else if (role === 'organization_admin' || role === 'org_admin') {
-          return NextResponse.redirect(`${origin}/dashboard`);
+          return NextResponse.redirect(`${targetOrigin}/dashboard`);
         } else {
-          return NextResponse.redirect(`${origin}/employee`);
+          return NextResponse.redirect(`${targetOrigin}/employee`);
         }
       }
 

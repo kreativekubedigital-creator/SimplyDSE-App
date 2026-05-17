@@ -38,3 +38,5 @@ dist/
 *.njsproj
 *.sln
 *.sw?
+*.tsbuildinfo
+scratch/
