@@ -59,9 +59,11 @@ export default function EmployeeProfilePage() {
     fullName: '',
     preferredName: '',
     phoneNumber: '',
+    avatarUrl: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (fullName) {
@@ -69,13 +71,44 @@ export default function EmployeeProfilePage() {
         fullName: fullName || '',
         preferredName: preferredName || '',
         phoneNumber: phoneNumber || '',
+        avatarUrl: avatarUrl || '',
       });
     }
-  }, [fullName, preferredName, phoneNumber]);
+  }, [fullName, preferredName, phoneNumber, avatarUrl]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 200 * 1024) {
+      alert('Your image needs to be 200kb or lesser.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (uploadEvent) => {
+      const base64 = uploadEvent.target?.result as string;
+      if (base64) {
+        if (isEditing) {
+          setFormData(prev => ({ ...prev, avatarUrl: base64 }));
+        } else {
+          setIsSaving(true);
+          const result = await updateProfileAction({ avatarUrl: base64 });
+          setIsSaving(false);
+          if (result.success) {
+            window.location.reload();
+          } else {
+            alert('Failed to update avatar: ' + result.error);
+          }
+        }
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSave = async () => {
@@ -130,16 +163,26 @@ export default function EmployeeProfilePage() {
               <div className="relative group/avatar">
                 <div className="w-40 h-40 rounded-[2.5rem] bg-white p-2 shadow-2xl shadow-blue-500/20 ring-4 ring-white">
                   <div className="w-full h-full rounded-[2rem] bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center text-4xl font-black text-blue-600 border border-blue-100/50 overflow-hidden">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt={fullName || ''} className="w-full h-full object-cover" />
+                    {(formData.avatarUrl || avatarUrl) ? (
+                      <img src={formData.avatarUrl || avatarUrl || undefined} alt={fullName || ''} className="w-full h-full object-cover" />
                     ) : (
                       initials
                     )}
                   </div>
                 </div>
-                <button className="absolute bottom-2 right-2 p-3 bg-blue-600 text-white rounded-2xl shadow-lg hover:bg-blue-700 hover:scale-110 transition-all border-4 border-white">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-2 right-2 p-3 bg-blue-600 text-white rounded-2xl shadow-lg hover:bg-blue-700 hover:scale-110 transition-all border-4 border-white"
+                >
                   <Camera className="w-5 h-5" />
                 </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleAvatarChange} 
+                />
               </div>
 
               {/* Identity Info */}
