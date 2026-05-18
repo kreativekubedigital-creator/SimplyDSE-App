@@ -10,6 +10,13 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const next = searchParams.get('next');
 
+  const host = request.headers.get('host') || '';
+  const isLocalhost = host.includes('localhost');
+  const port = host.split(':')[1] || '3000';
+  const ROOT_DOMAIN = isLocalhost
+    ? `localhost:${port}`
+    : (process.env.NEXT_PUBLIC_ROOT_DOMAIN || host.split('.').slice(-2).join('.'));
+
   if (code) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
@@ -22,9 +29,10 @@ export async function GET(request: Request) {
           },
           setAll(cookiesToSet) {
             try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
+              cookiesToSet.forEach(({ name, value, options }) => {
+                const domain = ROOT_DOMAIN.includes('localhost') ? undefined : `.${ROOT_DOMAIN}`;
+                cookieStore.set(name, value, { ...options, domain });
+              });
             } catch {
               // Server Component context — middleware handles this
             }
@@ -35,7 +43,13 @@ export async function GET(request: Request) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    if (error) {
+      console.error('[auth/callback] exchangeCodeForSession failed:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+      });
+    } else {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user && user.email) {
