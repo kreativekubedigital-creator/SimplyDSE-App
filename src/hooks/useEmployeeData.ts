@@ -1,5 +1,24 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchEmployeeAssignmentsForCurrentUser } from '@/app/actions/employee-assignment-actions';
+
+const formatDate = (dateStr: any, fallback: string = 'N/A') => {
+  if (!dateStr) return fallback;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime()) || d.getFullYear() <= 1970) return fallback;
+  return d.toLocaleDateString();
+};
+
+const formatDateTime = (dateStr: any, fallback: string = 'Recent') => {
+  if (!dateStr) return fallback;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime()) || d.getFullYear() <= 1970) return fallback;
+  return d.toLocaleString();
+};
+
+const isActiveAssignment = (status: string | null | undefined) => {
+  return status !== 'completed' && status !== 'cancelled' && status !== 'archived';
+};
 
 export function useEmployeeData() {
   const [loading, setLoading] = useState(true);
@@ -33,7 +52,14 @@ export function useEmployeeData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // 1. Fetch user's assessments with reports
+      // Fetch assignments through a server action so pre-provisioned profile,
+      // auth user, and employee table identifiers resolve to the same person.
+      const assignmentResult = await fetchEmployeeAssignmentsForCurrentUser();
+      if (!assignmentResult.success) throw new Error(assignmentResult.error);
+      const assignmentRecords = assignmentResult.assignments || [];
+      const employeeIds = assignmentResult.employeeIds?.length ? assignmentResult.employeeIds : [user.id];
+
+      // 1. Fetch user's assessments with reports and assignments
       const { data: records, error } = await supabase
         .from('assessments')
         .select(`
@@ -42,28 +68,18 @@ export function useEmployeeData() {
             id,
             email_status,
             report_status
+          ),
+          assessment_assignments (
+            id,
+            due_date,
+            assigned_at,
+            status
           )
         `)
-        .eq('user_id', user.id)
+        .in('user_id', employeeIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // 1b. Fetch user's assignments
-      const { data: assignmentRecords, error: assignError } = await supabase
-        .from('assessment_assignments')
-        .select(`
-          *,
-          assessment_templates (
-            name,
-            description,
-            version
-          )
-        `)
-        .eq('employee_id', user.id)
-        .order('assigned_at', { ascending: false });
-
-      if (assignError) throw assignError;
 
       // Process assessments for UI
       const processedAssessments = records.map((rec: any) => {
@@ -92,6 +108,17 @@ export function useEmployeeData() {
         }
 
         const report = rec.assessment_reports?.[0];
+        const assignment = rec.assessment_assignments?.[0] || (assignmentRecords || []).find((a: any) => a.submission_id === rec.id);
+
+        // Determine correct date based on completion status
+        let displayDate = 'Pending';
+        if (rec.status === 'completed') {
+          displayDate = rec.completed_at 
+            ? formatDate(rec.completed_at, 'N/A') 
+            : formatDate(rec.updated_at || rec.created_at, 'N/A');
+        } else {
+          displayDate = formatDate(assignment?.due_date, 'No due date');
+        }
 
         return {
           id: rec.id,
@@ -99,7 +126,7 @@ export function useEmployeeData() {
           subtitle: subtitle,
           status: rec.status === 'completed' ? 'Completed' : rec.status === 'in_progress' ? 'In Progress' : 'Not Started',
           progress: rec.status === 'completed' ? 100 : rec.status === 'in_progress' ? Math.round(((rec.metadata?.current_category_index || 0) / 21) * 100) : 0,
-          date: rec.created_at ? new Date(rec.created_at).toLocaleDateString() : 'Pending',
+          date: displayDate,
           dateLabel: rec.status === 'completed' ? 'Completed on' : 'Due date',
           risk: rec.risk_level || 'none',
           pdfUrl: rec.metadata?.pdf_report_url || null,
@@ -117,8 +144,8 @@ export function useEmployeeData() {
         title: rec.assessment_templates?.name || 'Assigned Assessment',
         description: rec.assessment_templates?.description || '',
         status: rec.status,
-        dueDate: rec.due_date ? new Date(rec.due_date).toLocaleDateString() : 'No due date',
-        assignedAt: new Date(rec.assigned_at).toLocaleDateString(),
+        dueDate: formatDate(rec.due_date, 'No due date'),
+        assignedAt: formatDate(rec.assigned_at, 'N/A'),
         submissionId: rec.submission_id,
         version: rec.assessment_templates?.version || '1.0'
       }));
@@ -128,7 +155,7 @@ export function useEmployeeData() {
       // 2. Calculate stats
       const completed = records.filter((r: any) => r.status === 'completed');
       const pending = records.filter((r: any) => r.status !== 'completed');
-      const activeAssignments = processedAssignments.filter(a => a.status !== 'completed');
+      const activeAssignments = processedAssignments.filter(a => isActiveAssignment(a.status));
       const compliance = records.length > 0 ? Math.round((completed.length / records.length) * 100) : 0;
       
       const latestRisk = records[0]?.risk_level || 'Low';
@@ -154,18 +181,21 @@ export function useEmployeeData() {
       // 4. Recent activity
       const recentActivities = records.slice(0, 4).map((rec: any) => ({
         text: `${rec.status === 'completed' ? 'Completed' : 'Updated'} ${rec.type.toUpperCase()} Assessment`,
-        time: new Date(rec.updated_at || rec.created_at).toLocaleString(),
+        time: formatDateTime(rec.updated_at || rec.created_at, 'Recent'),
         type: rec.status === 'completed' ? 'success' : 'info'
       }));
       setActivities(recentActivities);
 
       // 5. Upcoming tasks
-      const upcoming = records.filter((r: any) => r.status !== 'completed').map((r: any) => ({
-        title: r.type === 'dse' ? 'DSE Assessment' : 'Workstation Review',
-        date: r.created_at ? new Date(r.created_at).toLocaleDateString() : 'TBD',
-        due: 'Action Required',
-        priority: r.risk_level === 'high' ? 'High' : 'Medium'
-      }));
+      const upcoming = records.filter((r: any) => r.status !== 'completed').map((r: any) => {
+        const assignment = r.assessment_assignments?.[0] || (assignmentRecords || []).find((a: any) => a.submission_id === r.id);
+        return {
+          title: r.type === 'dse' || r.type === 'dse_workstation' ? 'DSE Assessment' : 'Workstation Review',
+          date: assignment?.due_date ? formatDate(assignment.due_date, 'No due date') : formatDate(r.created_at, 'TBD'),
+          due: 'Action Required',
+          priority: r.risk_level === 'high' ? 'High' : 'Medium'
+        };
+      });
       setUpcomingTasks(upcoming);
 
       // 6. Analytics
@@ -206,11 +236,16 @@ export function useEmployeeData() {
       const postureRating = healthScore > 80 ? 'Excellent' : healthScore > 60 ? 'Good' : healthScore > 40 ? 'Fair' : 'Needs Attention';
 
       // Historical Data
-      const historical = completed.slice(0, 5).reverse().map((r: any) => ({
-        month: new Date(r.created_at).toLocaleDateString('en-GB', { month: 'short' }),
-        score: r.score,
-        avg: 70
-      }));
+      const historical = completed.slice(0, 5).reverse().map((r: any) => {
+        const d = new Date(r.created_at);
+        return {
+          month: r.created_at && !isNaN(d.getTime()) && d.getFullYear() > 1970
+            ? d.toLocaleDateString('en-GB', { month: 'short' })
+            : 'N/A',
+          score: r.score,
+          avg: 70
+        };
+      });
 
       setAnalytics({
         healthScore,

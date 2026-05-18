@@ -18,9 +18,17 @@ interface CreateAssessmentInput {
   dueDate?: string;
 }
 
+function normalizeDueDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime()) || date.getFullYear() <= 1970) return null;
+  return date.toISOString();
+}
+
 export async function createAssessments(input: CreateAssessmentInput) {
   try {
     const { organizationId, templateId, userIds, assignedBy, type, frequency, dueDate } = input;
+    const normalizedDueDate = normalizeDueDate(dueDate);
 
     const missingFields = [];
     if (!organizationId) missingFields.push('organizationId');
@@ -87,7 +95,7 @@ export async function createAssessments(input: CreateAssessmentInput) {
       employee_id: assessment.user_id,
       assigned_by: assignedBy,
       status: 'assigned',
-      due_date: dueDate || null,
+      due_date: normalizedDueDate,
       submission_id: assessment.id
     }));
 

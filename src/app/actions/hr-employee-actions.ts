@@ -15,6 +15,17 @@ const supabaseAdmin = createClient(
   }
 );
 
+function normalizeDueDate(value: string | undefined, fallbackDays: number) {
+  if (value) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime()) && parsed.getFullYear() > 1970) {
+      return parsed;
+    }
+  }
+
+  return new Date(Date.now() + fallbackDays * 24 * 60 * 60 * 1000);
+}
+
 /**
  * Verifies that the currently logged-in user is an HR/Admin user
  * and returns their organization context.
@@ -262,7 +273,7 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
 
     if (!organizationId) throw new Error('No active organization context found.');
 
-    const dueDate = dueDateStr ? new Date(dueDateStr) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days default
+    const dueDate = normalizeDueDate(dueDateStr, 14);
 
     // Fetch the template & check if it exists
     const { data: template, error: tErr } = await supabaseAdmin
@@ -360,7 +371,7 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
 
     if (!organizationId) throw new Error('No active organization context found.');
 
-    const dueDate = dueDateStr ? new Date(dueDateStr) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days default
+    const dueDate = normalizeDueDate(dueDateStr, 7);
 
     // Fetch the template & check if it exists
     const { data: template, error: tErr } = await supabaseAdmin

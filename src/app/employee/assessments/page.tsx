@@ -42,7 +42,10 @@ import {
 
 function AssessmentContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'assigned' | 'history' | 'analytics' | 'resources' || 'assigned';
+  const tabParam = searchParams.get('tab');
+  const initialTab = (['assigned', 'history', 'analytics', 'resources'].includes(tabParam || '')
+    ? tabParam
+    : 'assigned') as 'assigned' | 'history' | 'analytics' | 'resources';
   const [activeTab, setActiveTab] = useState<'assigned' | 'history' | 'analytics' | 'resources'>(initialTab);
   const [searchTerm, setSearchTerm] = useState('');
   const { assessments, assignments, stats, analytics, loading, exportData } = useEmployeeData();

@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getTenantContext } from '@/lib/tenant-context';
 
+const parseValidDate = (value: any) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime()) || date.getFullYear() <= 1970) return null;
+  return date;
+};
+
 export function useComplianceData() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>({
@@ -40,7 +47,9 @@ export function useComplianceData() {
       if (error) throw error;
 
       const processedItems = (assignments || []).map((rec: any) => {
-        const isOverdue = rec.due_date && new Date(rec.due_date) < new Date() && rec.status !== 'completed';
+        const dueDate = parseValidDate(rec.due_date);
+        const isCompleted = rec.status === 'completed' || rec.assessment?.status === 'completed';
+        const isOverdue = !!dueDate && dueDate < new Date() && !isCompleted;
         
         // Completion logic
         let completion = 0;
@@ -66,7 +75,7 @@ export function useComplianceData() {
           assessmentName: rec.template?.name || 'DSE Assessment',
           assessmentVersion: rec.template?.version || '1.0',
           assignedAt: rec.assigned_at,
-          dueDate: rec.due_date,
+          dueDate: dueDate?.toISOString() || null,
           status: isOverdue ? 'Overdue' : rec.status.charAt(0).toUpperCase() + rec.status.slice(1).replace('_', ' '),
           rawStatus: rec.status,
           isOverdue,
@@ -107,7 +116,8 @@ export function useComplianceData() {
 
         // Calculate compliance for assignments assigned up to this month
         const upToThisMonthItems = processedItems.filter(item => {
-          const itemDate = new Date(item.assignedAt);
+          const itemDate = parseValidDate(item.assignedAt);
+          if (!itemDate) return false;
           return itemDate.getFullYear() < year || (itemDate.getFullYear() === year && itemDate.getMonth() <= month);
         });
 

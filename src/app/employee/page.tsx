@@ -71,7 +71,7 @@ export default function EmployeeDashboardPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Link href="/employee/assessments?tab=assessments" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-600/20">
+          <Link href="/employee/assessments?tab=assigned" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-600/20">
             <ClipboardList className="w-4 h-4" />
             My Assessments
           </Link>
@@ -90,7 +90,7 @@ export default function EmployeeDashboardPage() {
             iconColor="blue"
           />
         </Link>
-        <Link href="/employee/assessments?tab=assessments">
+        <Link href="/employee/assessments?tab=assigned">
           <StatCard 
             title="Assessments" 
             value={stats.completedCount} 
@@ -117,7 +117,7 @@ export default function EmployeeDashboardPage() {
             iconColor="purple"
           />
         </Link>
-        <Link href="/employee/assessments?tab=assessments">
+        <Link href="/employee/assessments?tab=assigned">
           <StatCard 
             title="Pending" 
             value={stats.pendingTasks} 
@@ -137,7 +137,7 @@ export default function EmployeeDashboardPage() {
           <section className="bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-[2.5rem] p-8 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Active Assessments</h3>
-              <Link href="/employee/assessments?tab=assessments" className="text-[11px] font-bold text-blue-600 hover:underline">View Assessment Hub</Link>
+              <Link href="/employee/assessments?tab=assigned" className="text-[11px] font-bold text-blue-600 hover:underline">View Assessment Hub</Link>
             </div>
             <div className="space-y-6">
               {activeAssignment ? (

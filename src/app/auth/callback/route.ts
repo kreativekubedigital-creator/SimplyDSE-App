@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { linkSSOEmployee } from '@/lib/auth-linker';
 import { logSSOEvent } from '@/lib/audit-logger';
+import { ensurePlatformSuperAdminProfile } from '@/lib/platform-admin';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -38,6 +39,8 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user && user.email) {
+        await ensurePlatformSuperAdminProfile(user.id, user.email);
+
         // Run the linker for potential SSO users
         const linkResult = await linkSSOEmployee(user.id, user.email);
         
@@ -66,10 +69,8 @@ export async function GET(request: Request) {
         if (role === 'super_admin') {
           const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
           const urlObj = new URL(origin);
-          if (urlObj.hostname === 'localhost' || urlObj.hostname.endsWith('.localhost')) {
-            urlObj.hostname = `admin.localhost`;
-          } else {
-            urlObj.hostname = `admin.${rootDomain}`;
+          if (urlObj.hostname !== 'localhost' && !urlObj.hostname.endsWith('.localhost')) {
+            urlObj.hostname = rootDomain;
           }
           targetOrigin = urlObj.origin;
         } else if (subdomain && subdomain !== 'www') {
@@ -89,8 +90,8 @@ export async function GET(request: Request) {
         }
 
         if (role === 'super_admin') {
-          return NextResponse.redirect(`${targetOrigin}/admin`);
-        } else if (role === 'organization_admin' || role === 'org_admin') {
+          return NextResponse.redirect(`${targetOrigin}/super-admin`);
+        } else if (['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'].includes(role || '')) {
           return NextResponse.redirect(`${targetOrigin}/dashboard`);
         } else {
           return NextResponse.redirect(`${targetOrigin}/employee`);

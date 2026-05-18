@@ -67,6 +67,13 @@ import {
   hrSendReminder
 } from '@/app/actions/hr-employee-actions';
 
+const formatSafeDate = (value: any, fallback = 'Not set') => {
+  if (!value) return fallback;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime()) || date.getFullYear() <= 1970) return fallback;
+  return date.toLocaleDateString();
+};
+
 function StaffDirectoryContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'directory' | 'training'>('directory');
@@ -1154,8 +1161,8 @@ function StaffDirectoryContent() {
                   <div key={item.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-center text-[12px]">
                     <div>
                       <p className="font-bold text-slate-800">{item.assessment_templates?.name || 'DSE Audit'}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Assigned: {new Date(item.assigned_at).toLocaleDateString()}</p>
-                      <p className="text-[10px] text-slate-400">Due Date: {item.due_date ? new Date(item.due_date).toLocaleDateString() : 'N/A'}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Assigned: {formatSafeDate(item.assigned_at, 'Not recorded')}</p>
+                      <p className="text-[10px] text-slate-400">Due Date: {formatSafeDate(item.due_date, 'No due date')}</p>
                     </div>
                     <span className={cn(
                       "px-2 py-0.5 rounded text-[10px] font-bold uppercase",

@@ -4,10 +4,13 @@ import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(req: NextRequest) {
   const hostname = req.headers.get('host') || '';
+  const isLocalhost = hostname.includes('localhost');
+  const port = hostname.split(':')[1] || '3000';
 
   // Resolve ROOT_DOMAIN
-  const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ||
-    (hostname.includes('localhost') ? 'localhost:3000' : hostname.split('.').slice(-2).join('.'));
+  const ROOT_DOMAIN = isLocalhost
+    ? `localhost:${port}`
+    : (process.env.NEXT_PUBLIC_ROOT_DOMAIN || hostname.split('.').slice(-2).join('.'));
 
   let res = NextResponse.next({
     request: {
@@ -25,7 +28,7 @@ export async function middleware(req: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            const domain = ROOT_DOMAIN === 'localhost:3000' ? undefined : `.${ROOT_DOMAIN}`;
+            const domain = ROOT_DOMAIN.includes('localhost') ? undefined : `.${ROOT_DOMAIN}`;
             req.cookies.set(name, value);
             res.cookies.set({ name, value, ...options, domain });
           });
@@ -43,7 +46,6 @@ export async function middleware(req: NextRequest) {
 
   // Calculate subdomain
   let currentHost = hostname
-    .replace(`localhost:3000`, '')
     .replace(`${ROOT_DOMAIN}`, '')
     .replace(/\.$/, '');
 
@@ -65,7 +67,33 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
 
+    if (user) {
+      // Fetch user profile securely
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      // Non-super admin: redirect back to public marketing portal
+      if (!profile || profile.role !== 'super_admin') {
+        console.warn('[middleware] Non-super admin attempted to access admin subdomain:', user.email);
+        const wwwUrl = new URL('/login?error=Access+Denied:+Super+Admin+only', req.url);
+        wwwUrl.hostname = ROOT_DOMAIN.includes('localhost') ? 'localhost' : `www.${ROOT_DOMAIN}`;
+        return NextResponse.redirect(wwwUrl);
+      }
+
+      // Already authenticated super admin: redirect login/auth paths back to root
+      if (path === '/login' || path.startsWith('/auth')) {
+        return NextResponse.redirect(new URL('/', req.url));
+      }
+    }
+
     // Clean up URLs: If they access admin.domain.com/admin/something, redirect to admin.domain.com/something
+    if (path === '/super-admin' || path.startsWith('/super-admin/')) {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+
     if (path.startsWith('/admin')) {
       return NextResponse.redirect(new URL(path.replace(/^\/admin/, '') || '/', req.url));
     }
@@ -88,6 +116,9 @@ export async function middleware(req: NextRequest) {
         // Let Next.js serve the /admin route tree directly (no rewrite needed, it already maps correctly)
         return res;
       }
+      if (path === '/super-admin' || path.startsWith('/super-admin/')) {
+        return NextResponse.rewrite(new URL(path.replace(/^\/super-admin/, '/admin') || '/admin', req.url));
+      }
       if (path.startsWith('/dashboard')) {
         return res;
       }
@@ -106,7 +137,7 @@ export async function middleware(req: NextRequest) {
         const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
 
         if (profile?.role === 'super_admin') {
-          return NextResponse.redirect(new URL('/admin', req.url));
+          return NextResponse.redirect(new URL('/super-admin', req.url));
         } else if (profile?.role && hrRoles.includes(profile.role)) {
           return NextResponse.redirect(new URL('/dashboard', req.url));
         } else {
@@ -116,7 +147,7 @@ export async function middleware(req: NextRequest) {
       }
     } else {
       // Unauthenticated user on www trying to access protected routes
-      if (path.startsWith('/admin') || path.startsWith('/dashboard') || path.startsWith('/employee')) {
+      if (path.startsWith('/admin') || path.startsWith('/super-admin') || path.startsWith('/dashboard') || path.startsWith('/employee')) {
         return NextResponse.redirect(new URL('/login', req.url));
       }
     }

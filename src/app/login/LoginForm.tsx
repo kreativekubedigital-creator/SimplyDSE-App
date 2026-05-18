@@ -108,6 +108,11 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
         throw new Error('Authentication failed. No user returned.');
       }
 
+      console.info('[auth] Password sign-in succeeded; resolving profile', {
+        userId: data.user.id,
+        email: data.user.email,
+      });
+
       // 2. Fetch user profile — try server action first, fallback to direct query
       let profile: any = null;
 
@@ -154,11 +159,7 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
       
       if (role === 'super_admin') {
-        if (tenantSlug === 'admin') {
-          router.push('/');
-        } else {
-          router.push('/admin');
-        }
+        router.push('/super-admin');
       } else if (hrRoles.includes(role)) {
         if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
           router.push(nextUrl || '/');
