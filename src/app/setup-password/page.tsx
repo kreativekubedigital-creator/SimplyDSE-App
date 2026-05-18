@@ -44,15 +44,48 @@ export default function SetupPasswordPage() {
 
       // Update the user's profile status to active
       const { data: { user } } = await supabase.auth.getUser();
+      let targetOrigin = '';
+      let targetPath = '/dashboard';
+
       if (user) {
         await supabase.from('profiles').update({ status: 'active' }).eq('id', user.id);
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, organization_id, organizations!profiles_organization_id_fkey(subdomain)')
+          .eq('id', user.id)
+          .single();
+
+        const role = profile?.role;
+        // @ts-ignore
+        const subdomain = profile?.organizations?.subdomain;
+        const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
+
+        if (role === 'super_admin') {
+          targetPath = '/super-admin';
+        } else if (hrRoles.includes(role || '')) {
+          targetPath = '/dashboard';
+        } else {
+          targetPath = '/employee';
+        }
+
+        if (subdomain && subdomain !== 'www') {
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
+          const urlObj = new URL(window.location.href);
+          if (urlObj.hostname === 'localhost' || urlObj.hostname.endsWith('.localhost')) {
+            urlObj.hostname = `${subdomain}.localhost`;
+          } else {
+            urlObj.hostname = `${subdomain}.${rootDomain}`;
+          }
+          targetOrigin = urlObj.origin;
+        }
       }
 
       setSuccess(true);
       
-      // Redirect to dashboard after 2 seconds
+      // Redirect to correct dashboard after 2 seconds
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        window.location.href = targetOrigin ? `${targetOrigin}${targetPath}` : targetPath;
       }, 2000);
       
     } catch (err: any) {

@@ -61,27 +61,46 @@ export default function ResetPasswordPage() {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, organization_id, organizations!profiles_organization_id_fkey(subdomain)')
           .eq('id', user.id)
           .single();
 
         const role = profile?.role;
+        // @ts-ignore
+        const subdomain = profile?.organizations?.subdomain;
         const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
 
         setTimeout(() => {
+          let targetOrigin = window.location.origin;
+
           if (role === 'super_admin') {
             const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
             const adminUrl = new URL(window.location.href);
             if (adminUrl.hostname !== 'localhost' && !adminUrl.hostname.endsWith('.localhost')) {
               adminUrl.hostname = `admin.${rootDomain}`;
               window.location.href = adminUrl.origin + '/';
+              return;
             } else {
               router.push('/super-admin');
+              return;
             }
-          } else if (hrRoles.includes(role || '')) {
-            router.push('/dashboard');
+          } else if (subdomain && subdomain !== 'www') {
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
+            const urlObj = new URL(window.location.href);
+            if (urlObj.hostname === 'localhost' || urlObj.hostname.endsWith('.localhost')) {
+              // Ensure we retain the port if present
+              const port = urlObj.port ? `:${urlObj.port}` : '';
+              urlObj.hostname = `${subdomain}.localhost`;
+            } else {
+              urlObj.hostname = `${subdomain}.${rootDomain}`;
+            }
+            targetOrigin = urlObj.origin;
+          }
+
+          if (hrRoles.includes(role || '')) {
+            window.location.href = `${targetOrigin}/dashboard`;
           } else {
-            router.push('/employee');
+            window.location.href = `${targetOrigin}/employee`;
           }
         }, 2000);
       } else {

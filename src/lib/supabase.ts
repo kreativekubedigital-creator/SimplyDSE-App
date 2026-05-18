@@ -10,7 +10,7 @@ function getCookieDomain(): string | undefined {
 
   // On localhost, do NOT set a domain — let the browser handle it naturally.
   // Setting ".localhost" or "localhost" is rejected by most browsers.
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.localhost')) {
     return undefined;
   }
 
