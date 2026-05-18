@@ -37,8 +37,27 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // 1. Refresh session if active
-  const { data: { user } } = await supabase.auth.getUser();
+  // 1. Instantly bypass Next.js link prefetching to prevent parallel token refresh rate limits (429)
+  const isPrefetch = req.headers.get('x-middleware-prefetch') === '1' || 
+                     req.headers.get('purpose') === 'prefetch';
+  if (isPrefetch) {
+    return res;
+  }
+
+  // 2. Only invoke Supabase getUser() if auth cookies exist to prevent unnecessary database/API calls for guests
+  const allCookies = req.cookies.getAll();
+  const hasAuthCookie = allCookies.some(c => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
+
+  let user = null;
+
+  if (hasAuthCookie) {
+    try {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    } catch (err) {
+      console.error('[middleware] Session check failed:', err);
+    }
+  }
 
   // 2. Multi-Workspace Subdomain Resolution
   const url = req.nextUrl;
