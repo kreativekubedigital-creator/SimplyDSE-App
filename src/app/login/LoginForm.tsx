@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { ArrowRight, Loader2, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Loader2, Lock, Eye, EyeOff, ShieldCheck, Mail, Key } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchLoginProfile } from '@/app/actions/fetch-login-profile';
 
@@ -18,7 +18,10 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [mode, setMode] = useState<'login' | 'forgot' | 'magic'>('login');
+  
   const [ssoCheck, setSsoCheck] = useState<{
     ssoRequired: boolean;
     hasActiveProvider: boolean;
@@ -26,6 +29,20 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
     organizationName?: string;
     domain?: string;
   } | null>(null);
+
+  // Monitor URL parameters for errors or forgotten states on load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlError = searchParams.get('error');
+      if (urlError) {
+        setError(decodeURIComponent(urlError));
+      }
+      if (searchParams.get('forgot') === 'true') {
+        setMode('forgot');
+      }
+    }
+  }, []);
 
   const handleEmailBlur = async () => {
     if (!email || !email.includes('@')) return;
@@ -42,7 +59,7 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
           organizationName: result.organizationName,
           domain: result.domain
         });
-        // If they are on the wrong subdomain, we should warn them or prepare to redirect
+        
         if (tenantSlug !== 'www' && tenantSlug !== 'admin' && result.organizationSlug !== tenantSlug) {
           setError(`Note: Your account belongs to ${result.organizationName}. You will be routed there for SSO.`);
         }
@@ -63,6 +80,7 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
     try {
       setIsSubmitting(true);
       setError('');
+      setSuccessMessage('');
       
       const redirectTo = window.location.origin + '/auth/callback';
       
@@ -92,17 +110,15 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
+    setSuccessMessage('');
 
     try {
-      // 1. Authenticate with Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (authError) {
-        throw authError;
-      }
+      if (authError) throw authError;
 
       if (!data.user) {
         throw new Error('Authentication failed. No user returned.');
@@ -113,7 +129,6 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
         email: data.user.email,
       });
 
-      // 2. Fetch user profile — try server action first, fallback to direct query
       let profile: any = null;
 
       try {
@@ -127,7 +142,6 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
         console.warn('Server action unavailable:', serverErr, '— trying direct query...');
       }
 
-      // Fallback: direct client query (works for own profile via RLS)
       if (!profile) {
         const { data: directProfile, error: directError } = await supabase
           .from('profiles')
@@ -144,7 +158,6 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
 
       const role = profile?.role;
 
-      // 3. Workspace validation: If on a tenant subdomain, verify user belongs to it
       if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin' && role !== 'super_admin') {
         // @ts-ignore
         const userSubdomain = profile?.organizations?.subdomain;
@@ -155,11 +168,17 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
         }
       }
 
-      // 4. Role-based redirect
       const hrRoles = ['organisation_admin', 'organization_admin', 'org_admin', 'hr_manager', 'compliance_manager'];
       
       if (role === 'super_admin') {
-        router.push('/super-admin');
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
+        const adminUrl = new URL(window.location.href);
+        if (adminUrl.hostname !== 'localhost' && !adminUrl.hostname.endsWith('.localhost')) {
+          adminUrl.hostname = `admin.${rootDomain}`;
+          window.location.href = adminUrl.origin + '/';
+        } else {
+          router.push('/super-admin');
+        }
       } else if (hrRoles.includes(role)) {
         if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
           router.push(nextUrl || '/');
@@ -173,7 +192,6 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
           router.push('/manager');
         }
       } else {
-        // Employee
         if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin') {
           router.push(nextUrl || '/');
         } else {
@@ -189,10 +207,60 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      console.info('[auth] Requesting password recovery for email:', email);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/auth/callback?next=/reset-password',
+      });
+
+      if (resetError) throw resetError;
+
+      setSuccessMessage('A password recovery link has been sent to your email address.');
+    } catch (err: any) {
+      console.error('[auth] Failed to request recovery link:', err);
+      setError(err.message || 'Failed to send recovery link. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      console.info('[auth] Requesting magic link sign-in for email:', email);
+      const { error: magicError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin + '/auth/callback',
+        }
+      });
+
+      if (magicError) throw magicError;
+
+      setSuccessMessage('A login magic link has been sent to your email address.');
+    } catch (err: any) {
+      console.error('[auth] Failed to request magic link:', err);
+      setError(err.message || 'Failed to send magic link. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleOAuthLogin = async (provider: 'google' | 'azure') => {
     try {
       setIsSubmitting(true);
       setError('');
+      setSuccessMessage('');
 
       const redirectTo = window.location.origin + '/auth/callback';
 
@@ -223,6 +291,7 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
     try {
       setIsSubmitting(true);
       setError('');
+      setSuccessMessage('');
       
       const { checkEmailSSO } = await import('@/app/actions/check-email-sso');
       const result = await checkEmailSSO(email, tenantSlug);
@@ -259,97 +328,209 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
 
   return (
     <div className="space-y-6">
+      {/* Alert Banners */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-[13px] font-medium text-center">
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold text-center animate-in fade-in duration-200">
           {error}
         </div>
       )}
 
-      {/* Standard Credentials */}
-      <form onSubmit={handleStandardLogin} className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Work Email</label>
-          <input 
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onBlur={handleEmailBlur}
-            className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
-            placeholder="name@company.com"
-            required
-          />
+      {successMessage && (
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-semibold text-center animate-in fade-in duration-200">
+          {successMessage}
         </div>
+      )}
 
-        {(!ssoCheck || !ssoCheck.ssoRequired) ? (
-          <>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between pl-1 pr-1">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
-                <button type="button" className="text-[11px] font-bold text-brand-primary hover:underline">
-                  Forgot password?
-                </button>
-              </div>
-              <div className="relative group">
-                <input 
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 pr-12 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
-                  placeholder="••••••••••••"
-                  required={!ssoCheck?.ssoRequired}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
+      {/* Selector Tabs (Only in main states) */}
+      {mode !== 'forgot' && (
+        <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-2xl border border-slate-900">
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setError(''); setSuccessMessage(''); }}
+            className={`py-2 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all ${
+              mode === 'login' 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Password
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode('magic'); setError(''); setSuccessMessage(''); }}
+            className={`py-2 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all ${
+              mode === 'magic' 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Magic Link
+          </button>
+        </div>
+      )}
 
-            <button 
-              type="submit"
-              disabled={isSubmitting || !email || !password}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none mt-2"
-            >
-              {isSubmitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </>
-        ) : (
-          <div className="space-y-4 pt-2">
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 text-blue-600" />
-              <p className="text-[12px] text-blue-700 font-medium">
-                <strong>{ssoCheck.organizationName}</strong> requires Enterprise SSO for this domain.
-              </p>
-            </div>
-            
-            <button 
-              type="button"
-              onClick={handleSSORedirect}
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all mt-2"
-            >
-              {isSubmitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  Continue with SSO
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
+      {/* Mode Forms */}
+      {mode === 'login' && (
+        <form onSubmit={handleStandardLogin} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Work Email</label>
+            <input 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={handleEmailBlur}
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
+              placeholder="name@company.com"
+              required
+            />
           </div>
-        )}
-      </form>
+
+          {(!ssoCheck || !ssoCheck.ssoRequired) ? (
+            <>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between pl-1 pr-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
+                  <button 
+                    type="button" 
+                    onClick={() => { setMode('forgot'); setError(''); setSuccessMessage(''); }}
+                    className="text-[10px] font-bold text-brand-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative group">
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 pr-12 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
+                    placeholder="••••••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                disabled={isSubmitting || !email || !password}
+                className="w-full flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none mt-2"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <div className="space-y-4 pt-2">
+              <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
+                <p className="text-[12px] text-blue-700 font-medium">
+                  <strong>{ssoCheck.organizationName}</strong> requires Enterprise SSO for this domain.
+                </p>
+              </div>
+              
+              <button 
+                type="button"
+                onClick={handleSSORedirect}
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all mt-2"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    Continue with SSO
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </form>
+      )}
+
+      {mode === 'magic' && (
+        <form onSubmit={handleMagicLink} className="space-y-4 animate-in fade-in duration-200">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Work Email</label>
+            <input 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
+              placeholder="name@company.com"
+              required
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={isSubmitting || !email}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none mt-2"
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                Send Magic Link
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+      )}
+
+      {mode === 'forgot' && (
+        <form onSubmit={handleForgotPassword} className="space-y-4 animate-in fade-in duration-200">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between pl-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Work Email</label>
+              <button 
+                type="button"
+                onClick={() => { setMode('login'); setError(''); setSuccessMessage(''); }}
+                className="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                Back to Login
+              </button>
+            </div>
+            <input 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-medium focus:ring-2 focus:ring-brand-primary/20 transition-all outline-none"
+              placeholder="name@company.com"
+              required
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={isSubmitting || !email}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl text-[13px] font-bold shadow-lg shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none mt-2"
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                Send Reset Link
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+      )}
 
       <div className="flex items-center gap-4">
         <div className="flex-1 h-[1px] bg-slate-100" />
