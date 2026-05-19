@@ -56,18 +56,18 @@ export default function ComplianceOverviewPage() {
   useEffect(() => {
     let active = true;
 
-    async function fetchWorkspaceData() {
+    async function fetchWorkspaceData(force = false) {
       try {
         setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
         if (!active) return;
         
-        if (!user) {
+        if (!session?.user) {
           setLoading(false);
           return;
         }
 
-        const { organizationId, organizationName } = await getTenantContext();
+        const { organizationId, organizationName } = await getTenantContext({ forceRefresh: force });
         if (!active) return;
 
         if (!organizationId) {
@@ -153,7 +153,7 @@ export default function ComplianceOverviewPage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (active) {
-        fetchWorkspaceData();
+        fetchWorkspaceData(true);
       }
     });
 

@@ -49,7 +49,8 @@ export function useEmployeeData() {
   const fetchEmployeeData = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       // Fetch assignments through a server action so pre-provisioned profile,
@@ -280,7 +281,8 @@ export function useEmployeeData() {
     refresh: fetchEmployeeData,
     exportData: async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
         if (!user) return;
 
         const { data: records } = await supabase

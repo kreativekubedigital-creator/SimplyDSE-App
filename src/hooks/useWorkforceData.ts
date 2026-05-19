@@ -27,10 +27,10 @@ export function useWorkforceData() {
     highRisk: 0
   });
 
-  async function fetchWorkforce(active: boolean) {
+  async function fetchWorkforce(active: boolean, force = false) {
     try {
       setLoading(true);
-      const { organizationId } = await getTenantContext();
+      const { organizationId } = await getTenantContext({ forceRefresh: force });
 
       if (!active) return;
 
@@ -131,7 +131,7 @@ export function useWorkforceData() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (active) {
-        fetchWorkforce(active);
+        fetchWorkforce(active, true);
       }
     });
 

@@ -22,10 +22,10 @@ export function useComplianceData() {
     }
   });
 
-  async function fetchData(active: boolean) {
+  async function fetchData(active: boolean, force = false) {
     try {
       setLoading(true);
-      const { organizationId } = await getTenantContext();
+      const { organizationId } = await getTenantContext({ forceRefresh: force });
 
       if (!active) return;
 
@@ -168,7 +168,7 @@ export function useComplianceData() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (active) {
-        fetchData(active);
+        fetchData(active, true);
       }
     });
 

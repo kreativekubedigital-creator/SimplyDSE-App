@@ -93,12 +93,6 @@ export default async function LoginPage({
                 </p>
               </div>
 
-              {params.error && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-[13px] font-medium text-center">
-                  {params.error}
-                </div>
-              )}
-
               <LoginForm tenantSlug={tenantSlug} nextUrl={params.next} isSuperAdmin={isSuperAdmin} />
             </div>
           )}

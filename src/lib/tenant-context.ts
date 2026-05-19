@@ -1,7 +1,24 @@
 import { supabase } from './supabase';
 
-export async function getTenantContext() {
-  const { data: { user } } = await supabase.auth.getUser();
+let cachedContextPromise: Promise<any> | null = null;
+let lastFetchTime = 0;
+const CACHE_DURATION_MS = 2500;
+const DEDUPLICATE_WINDOW_MS = 200;
+
+export async function getTenantContext(options?: { forceRefresh?: boolean }) {
+  const now = Date.now();
+  const shouldForce = options?.forceRefresh && (now - lastFetchTime > DEDUPLICATE_WINDOW_MS);
+
+  if (shouldForce || !cachedContextPromise || (now - lastFetchTime > CACHE_DURATION_MS)) {
+    lastFetchTime = now;
+    cachedContextPromise = fetchTenantContext();
+  }
+  return cachedContextPromise;
+}
+
+async function fetchTenantContext() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return { user: null, organizationId: null, organizationName: null, role: null };
 
   const { data: profile } = await supabase

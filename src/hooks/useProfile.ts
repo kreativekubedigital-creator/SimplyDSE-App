@@ -54,9 +54,9 @@ export function useProfile() {
   useEffect(() => {
     let active = true;
 
-    async function loadProfile() {
+    async function loadProfile(force = false) {
       try {
-        const context = await getTenantContext();
+        const context = await getTenantContext({ forceRefresh: force });
         if (!active) return;
         setProfile({
           id: context.user?.id || null,
@@ -91,7 +91,7 @@ export function useProfile() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (active) {
-        loadProfile();
+        loadProfile(true);
       }
     });
 
