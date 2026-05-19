@@ -43,7 +43,8 @@ export default function SetupPasswordPage() {
       if (error) throw error;
 
       // Update the user's profile status to active
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       let targetOrigin = '';
       let targetPath = '/dashboard';
 

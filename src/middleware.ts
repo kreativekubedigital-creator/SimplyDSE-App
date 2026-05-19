@@ -175,7 +175,7 @@ export async function middleware(req: NextRequest) {
   // Workspace Zone (acme.simplydse.online)
   else {
     // 1. Auth Check
-    if (!user && path !== '/login' && !path.startsWith('/auth')) {
+    if (!user && path !== '/login' && path !== '/reset-password' && path !== '/setup-password' && !path.startsWith('/auth')) {
       const loginUrl = new URL('/login', req.url);
       if (path !== '/') loginUrl.searchParams.set('next', path);
       return NextResponse.redirect(loginUrl);
@@ -238,7 +238,7 @@ export async function middleware(req: NextRequest) {
 
 
       // 6. Rewrite to correct internal route
-      if (path !== '/login' && !path.startsWith('/auth')) {
+      if (path !== '/login' && path !== '/reset-password' && path !== '/setup-password' && !path.startsWith('/auth')) {
         // If the path already starts with the correct prefix, we don't need to rewrite
         // Next.js will handle the explicit path directly.
         if (path.startsWith(dashboardPrefix)) {

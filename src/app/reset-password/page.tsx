@@ -17,6 +17,14 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     async function checkAuthSession() {
       try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const urlError = searchParams.get('error');
+        if (urlError) {
+          setError(decodeURIComponent(urlError));
+          setCheckingSession(false);
+          return;
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           setError('Reset link expired');
@@ -156,6 +164,23 @@ export default function ResetPasswordPage() {
               <ShieldCheck className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
               <h3 className="text-white font-bold mb-1">Password Secured</h3>
               <p className="text-slate-400 text-xs mt-1">Redirecting you to your workspace...</p>
+            </div>
+          ) : error && (error.toLowerCase().includes('expired') || error.toLowerCase().includes('invalid')) ? (
+            <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-2xl text-center animate-in fade-in zoom-in-95 duration-500 space-y-4">
+              <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-1 animate-pulse" />
+              <div>
+                <h3 className="text-white font-bold text-lg">Reset Link Invalid or Expired</h3>
+                <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+                  For your security, password reset links expire after 1 hour or after being clicked once.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push('/login?forgot=true')}
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 text-slate-950 rounded-2xl text-[12px] font-bold shadow-lg shadow-emerald-500/15 hover:scale-[1.02] active:scale-95 transition-all mt-4"
+              >
+                Request a New Reset Link &rarr;
+              </button>
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-6">

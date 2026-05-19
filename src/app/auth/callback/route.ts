@@ -53,7 +53,12 @@ export async function GET(request: Request) {
       if (error.message.includes('expired') || error.message.includes('flow_state_not_found') || error.message.includes('Token has expired') || error.message.includes('invalid_grant')) {
         errorParam = 'Reset+link+expired';
       }
-      return NextResponse.redirect(`${origin}/login?error=${errorParam}`);
+      
+      const redirectUrl = (next === '/reset-password' || next?.startsWith('/reset-password'))
+        ? `${origin}/reset-password?error=${errorParam}`
+        : `${origin}/login?error=${errorParam}`;
+        
+      return NextResponse.redirect(redirectUrl);
     }
 
     const { data: { user } } = await supabase.auth.getUser();
