@@ -42,7 +42,7 @@ export function useWorkforceData() {
         .select(`
           *,
           assessments(status, risk_level, score, completed_at, created_at),
-          assessment_assignments(status, due_date, assigned_at)
+          assessment_assignments!assessment_assignments_employee_id_fkey(status, due_date, assigned_at)
         `)
         .eq('organization_id', organizationId)
         .order('full_name', { ascending: true });
