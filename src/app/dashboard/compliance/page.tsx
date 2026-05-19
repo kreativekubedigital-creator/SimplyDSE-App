@@ -83,11 +83,13 @@ function ComplianceContent() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
+        const { organizationId } = await getTenantContext();
         await supabase.from('notifications').insert({
+          organization_id: organizationId,
           user_id: item.employeeId,
           title: 'Assessment Reminder',
           message: `HR has requested that you complete the ${item.assessmentName}.`,
-          type: 'reminder',
+          type: 'assessment',
           metadata: { assignment_id: item.id }
         });
       }

@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          setError('No active authentication recovery session was found. Please request a new password reset link.');
+          setError('Reset link expired');
         }
       } catch (err) {
         console.error('[reset-password] Session check failed:', err);
@@ -110,7 +110,11 @@ export default function ResetPasswordPage() {
       }
     } catch (err: any) {
       console.error('[reset-password] Failed to update password:', err);
-      setError(err.message || 'Failed to update your password. Please try again.');
+      let errorMessage = err.message || 'Failed to update your password. Please try again.';
+      if (errorMessage.includes('expired') || errorMessage.includes('token_expired') || errorMessage.includes('Auth session expired') || errorMessage.includes('invalid flow') || errorMessage.includes('User not found')) {
+        errorMessage = 'Reset link expired';
+      }
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

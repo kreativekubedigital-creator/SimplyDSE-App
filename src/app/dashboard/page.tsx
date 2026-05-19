@@ -54,10 +54,13 @@ export default function ComplianceOverviewPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     async function fetchWorkspaceData() {
       try {
         setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
+        if (!active) return;
         
         if (!user) {
           setLoading(false);
@@ -65,6 +68,7 @@ export default function ComplianceOverviewPage() {
         }
 
         const { organizationId, organizationName } = await getTenantContext();
+        if (!active) return;
 
         if (!organizationId) {
           setLoading(false);
@@ -84,6 +88,7 @@ export default function ComplianceOverviewPage() {
           .eq('organization_id', currentOrgId);
 
         if (profileError) throw profileError;
+        if (!active) return;
 
         let completed = 0;
         let nonCompliantCount = 0;
@@ -140,11 +145,22 @@ export default function ComplianceOverviewPage() {
       } catch (error) {
         console.error("Error fetching Workspace data:", error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
 
     fetchWorkspaceData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (active) {
+        fetchWorkspaceData();
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const distributionData = [

@@ -27,10 +27,12 @@ export function useWorkforceData() {
     highRisk: 0
   });
 
-  async function fetchWorkforce() {
+  async function fetchWorkforce(active: boolean) {
     try {
       setLoading(true);
       const { organizationId } = await getTenantContext();
+
+      if (!active) return;
 
       if (!organizationId) {
         setLoading(false);
@@ -48,6 +50,7 @@ export function useWorkforceData() {
         .order('full_name', { ascending: true });
 
       if (error) throw error;
+      if (!active) return;
 
       const processedEmps = emps.map((emp: any) => {
         // Sort assessments by created_at descending to find the latest assignment
@@ -118,13 +121,25 @@ export function useWorkforceData() {
     } catch (err) {
       console.error('Error fetching workforce data:', err);
     } finally {
-      setLoading(false);
+      if (active) setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchWorkforce();
+    let active = true;
+    fetchWorkforce(active);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (active) {
+        fetchWorkforce(active);
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  return { employees, loading, stats, refetch: fetchWorkforce };
+  return { employees, loading, stats, refetch: () => fetchWorkforce(true) };
 }

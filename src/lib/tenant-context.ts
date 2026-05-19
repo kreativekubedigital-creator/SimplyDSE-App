@@ -52,6 +52,20 @@ export async function getTenantContext() {
           organizationSlug = orgData.slug;
           organizationLogoUrl = orgData.logo_url;
         }
+      } else {
+        // Fallback for local development or admin subdomain for super_admin
+        const { data: orgData } = await supabase
+          .from('organizations')
+          .select('id, name, slug, logo_url')
+          .limit(1)
+          .single();
+        
+        if (orgData) {
+          organizationId = orgData.id;
+          organizationName = orgData.name;
+          organizationSlug = orgData.slug;
+          organizationLogoUrl = orgData.logo_url;
+        }
       }
     }
   } else {

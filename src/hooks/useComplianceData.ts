@@ -22,10 +22,12 @@ export function useComplianceData() {
     }
   });
 
-  async function fetchData() {
+  async function fetchData(active: boolean) {
     try {
       setLoading(true);
       const { organizationId } = await getTenantContext();
+
+      if (!active) return;
 
       if (!organizationId) {
         setLoading(false);
@@ -45,6 +47,7 @@ export function useComplianceData() {
         .order('assigned_at', { ascending: false });
 
       if (error) throw error;
+      if (!active) return;
 
       const processedItems = (assignments || []).map((rec: any) => {
         const dueDate = parseValidDate(rec.due_date);
@@ -155,13 +158,25 @@ export function useComplianceData() {
     } catch (err) {
       console.error('Error fetching risk & compliance data:', err);
     } finally {
-      setLoading(false);
+      if (active) setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchData();
+    let active = true;
+    fetchData(active);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (active) {
+        fetchData(active);
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  return { ...data, loading, refetch: fetchData };
+  return { ...data, loading, refetch: () => fetchData(true) };
 }

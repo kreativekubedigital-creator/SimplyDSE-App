@@ -19,7 +19,7 @@ export async function fetchLoginProfile(userId: string) {
 
     const { data: profile, error } = await supabaseAdmin
       .from('profiles')
-      .select('role, organization_id, full_name, organizations!profiles_organization_id_fkey(subdomain, name)')
+      .select('role, organization_id, status, full_name, organizations!profiles_organization_id_fkey(subdomain, name)')
       .eq('id', userId)
       .single();
 

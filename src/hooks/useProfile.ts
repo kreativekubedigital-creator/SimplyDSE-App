@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getTenantContext } from '@/lib/tenant-context';
+import { supabase } from '@/lib/supabase';
 
 export function useProfile() {
   const [profile, setProfile] = useState<{
@@ -51,9 +52,12 @@ export function useProfile() {
   });
 
   useEffect(() => {
+    let active = true;
+
     async function loadProfile() {
       try {
         const context = await getTenantContext();
+        if (!active) return;
         setProfile({
           id: context.user?.id || null,
           email: context.user?.email || null,
@@ -79,11 +83,22 @@ export function useProfile() {
         });
       } catch (error) {
         console.error('Error loading profile:', error);
-        setProfile(prev => ({ ...prev, loading: false }));
+        if (active) setProfile(prev => ({ ...prev, loading: false }));
       }
     }
 
     loadProfile();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (active) {
+        loadProfile();
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const getInitials = (name: string | null) => {

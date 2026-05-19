@@ -99,6 +99,7 @@ export async function createAssessments(input: CreateAssessmentInput) {
       submission_id: assessment.id
     }));
 
+
     const { error: assignErr } = await supabaseAdmin
       .from('assessment_assignments')
       .insert(assignmentRecords);
@@ -179,7 +180,7 @@ export async function sendAssessmentReminders(organizationId: string) {
       user_id: p.user_id,
       title: 'Assessment Reminder',
       message: `Friendly reminder to complete your "${p.assessment_templates?.name || 'assigned'}" assessment.`,
-      type: 'assessment_reminder',
+      type: 'assessment',
       is_read: false,
     }));
 

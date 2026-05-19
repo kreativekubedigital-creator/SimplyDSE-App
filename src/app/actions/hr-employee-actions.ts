@@ -93,6 +93,7 @@ export async function hrUpdateEmployee(employeeId: string, data: {
   try {
     const { actingUser, organizationId } = await verifyHRUser();
     const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
     const fullName = `${data.firstName} ${data.lastName}`.trim();
     
@@ -117,7 +118,7 @@ export async function hrUpdateEmployee(employeeId: string, data: {
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'employee_updated',
       entity_type: 'profile',
@@ -141,7 +142,8 @@ export async function hrUpdateEmployee(employeeId: string, data: {
 export async function hrArchiveEmployee(employeeId: string) {
   try {
     const { actingUser, organizationId } = await verifyHRUser();
-    await verifyTargetEmployee(employeeId, organizationId);
+    const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
     // Set status to archived
     const { error } = await supabaseAdmin
@@ -156,7 +158,7 @@ export async function hrArchiveEmployee(employeeId: string) {
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'employee_archived',
       entity_type: 'profile',
@@ -179,7 +181,8 @@ export async function hrArchiveEmployee(employeeId: string) {
 export async function hrSuspendEmployee(employeeId: string) {
   try {
     const { actingUser, organizationId } = await verifyHRUser();
-    await verifyTargetEmployee(employeeId, organizationId);
+    const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
     // Set status to suspended
     const { error } = await supabaseAdmin
@@ -194,7 +197,7 @@ export async function hrSuspendEmployee(employeeId: string) {
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'employee_suspended',
       entity_type: 'profile',
@@ -218,6 +221,7 @@ export async function hrActivateEmployee(employeeId: string) {
   try {
     const { actingUser, organizationId } = await verifyHRUser();
     const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
     const { error } = await supabaseAdmin
       .from('profiles')
@@ -246,7 +250,7 @@ export async function hrActivateEmployee(employeeId: string) {
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'employee_restored',
       entity_type: 'profile',
@@ -270,8 +274,9 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
   try {
     const { actingUser, organizationId } = await verifyHRUser();
     const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
-    if (!organizationId) throw new Error('No active organization context found.');
+    if (!resolvedOrgId) throw new Error('No active organization context found.');
 
     const dueDate = normalizeDueDate(dueDateStr, 14);
 
@@ -288,7 +293,7 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
     const { data: existing } = await supabaseAdmin
       .from('assessment_assignments')
       .select('id')
-      .eq('organization_id', organizationId)
+      .eq('organization_id', resolvedOrgId)
       .eq('assessment_template_id', templateId)
       .eq('employee_id', employeeId)
       .in('status', ['assigned', 'in_progress'])
@@ -302,7 +307,7 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
     const { data: assessment, error: insertErr } = await supabaseAdmin
       .from('assessments')
       .insert({
-        organization_id: organizationId,
+        organization_id: resolvedOrgId,
         user_id: employeeId,
         template_id: templateId,
         type: template.name || 'Hybrid DSE Assessment',
@@ -318,7 +323,7 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
     const { error: assignError } = await supabaseAdmin
       .from('assessment_assignments')
       .insert({
-        organization_id: organizationId,
+        organization_id: resolvedOrgId,
         assessment_template_id: templateId,
         employee_id: employeeId,
         assigned_by: actingUser.id,
@@ -332,7 +337,7 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
 
     // Create Notification
     await supabaseAdmin.from('notifications').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: employeeId,
       title: 'New Assessment Assigned',
       message: `HR has assigned you a new workstation assessment due on ${dueDate.toLocaleDateString()}.`,
@@ -342,7 +347,7 @@ export async function hrAssignAssessment(employeeId: string, templateId: string,
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'assessment_assigned',
       entity_type: 'profile',
@@ -368,8 +373,9 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
   try {
     const { actingUser, organizationId } = await verifyHRUser();
     const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
-    if (!organizationId) throw new Error('No active organization context found.');
+    if (!resolvedOrgId) throw new Error('No active organization context found.');
 
     const dueDate = normalizeDueDate(dueDateStr, 7);
 
@@ -386,7 +392,7 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
     const { data: existing } = await supabaseAdmin
       .from('assessment_assignments')
       .select('id')
-      .eq('organization_id', organizationId)
+      .eq('organization_id', resolvedOrgId)
       .eq('assessment_template_id', templateId)
       .eq('employee_id', employeeId)
       .in('status', ['assigned', 'in_progress'])
@@ -400,7 +406,7 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
     const { data: assessment, error: insertErr } = await supabaseAdmin
       .from('assessments')
       .insert({
-        organization_id: organizationId,
+        organization_id: resolvedOrgId,
         user_id: employeeId,
         template_id: templateId,
         type: template.name || 'Hybrid DSE Assessment',
@@ -416,7 +422,7 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
     const { error: assignError } = await supabaseAdmin
       .from('assessment_assignments')
       .insert({
-        organization_id: organizationId,
+        organization_id: resolvedOrgId,
         assessment_template_id: templateId,
         employee_id: employeeId,
         assigned_by: actingUser.id,
@@ -430,7 +436,7 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
 
     // Create Notification with reason
     await supabaseAdmin.from('notifications').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: employeeId,
       title: 'Reassessment Requested',
       message: `HR has requested a reassessment. Reason: ${reason || 'Standard review'}. Due: ${dueDate.toLocaleDateString()}`,
@@ -440,7 +446,7 @@ export async function hrRequestReassessment(employeeId: string, templateId: stri
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'reassessment_requested',
       entity_type: 'profile',
@@ -467,6 +473,7 @@ export async function hrAddNote(employeeId: string, noteText: string) {
   try {
     const { actingUser, organizationId } = await verifyHRUser();
     const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
     // Get current accessibility prefs which stores our notes list safely in JSONB
     const currentPrefs = employee.accessibility_prefs || {};
@@ -496,7 +503,7 @@ export async function hrAddNote(employeeId: string, noteText: string) {
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'hr_note_added',
       entity_type: 'profile',
@@ -521,6 +528,7 @@ export async function hrTransferDepartment(employeeId: string, newDepartment: st
   try {
     const { actingUser, organizationId } = await verifyHRUser();
     const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
     const oldDept = employee.department || 'General';
 
@@ -536,7 +544,7 @@ export async function hrTransferDepartment(employeeId: string, newDepartment: st
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'department_transferred',
       entity_type: 'profile',
@@ -561,7 +569,8 @@ export async function hrTransferDepartment(employeeId: string, newDepartment: st
 export async function hrResetLoginAccess(employeeId: string, email: string) {
   try {
     const { actingUser, organizationId } = await verifyHRUser();
-    await verifyTargetEmployee(employeeId, organizationId);
+    const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
     // Call Supabase admin to invite or trigger password reset link
     const { error } = await supabaseAdmin.auth.admin.generateLink({
@@ -576,7 +585,7 @@ export async function hrResetLoginAccess(employeeId: string, email: string) {
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'login_reset_requested',
       entity_type: 'profile',
@@ -599,9 +608,10 @@ export async function hrResetLoginAccess(employeeId: string, email: string) {
 export async function hrSendReminder(employeeId: string, type: 'incomplete_assessment' | 'overdue_assessment' | 'training' | 'reassessment') {
   try {
     const { actingUser, organizationId } = await verifyHRUser();
-    await verifyTargetEmployee(employeeId, organizationId);
+    const employee = await verifyTargetEmployee(employeeId, organizationId);
+    const resolvedOrgId = organizationId || employee.organization_id;
 
-    if (!organizationId) throw new Error('No active organization context found.');
+    if (!resolvedOrgId) throw new Error('No active organization context found.');
 
     let message = '';
     let title = '';
@@ -622,7 +632,7 @@ export async function hrSendReminder(employeeId: string, type: 'incomplete_asses
 
     // Insert Notification
     await supabaseAdmin.from('notifications').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: employeeId,
       title: title,
       message: message,
@@ -632,7 +642,7 @@ export async function hrSendReminder(employeeId: string, type: 'incomplete_asses
 
     // Log Audit event
     await supabaseAdmin.from('audit_logs').insert({
-      organization_id: organizationId,
+      organization_id: resolvedOrgId,
       user_id: actingUser.id,
       action: 'reminder_sent',
       entity_type: 'profile',

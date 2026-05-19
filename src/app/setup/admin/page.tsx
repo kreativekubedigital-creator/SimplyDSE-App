@@ -42,6 +42,10 @@ export default async function AdminSetupPage({
     );
 
     console.log('--- ADMIN ACTIVATION STARTED ---');
+
+    if (!password || password.length < 12) {
+      throw new Error('Password must be at least 12 characters for enterprise compliance.');
+    }
     
     // 1. Create or Update User
     const { data: { users } } = await supabase.auth.admin.listUsers();

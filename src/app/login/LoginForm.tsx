@@ -145,18 +145,26 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
       if (!profile) {
         const { data: directProfile, error: directError } = await supabase
           .from('profiles')
-          .select('role, organization_id, organizations!profiles_organization_id_fkey(subdomain, name)')
+          .select('role, organization_id, status, organizations!profiles_organization_id_fkey(subdomain, name)')
           .eq('id', data.user.id)
           .single();
 
         if (directError || !directProfile) {
           console.error('Both profile fetch methods failed. Direct error:', directError);
-          throw new Error('Unable to load your user profile. Please contact your administrator.');
+          throw new Error('Profile/role missing');
         }
         profile = directProfile;
       }
 
       const role = profile?.role;
+      if (!role) {
+        throw new Error('Profile/role missing');
+      }
+
+      if (profile.status === 'suspended') {
+        await supabase.auth.signOut();
+        throw new Error('Account suspended');
+      }
 
       if (tenantSlug && tenantSlug !== 'www' && tenantSlug !== 'admin' && role !== 'super_admin') {
         // @ts-ignore
@@ -201,7 +209,36 @@ export default function LoginForm({ tenantSlug, nextUrl, isSuperAdmin }: LoginFo
 
     } catch (err: any) {
       console.error('Login failed:', err);
-      setError(err.message || 'Authentication failed. Please verify your credentials.');
+      const errMsg = err.message || '';
+      
+      if (
+        errMsg.includes('Invalid login credentials') || 
+        errMsg.includes('invalid_credentials') || 
+        errMsg.includes('invalid_grant') ||
+        errMsg.toLowerCase().includes('invalid credential')
+      ) {
+        setError('Invalid login credentials');
+      } else if (
+        errMsg.includes('Email not confirmed') || 
+        errMsg.includes('email_not_confirmed') || 
+        errMsg.includes('Email confirmation') ||
+        errMsg.toLowerCase().includes('confirm')
+      ) {
+        setError('Email not confirmed');
+      } else if (
+        errMsg.includes('Account suspended') || 
+        errMsg.includes('suspended')
+      ) {
+        setError('Account suspended');
+      } else if (
+        errMsg.includes('Profile/role missing') || 
+        errMsg.includes('Unable to load your user profile') ||
+        errMsg.includes('profile fetch failed')
+      ) {
+        setError('Profile/role missing');
+      } else {
+        setError(errMsg || 'Invalid login credentials');
+      }
     } finally {
       setIsSubmitting(false);
     }

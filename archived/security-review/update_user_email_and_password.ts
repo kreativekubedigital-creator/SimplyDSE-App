@@ -1,0 +1,86 @@
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+// --- SECURITY SAFEGUARDS ---
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error('⛔ ERROR: Missing Supabase URL or service role key in env.');
+  process.exit(1);
+}
+
+// 1. Block production url
+const isProduction = !supabaseUrl.includes('localhost') && !supabaseUrl.includes('127.0.0.1');
+if (isProduction) {
+  console.error('⛔ SECURITY ALERT: Individual auth update operations via CLI are strictly blocked on non-local environments!');
+  process.exit(1);
+}
+
+// 2. Require confirmation phrase
+if (process.argv[2] !== 'CONFIRM_EMAIL_AND_PASSWORD_UPDATE') {
+  console.error('⛔ ERROR: You must pass the confirmation phrase "CONFIRM_EMAIL_AND_PASSWORD_UPDATE" as the first argument.');
+  process.exit(1);
+}
+
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+  auth: { autoRefreshToken: false, persistSession: false }
+});
+
+async function main() {
+  const oldEmail = 'edimeedime5@gmail.com';
+  const newEmail = 'edime.edime5@gmail.com';
+  
+  // NEVER use a single hardcoded shared password in production or commit sensitive credentials.
+  const password = process.env.TEST_DEVELOPMENT_PASSWORD;
+  if (!password || password.length < 12) {
+    console.error('⛔ ERROR: Please define a secure TEST_DEVELOPMENT_PASSWORD (at least 12 chars) in your .env.local first.');
+    process.exit(1);
+  }
+
+  console.log(`Starting migration for ${oldEmail} to ${newEmail}...`);
+
+  // 1. Find user by old email
+  const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+  if (listError) {
+    console.error('Error listing users:', listError);
+    return;
+  }
+
+  const user = users.find(u => u.email?.toLowerCase() === oldEmail.toLowerCase());
+  if (!user) {
+    console.error(`User with email ${oldEmail} not found in Auth!`);
+    return;
+  }
+
+  console.log(`Found Auth user: ${user.email} (ID: ${user.id})`);
+
+  // 2. Update user email and password in auth.users
+  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+    user.id,
+    { email: newEmail, password: password, email_confirm: true }
+  );
+
+  if (updateError) {
+    console.error('Failed to update auth.users:', updateError.message);
+    return;
+  }
+  console.log('Successfully updated auth.users email and password.');
+
+  // 3. Update email in public.profiles
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .update({ email: newEmail })
+    .eq('id', user.id);
+
+  if (profileError) {
+    console.error('Failed to update public.profiles:', profileError.message);
+  } else {
+    console.log('Successfully updated public.profiles email.');
+  }
+
+  console.log('Migration complete!');
+}
+
+main();

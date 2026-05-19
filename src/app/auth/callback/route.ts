@@ -49,8 +49,14 @@ export async function GET(request: Request) {
         status: error.status,
         code: error.code,
       });
-    } else {
-      const { data: { user } } = await supabase.auth.getUser();
+      let errorParam = 'Authentication+failed.+Please+try+again.';
+      if (error.message.includes('expired') || error.message.includes('flow_state_not_found') || error.message.includes('Token has expired') || error.message.includes('invalid_grant')) {
+        errorParam = 'Reset+link+expired';
+      }
+      return NextResponse.redirect(`${origin}/login?error=${errorParam}`);
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
 
       if (user && user.email) {
         await ensurePlatformSuperAdminProfile(user.id, user.email);
@@ -115,8 +121,7 @@ export async function GET(request: Request) {
       // Fallback
       return NextResponse.redirect(`${origin}/dashboard`);
     }
-  }
 
-  // Return the user to an error page with some instructions
-  return NextResponse.redirect(`${origin}/login?error=Authentication+failed.+Please+try+again.`);
+    // Return the user to an error page with some instructions
+    return NextResponse.redirect(`${origin}/login?error=Authentication+failed.+Please+try+again.`);
 }
