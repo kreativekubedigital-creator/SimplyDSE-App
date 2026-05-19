@@ -21,17 +21,7 @@ export default function ResetPasswordPage() {
       try {
         console.info('[reset-password] Initializing recovery session verification...');
 
-        // 1. Check if we already have a valid session (e.g. from a successful callback cookie exchange)
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        if (existingSession) {
-          console.info('[reset-password] Active session found on load. Proceeding to reset form.');
-          // Clear query params & hash to keep the URL clean
-          window.history.replaceState({}, document.title, window.location.pathname);
-          setCheckingSession(false);
-          return;
-        }
-
-        // 2. Parse URL query and hash parameters for session/error codes
+        // 1. Parse URL query and hash parameters for session/error codes first
         const searchParams = new URLSearchParams(window.location.search);
         let urlError = searchParams.get('error') || searchParams.get('error_description');
         let originalError = searchParams.get('original_error');
@@ -39,6 +29,7 @@ export default function ResetPasswordPage() {
         let tokenHash = searchParams.get('token_hash');
         let accessToken = searchParams.get('access_token');
         let refreshToken = searchParams.get('refresh_token');
+        let code = searchParams.get('code');
 
         if (window.location.hash) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -47,9 +38,75 @@ export default function ResetPasswordPage() {
           tokenHash = tokenHash || hashParams.get('token_hash');
           accessToken = accessToken || hashParams.get('access_token');
           refreshToken = refreshToken || hashParams.get('refresh_token');
+          code = code || hashParams.get('code');
         }
 
-        // 3. Try to establish session from access_token / refresh_token if present in URL/hash
+        // 2. If we have a redirect/callback error in URL, fail fast immediately (bypass getSession)
+        if (urlError) {
+          let decoded = decodeURIComponent(urlError).replace(/\+/g, ' ');
+          let decodedOriginal = originalError ? decodeURIComponent(originalError).replace(/\+/g, ' ') : 'none';
+          console.warn('[reset-password] Callback/redirect error detected in URL:', {
+            error: decoded,
+            originalError: decodedOriginal
+          });
+          
+          setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
+          window.history.replaceState({}, document.title, window.location.pathname);
+          setCheckingSession(false);
+          return;
+        }
+
+        // 3. Try to exchange PKCE code if present in URL (client-side exchange avoids email scanner consumption)
+        if (code) {
+          console.info('[reset-password] Found PKCE code in URL. Exchanging code for session on client...');
+          const exchangePromise = supabase.auth.exchangeCodeForSession(code);
+          const timeoutPromise = new Promise<any>((_, reject) =>
+            setTimeout(() => reject(new Error('Code exchange timed out')), 8000)
+          );
+
+          try {
+            const { error: exchangeError } = await Promise.race([exchangePromise, timeoutPromise]);
+            if (!exchangeError) {
+              console.info('[reset-password] Code exchanged successfully on client.');
+              window.history.replaceState({}, document.title, window.location.pathname);
+              setCheckingSession(false);
+              return;
+            } else {
+              console.error('[reset-password] Code exchange failed client-side:', exchangeError.message);
+              setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
+              setCheckingSession(false);
+              return;
+            }
+          } catch (err: any) {
+            console.error('[reset-password] Code exchange error/timeout:', err.message || err);
+            setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
+            setCheckingSession(false);
+            return;
+          }
+        }
+
+        // 4. Try to verify OTP token_hash if present in URL
+        if (tokenHash) {
+          console.info('[reset-password] Found token_hash. Verifying recovery OTP client-side...');
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery'
+          });
+
+          if (!verifyError) {
+            console.info('[reset-password] token_hash verified successfully. Session established.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setCheckingSession(false);
+            return;
+          } else {
+            console.error('[reset-password] token_hash verification failed:', verifyError.message);
+            setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
+            setCheckingSession(false);
+            return;
+          }
+        }
+
+        // 5. Try to establish session from access_token / refresh_token if present in URL/hash
         if (accessToken && refreshToken) {
           console.info('[reset-password] Found access_token/refresh_token. Establishing session...');
           const { data: { session: newSession }, error: setSessionError } = await supabase.auth.setSession({
@@ -67,47 +124,29 @@ export default function ResetPasswordPage() {
           }
         }
 
-        // 4. Try to verify OTP token_hash if present in URL/hash
-        if (tokenHash) {
-          console.info('[reset-password] Found token_hash. Verifying recovery OTP...');
-          const { error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: 'recovery'
-          });
+        // 6. Check if we already have an active session (with timeout to prevent hanging)
+        console.info('[reset-password] No direct verification params in URL. Checking existing session...');
+        const sessionPromise = supabase.auth.getSession();
+        const sessionTimeoutPromise = new Promise<any>((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timed out')), 4000)
+        );
 
-          if (!verifyError) {
-            console.info('[reset-password] token_hash verified successfully. Session established.');
+        try {
+          const { data: { session: existingSession } } = await Promise.race([sessionPromise, sessionTimeoutPromise]);
+          if (existingSession) {
+            console.info('[reset-password] Active session found on load. Proceeding to reset form.');
             window.history.replaceState({}, document.title, window.location.pathname);
             setCheckingSession(false);
             return;
           } else {
-            console.error('[reset-password] token_hash verification failed:', verifyError.message);
+            console.warn('[reset-password] No active session found.');
+            setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
           }
+        } catch (err: any) {
+          console.error('[reset-password] getSession error/timeout:', err.message || err);
+          setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
         }
 
-        // 5. If we don't have a session, check if there was a redirect error
-        if (urlError) {
-          let decoded = decodeURIComponent(urlError).replace(/\+/g, ' ');
-          let decodedOriginal = originalError ? decodeURIComponent(originalError).replace(/\+/g, ' ') : 'none';
-          console.warn('[reset-password] Callback/redirect error detected without active session:', {
-            error: decoded,
-            originalError: decodedOriginal
-          });
-          
-          setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
-          window.history.replaceState({}, document.title, window.location.pathname);
-          setCheckingSession(false);
-          return;
-        }
-
-        // 6. Final check: if still no session, declare the link invalid
-        const { data: { session: finalSession } } = await supabase.auth.getSession();
-        if (!finalSession) {
-          console.warn('[reset-password] No recovery session could be established.');
-          setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
-        } else {
-          console.info('[reset-password] Recovery session established successfully.');
-        }
       } catch (err: any) {
         console.error('[reset-password] Unexpected session check error:', err.message || err);
         setLinkError('This reset link has expired or is invalid. Please request a new reset link.');

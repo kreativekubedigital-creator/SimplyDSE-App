@@ -21,6 +21,18 @@ export async function GET(request: Request) {
     ? `localhost:${port}`
     : (process.env.NEXT_PUBLIC_ROOT_DOMAIN || host.split('.').slice(-2).join('.'));
 
+  // Intercept recovery flow immediately and redirect to client-side page
+  // This prevents the email scanner from doing the GET request code exchange
+  if (type === 'recovery' || next === '/reset-password' || next?.startsWith('/reset-password')) {
+    console.info('[auth/callback] Intercepting recovery flow to prevent server-side code consumption by email scanners.');
+    const destUrl = new URL(`${origin}/reset-password`);
+    if (code) destUrl.searchParams.set('code', code);
+    if (tokenHash) destUrl.searchParams.set('token_hash', tokenHash);
+    if (accessToken) destUrl.searchParams.set('access_token', accessToken);
+    if (refreshToken) destUrl.searchParams.set('refresh_token', refreshToken);
+    return NextResponse.redirect(destUrl.toString());
+  }
+
   console.info('[auth/callback] GET request received:', {
     hasCode: !!code,
     hasTokenHash: !!tokenHash,
