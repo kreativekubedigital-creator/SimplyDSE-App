@@ -10,28 +10,50 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
     async function checkAuthSession() {
       try {
+        // Read URL search params for error
         const searchParams = new URLSearchParams(window.location.search);
-        const urlError = searchParams.get('error');
+        let urlError = searchParams.get('error') || searchParams.get('error_description');
+
+        // Read URL hash params for error
+        if (!urlError && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          urlError = hashParams.get('error_description') || hashParams.get('error');
+        }
+
         if (urlError) {
-          setError(decodeURIComponent(urlError));
+          let decoded = decodeURIComponent(urlError).replace(/\+/g, ' ');
+          console.warn('[reset-password] Callback/redirect error detected:', decoded);
+          
+          // Map to user-requested error message
+          decoded = 'This reset link has expired or is invalid. Please request a new reset link.';
+          
+          setLinkError(decoded);
+          
+          // Clear query params & hash to prevent stale errors on refresh
+          window.history.replaceState({}, document.title, window.location.pathname);
           setCheckingSession(false);
           return;
         }
 
+        // Get recovery session
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          setError('Reset link expired');
+          console.warn('[reset-password] No active session found.');
+          setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
+        } else {
+          console.info('[reset-password] Valid recovery session detected.');
         }
-      } catch (err) {
-        console.error('[reset-password] Session check failed:', err);
-        setError('Unable to verify security session.');
+      } catch (err: any) {
+        console.error('[reset-password] Session check failed:', err.message || err);
+        setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
       } finally {
         setCheckingSession(false);
       }
@@ -41,30 +63,29 @@ export default function ResetPasswordPage() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setFormError(null);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setFormError('Passwords do not match.');
       return;
     }
 
     if (password.length < 12) {
-      setError('Password must be at least 12 characters for enterprise compliance.');
+      setFormError('Password must be at least 12 characters for enterprise compliance.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      console.info('[reset-password] Attempting password update for authenticated user...');
+      console.info('[reset-password] Attempting password update...');
       const { error: updateError } = await supabase.auth.updateUser({ password });
       
       if (updateError) throw updateError;
 
-      console.info('[reset-password] Password updated successfully. Resolving role for routing...');
+      console.info('[reset-password] Password updated successfully. Resolving profile...');
       setSuccess(true);
       
-      // Auto-resolve role and redirect to correct dashboard
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
       if (user) {
@@ -97,8 +118,6 @@ export default function ResetPasswordPage() {
             const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'simplydse.online';
             const urlObj = new URL(window.location.href);
             if (urlObj.hostname === 'localhost' || urlObj.hostname.endsWith('.localhost')) {
-              // Ensure we retain the port if present
-              const port = urlObj.port ? `:${urlObj.port}` : '';
               urlObj.hostname = `${subdomain}.localhost`;
             } else {
               urlObj.hostname = `${subdomain}.${rootDomain}`;
@@ -118,12 +137,13 @@ export default function ResetPasswordPage() {
         }, 2000);
       }
     } catch (err: any) {
-      console.error('[reset-password] Failed to update password:', err);
+      console.error('[reset-password] Failed to update password:', err.message || err);
       let errorMessage = err.message || 'Failed to update your password. Please try again.';
       if (errorMessage.includes('expired') || errorMessage.includes('token_expired') || errorMessage.includes('Auth session expired') || errorMessage.includes('invalid flow') || errorMessage.includes('User not found')) {
-        errorMessage = 'Reset link expired';
+        setLinkError('This reset link has expired or is invalid. Please request a new reset link.');
+      } else {
+        setFormError(errorMessage);
       }
-      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -134,7 +154,7 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3 text-slate-400">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
-          <p className="text-xs font-bold uppercase tracking-widest">Verifying Recovery Session...</p>
+          <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Verifying Recovery Session...</p>
         </div>
       </div>
     );
@@ -165,13 +185,13 @@ export default function ResetPasswordPage() {
               <h3 className="text-white font-bold mb-1">Password Secured</h3>
               <p className="text-slate-400 text-xs mt-1">Redirecting you to your workspace...</p>
             </div>
-          ) : error && (error.toLowerCase().includes('expired') || error.toLowerCase().includes('invalid')) ? (
+          ) : linkError ? (
             <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-2xl text-center animate-in fade-in zoom-in-95 duration-500 space-y-4">
               <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-1 animate-pulse" />
               <div>
                 <h3 className="text-white font-bold text-lg">Reset Link Invalid or Expired</h3>
                 <p className="text-slate-400 text-xs mt-2 leading-relaxed">
-                  For your security, password reset links expire after 1 hour or after being clicked once.
+                  {linkError}
                 </p>
               </div>
               <button
@@ -184,21 +204,10 @@ export default function ResetPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-6">
-              {error && (
+              {formError && (
                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex gap-3 text-red-400 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
                   <AlertCircle className="w-5 h-5 shrink-0" />
-                  <div className="space-y-1">
-                    <p>{error}</p>
-                    {error.includes('expired') && (
-                      <button
-                        type="button"
-                        onClick={() => router.push('/login?forgot=true')}
-                        className="text-[11px] text-emerald-400 hover:underline block font-bold"
-                      >
-                        Request a new reset link &rarr;
-                      </button>
-                    )}
-                  </div>
+                  <p>{formError}</p>
                 </div>
               )}
 
@@ -210,7 +219,6 @@ export default function ResetPasswordPage() {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      disabled={!!error && error.includes('expired')}
                       className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none"
                       placeholder="Minimum 12 characters"
                       required
@@ -226,7 +234,6 @@ export default function ResetPasswordPage() {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      disabled={!!error && error.includes('expired')}
                       className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none"
                       placeholder="Repeat password"
                       required
@@ -238,7 +245,7 @@ export default function ResetPasswordPage() {
 
               <button 
                 type="submit"
-                disabled={isSubmitting || !password || !confirmPassword || (!!error && error.includes('expired'))}
+                disabled={isSubmitting || !password || !confirmPassword}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-emerald-500 text-slate-950 rounded-2xl text-[13px] font-bold shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none mt-2"
               >
                 {isSubmitting ? (
